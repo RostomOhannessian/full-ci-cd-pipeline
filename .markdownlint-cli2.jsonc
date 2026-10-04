@@ -1,0 +1,28 @@
+{
+  // Documentation style rules. Enforced locally and in CI by markdownlint-cli2.
+  // Rationale for each deviation from the defaults is recorded in docs/adr/0005-documentation-system.md.
+  "config": {
+    "default": true,
+    // Long lines are normal in tables and links; reviewers read the rendered page.
+    "MD013": false,
+    // Repeated headings are fine under different parents (for example "Consequences").
+    "MD024": { "siblings_only": true },
+    // The page title lives in front matter and in one H1; do not count front matter as a second H1.
+    "MD025": { "front_matter_title": "" },
+    // Ordered lists count up (1, 2, 3) so that references like "step 3" stay stable.
+    "MD029": { "style": "ordered" },
+    // Allow the small set of HTML elements that Markdown cannot express.
+    "MD033": {
+      "allowed_elements": ["details", "summary", "br", "kbd", "sub", "sup", "img"]
+    },
+    // Bold lead-ins ("**Goal:** ...") are used deliberately instead of headings.
+    "MD036": false
+  },
+  "globs": ["**/*.md"],
+  "ignores": [
+    "node_modules/**",
+    // Raw, verbatim research records. They are preserved as produced, so style rules are not applied.
+    "docs/research/*-verification.md"
+  ],
+  "gitignore": true
+}

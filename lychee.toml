@@ -1,0 +1,12 @@
+# Offline link checking for the repository's Markdown.
+# It verifies relative links, file references, and heading anchors. It makes no network requests.
+# External links are not checked yet. WP1.3 adds a nightly external link check with the offline setting overridden.
+offline = true
+include_fragments = "full"
+
+no_progress = true
+# Also read Markdown under dot-directories such as .github/skills and .github/instructions.
+hidden = true
+
+# Templates contain {{placeholders}} instead of real link targets. The Git directory holds no documentation.
+exclude_path = ['^docs/templates/', '^\.git/']
