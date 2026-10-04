@@ -31,10 +31,21 @@ Phase 0 made the project portable and publicly verifiable before any code existe
 | `master` contains the plan, phase plans, status, decisions, research, and agent instructions | Pull request 1, merged with a merge commit |
 | Every commit uses the noreply identity, and the gitleaks full-history scan is clean | Checked on a fresh clone of the remote before publication, and again after the merge ([settings record](../governance/github-settings.md)) |
 | The repository is public with protections active, and the Phase 1 Milestone and Issues exist | [Settings record](../governance/github-settings.md) and [snapshot](../../governance/github/snapshot.json); [Phase 1 Milestone](https://github.com/RostomOhannessian/full-ci-cd-pipeline/milestone/2) with Issues 2 to 15 |
-| A fresh clone can resume work from `AGENTS.md` and `STATUS.md` with no session state | See the fresh-clone resume test below |
+| A fresh clone can resume work from `AGENTS.md` and `STATUS.md` with no session state | Passed on 2026-10-04; see the fresh-clone resume test below |
+
+## Fresh-clone resume test
+
+The test cloned the repository into a new directory with no session state, and used only the documented files. It passed on 2026-10-04:
+
+| Step | Result |
+| --- | --- |
+| Read the **Resume here** section of `STATUS.md` | The active phase (Phase 1, ready to start), the branch (`master`), the last completed step, the next action, and the open pull requests (none) were all present and unambiguous |
+| Find the resume protocol in `AGENTS.md` | Present |
+| Run the quality gate with the documented commands | `markdownlint`, `links`, and `secrets-worktree` all exited 0 |
+| Compare `status.yaml` with `STATUS.md` | They agree: phase 1 is current, Phase 0 is completed, and there are no open pull requests |
+| Check that the next action can be taken | Issue 2 (WP1.0) is open, and `phase/1-api-core` does not exist yet, as expected until Phase 1 starts |
 
 ## What went well
-
 - **Verify before deciding.** The research found facts that changed the plan before any code existed. GitHub Free private repositories lack rulesets, code scanning, and artifact attestations. CodeQL's terms forbid private repositories. OpenBao has no SQL Server plugin. ingress-nginx is retired, and tfsec is frozen. The trivy-action tags were hijacked in 2026. ([Plan section 1.1](../plans/implementation-plan.md) lists every finding.)
 - **One quality gate, identical everywhere.** The same three commands run locally and in CI, and the negative controls proved that a broken link, a broken heading anchor, and a seeded fake secret each fail the gate.
 - **Drafting in parallel, then reviewing.** Background agents drafted ADRs, the inventory, the AI configuration, the glossary, and the requirements register while the maintainer reviewed. The review found real problems, listed next.
