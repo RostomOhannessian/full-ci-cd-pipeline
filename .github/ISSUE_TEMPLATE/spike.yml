@@ -1,0 +1,44 @@
+name: Spike
+description: A time-boxed investigation that reduces a risk before dependent work starts.
+title: "spike: "
+labels: ["spike"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A spike answers one question and ends with a written report under `docs/research/spikes/` and an ADR update.
+        Spike branches (`spike/<phase>.<x>-<slug>`) are never merged; only the report and the decision are.
+  - type: textarea
+    id: question
+    attributes:
+      label: The question
+      description: One question that a result can answer yes or no, with a measurable outcome.
+    validations:
+      required: true
+  - type: textarea
+    id: risk
+    attributes:
+      label: Risk it reduces
+      description: Link the risk register entry or ADR that depends on the answer.
+    validations:
+      required: true
+  - type: input
+    id: timebox
+    attributes:
+      label: Time box
+      description: One day or less per spike. Stop and report when it runs out.
+      placeholder: 1 day
+    validations:
+      required: true
+  - type: textarea
+    id: success
+    attributes:
+      label: Success and failure criteria
+      description: What result means "proceed", and what result means "change the plan".
+    validations:
+      required: true
+  - type: textarea
+    id: outputs
+    attributes:
+      label: Outputs
+      description: The report, the ADR change, and any reusable test or script.

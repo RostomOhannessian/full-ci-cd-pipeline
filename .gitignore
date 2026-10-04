@@ -1,0 +1,72 @@
+# Local environment values and credentials. Never commit these.
+# `.env.example` lists variable names with safe local defaults and is the only tracked template.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.pfx
+*.p12
+*.crt
+*.kubeconfig
+kubeconfig*
+/secrets/
+/.local/
+
+# Terraform: state can contain secrets, and plans embed values. Lock files and profile variables are tracked.
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+*.tfvars
+*.tfvars.json
+!infra/terraform/profiles/*.tfvars
+
+# Vault bootstrap material (unseal keys, root tokens) lives outside the repository. This is a safety net.
+vault-init*.json
+*unseal*key*
+*root*token*
+
+# .NET build output and test results
+bin/
+obj/
+TestResults/
+coverage/
+*.trx
+*.user
+*.suo
+*.nupkg
+*.snupkg
+.vs/
+BenchmarkDotNet.Artifacts/
+
+# Generated documentation and evidence
+_site/
+.docfx/
+/artifacts/
+/out/
+/sbom-out/
+
+# Tooling
+node_modules/
+__pycache__/
+*.pyc
+.idea/
+.vscode/
+*.swp
+*.log
+
+# Operating system files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Scratch directories used by local experiments and probes
+.tmp*/
+/tmp/

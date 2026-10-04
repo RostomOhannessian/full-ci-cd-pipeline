@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Ask a question or share an idea
+    url: https://github.com/RostomOhannessian/full-ci-cd-pipeline/discussions
+    about: Questions about the tools, the architecture, or how to run the project belong in Discussions, not Issues.
+  - name: Report a security vulnerability
+    url: https://github.com/RostomOhannessian/full-ci-cd-pipeline/security/advisories/new
+    about: Report vulnerabilities privately. Do not open a public Issue. See SECURITY.md for what is in scope.

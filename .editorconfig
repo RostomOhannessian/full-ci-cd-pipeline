@@ -1,0 +1,30 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+# C# rules (analyzer severities, naming, using order) are added with the solution in WP1.1.
+[*.{cs,csx,vb}]
+indent_size = 4
+
+[*.{ps1,psm1,psd1}]
+indent_size = 4
+
+[*.{cmd,bat}]
+end_of_line = crlf
+
+[*.md]
+# Hard line breaks are not used in this repository, so trailing spaces are never meaningful.
+trim_trailing_whitespace = true
+max_line_length = off
+
+[*.{tf,tfvars,hcl}]
+indent_size = 2
+
+[Makefile]
+indent_style = tab

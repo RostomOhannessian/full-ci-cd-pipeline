@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Project status",
+  "description": "Schema for docs/project/status.yaml, the source of truth for phase and work-package progress. STATUS.md is the readable view of this file.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema-version", "updated", "project", "current", "resume", "phases"],
+  "properties": {
+    "schema-version": { "const": 1 },
+    "updated": { "$ref": "#/$defs/date" },
+    "project": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "repository", "plan", "plan-version"],
+      "properties": {
+        "name": { "type": "string", "minLength": 3 },
+        "repository": { "type": "string", "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$" },
+        "plan": { "type": "string", "minLength": 3 },
+        "plan-version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" }
+      }
+    },
+    "current": {
+      "description": "The work that is active now. This is what the Resume here section of STATUS.md shows first.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["phase", "work-package", "branch"],
+      "properties": {
+        "phase": { "$ref": "#/$defs/phaseId" },
+        "work-package": { "oneOf": [{ "$ref": "#/$defs/workPackageId" }, { "type": "null" }] },
+        "branch": { "type": "string", "minLength": 1 }
+      }
+    },
+    "resume": {
+      "description": "Everything a person or agent on another machine needs to continue without session state.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["last-completed", "next-action", "open-pull-requests", "environment-notes"],
+      "properties": {
+        "last-completed": { "type": "string", "minLength": 5 },
+        "next-action": { "type": "string", "minLength": 5 },
+        "open-pull-requests": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["number", "title", "branch"],
+            "properties": {
+              "number": { "type": "integer", "minimum": 1 },
+              "title": { "type": "string", "minLength": 3 },
+              "branch": { "type": "string", "minLength": 1 }
+            }
+          }
+        },
+        "environment-notes": { "type": "array", "items": { "type": "string", "minLength": 3 } }
+      }
+    },
+    "phases": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/phase" }
+    }
+  },
+  "$defs": {
+    "date": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+    "phaseId": { "oneOf": [{ "type": "integer", "minimum": 0, "maximum": 4 }, { "const": "launch" }] },
+    "workPackageId": { "type": "string", "pattern": "^WP\\d+\\.\\d+$" },
+    "state": { "enum": ["planned", "in_progress", "blocked", "completed"] },
+    "link": { "oneOf": [{ "type": "integer", "minimum": 1 }, { "type": "null" }] },
+    "phase": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "state", "plan", "work-packages"],
+      "properties": {
+        "id": { "$ref": "#/$defs/phaseId" },
+        "name": { "type": "string", "minLength": 3 },
+        "state": { "$ref": "#/$defs/state" },
+        "branch": { "type": ["string", "null"] },
+        "plan": { "type": "string", "minLength": 3 },
+        "milestone": { "type": ["string", "null"] },
+        "milestone-url": { "type": ["string", "null"] },
+        "release": { "type": ["string", "null"] },
+        "issue": { "$ref": "#/$defs/link" },
+        "pull-request": { "$ref": "#/$defs/link" },
+        "work-packages": { "type": "array", "items": { "$ref": "#/$defs/workPackage" } }
+      }
+    },
+    "workPackage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "size", "state"],
+      "properties": {
+        "id": { "$ref": "#/$defs/workPackageId" },
+        "title": { "type": "string", "minLength": 3 },
+        "size": { "enum": ["S", "M", "L"] },
+        "state": { "$ref": "#/$defs/state" },
+        "branch": { "type": ["string", "null"] },
+        "issue": { "$ref": "#/$defs/link" },
+        "pull-request": { "$ref": "#/$defs/link" },
+        "depends-on": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/workPackageId" } },
+        "evidence": { "type": "array", "items": { "type": "string", "minLength": 3 } },
+        "blockers": { "type": "array", "items": { "type": "string", "minLength": 3 } }
+      }
+    }
+  }
+}

@@ -1,0 +1,2220 @@
+# Inventory of planned, deferred, and rejected tools for the teaching repository.
+# Read each entry as a point-in-time fact record: lifecycle says the project decision,
+# version/license capture what was verified on 2026-10-04, and sources point to the primary evidence.
+schema-version: 1
+last-verified: 2026-10-04
+entries:
+  # AI agents
+  - id: copilot-code-review
+    name: GitHub Copilot code review
+    category: ai-agent
+    tier: B
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-1
+    purpose: Provides guided AI review workflows and reusable review prompts for this repository.
+    license: service
+    license-source: https://docs.github.com/en/copilot/concepts/prompting/response-customization
+    version: n/a
+    sources:
+      - https://docs.github.com/en/copilot/concepts/prompting/response-customization
+      - https://docs.github.com/en/copilot/tutorials/customization-library/prompt-files/review-code
+      - https://docs.github.com/en/copilot/how-tos/copilot-sdk/features/skills
+    adrs: []
+  - id: copilot-instructions
+    name: GitHub Copilot custom instructions
+    category: ai-agent
+    tier: B
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-0
+    purpose: Carries repository-wide and path-specific instructions that keep AI help aligned with project rules.
+    license: service
+    license-source: https://docs.github.com/en/copilot/concepts/prompting/response-customization
+    version: n/a
+    sources:
+      - https://docs.github.com/en/copilot/concepts/prompting/response-customization
+      - https://docs.github.com/en/copilot/tutorials/customization-library/prompt-files
+    adrs: []
+  - id: copilot-skills
+    name: GitHub Copilot custom skills
+    category: ai-agent
+    tier: B
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-1
+    purpose: Packages repeatable repository tasks as reusable skills for auditors, documentation, and review flows.
+    license: service
+    license-source: https://docs.github.com/en/copilot/how-tos/copilot-sdk/features/skills
+    version: n/a
+    sources:
+      - https://docs.github.com/en/copilot/how-tos/copilot-sdk/features/skills
+      - https://docs.github.com/en/copilot/tutorials/customization-library/prompt-files
+    adrs: []
+
+  # API contracts
+  - id: kiota
+    name: Microsoft Kiota
+    category: api-contract
+    tier: B
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-4
+    purpose: Generates the consumer client used to prove the API contract stays consumable.
+    license: MIT
+    license-source: https://github.com/microsoft/kiota
+    version: "v1.35.0"
+    repo: https://github.com/microsoft/kiota
+    sources:
+      - https://github.com/microsoft/kiota
+      - https://github.com/microsoft/kiota/releases/tag/v1.35.0
+      - https://learn.microsoft.com/en-us/openapi/kiota/overview
+    adrs: ["0017"]
+  - id: microsoft-openapi
+    name: Microsoft.OpenApi
+    category: api-contract
+    tier: C
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-1
+    purpose: Supplies the OpenAPI object model that the ASP.NET Core toolchain and conformance checks build on.
+    license: MIT
+    license-source: https://www.nuget.org/packages/Microsoft.OpenApi/3.10.2/license
+    version: "3.10.2"
+    repo: https://github.com/Microsoft/OpenAPI.NET
+    sources:
+      - https://github.com/Microsoft/OpenAPI.NET
+      - https://www.nuget.org/packages/Microsoft.OpenApi
+      - https://github.com/Microsoft/OpenAPI.NET/releases/tag/v3.10.2
+    adrs: ["0017"]
+    notes: The latest package release is 3.10.2, but the plan pins the 2.x line because ASP.NET Core 10 uses it internally.
+  - id: nswag
+    name: NSwag
+    category: api-contract
+    tier: n/a
+    lifecycle: hold
+    usage: evaluated-only
+    introduced: n/a
+    purpose: Was evaluated as a contract and client-generation option before the project chose contract-first OpenAPI 3.1 tooling.
+    license: MIT
+    license-source: https://github.com/RicoSuter/NSwag
+    version: "v14.7.1"
+    repo: https://github.com/RicoSuter/NSwag
+    sources:
+      - https://github.com/RicoSuter/NSwag
+      - https://github.com/RicoSuter/NSwag/releases/tag/v14.7.1
+      - https://learn.microsoft.com/en-us/aspnet/core/fundamentals/openapi/aspnetcore-openapi?view=aspnetcore-10.0
+    adrs: ["0017"]
+    notes: Held because NSwag 14.7.1 documents OpenAPI 2.0 and 3.0 support, while this repository commits to an authored OpenAPI 3.1 contract.
+  - id: oasdiff
+    name: oasdiff
+    category: api-contract
+    tier: B
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-1
+    purpose: Enforces API conformance and later blocks breaking contract changes between releases.
+    license: Apache-2.0
+    license-source: https://github.com/oasdiff/oasdiff
+    version: "v1.33.0"
+    repo: https://github.com/oasdiff/oasdiff
+    sources:
+      - https://github.com/oasdiff/oasdiff
+      - https://github.com/oasdiff/oasdiff/releases/tag/v1.33.0
+      - https://www.oasdiff.com/
+    adrs: ["0017"]
+  - id: openapi-linter
+    name: OpenAPI linter (decision deferred)
+    category: api-contract
+    tier: B
+    lifecycle: assess
+    usage: planned
+    introduced: phase-1
+    purpose: Will lint the authored OpenAPI document once Phase 1 chooses a concrete linter.
+    license: n/a
+    license-source: https://docs.github.com/en/copilot/concepts/prompting/response-customization
+    version: n/a
+    sources:
+      - https://www.openapis.org/
+      - https://learn.microsoft.com/en-us/aspnet/core/fundamentals/openapi/aspnetcore-openapi?view=aspnetcore-10.0
+    adrs: ["0017"]
+    notes: Placeholder canonical ID for a deferred choice among Redocly CLI, Spectral, or vacuum; no product is selected yet.
+  - id: scalar
+    name: Scalar
+    category: api-contract
+    tier: B
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-1
+    purpose: Hosts the dev-only API reference UI for the authored contract.
+    license: MIT
+    license-source: https://github.com/scalar/scalar
+    version: "release-2026-10-02-0962afc"
+    repo: https://github.com/scalar/scalar
+    sources:
+      - https://github.com/scalar/scalar
+      - https://github.com/scalar/scalar/releases/tag/release-2026-10-02-0962afc
+      - https://guides.scalar.com/scalar/scalar-api-references/integrations/net-aspnet-core
+    adrs: ["0017"]
+
+  # CI services
+  - id: github-actions
+    name: GitHub Actions
+    category: ci-service
+    tier: A
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-1
+    purpose: Runs the repository's build, test, scan, release, and verification workflows.
+    license: service
+    license-source: https://docs.github.com/en/actions/reference/runners/github-hosted-runners
+    version: n/a
+    sources:
+      - https://docs.github.com/en/actions/reference/runners/github-hosted-runners
+      - https://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/manage-environments
+      - https://docs.github.com/en/get-started/learning-about-github/githubs-plans
+    adrs: ["0013"]
+  # Containers
+  - id: docker-buildkit
+    name: BuildKit
+    category: container
+    tier: A
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-2
+    purpose: Produces reproducible multi-stage container images with caching and provenance-friendly builds.
+    license: Apache-2.0
+    license-source: https://github.com/moby/buildkit
+    version: "v0.33.1"
+    repo: https://github.com/moby/buildkit
+    sources:
+      - https://github.com/moby/buildkit
+      - https://github.com/moby/buildkit/releases/tag/v0.33.1
+      - https://docs.docker.com/build/buildkit/
+    adrs: ["0013"]
+  - id: registry-cache
+    name: Registry pull-through cache
+    category: container
+    tier: B
+    lifecycle: assess
+    usage: planned
+    introduced: phase-3
+    purpose: Will reduce image-pull rate limits and speed cluster rebuilds once a concrete cache implementation is chosen.
+    license: n/a
+    license-source: https://github.com/kubernetes-sigs/kind
+    version: n/a
+    sources:
+      - https://github.com/kubernetes-sigs/kind
+      - https://raw.githubusercontent.com/kubernetes-sigs/kind/main/site/content/docs/user/local-registry.md
+      - https://raw.githubusercontent.com/kubernetes-sigs/kind/main/site/content/docs/user/private-registries.md
+    adrs: ["0019"]
+    notes: Placeholder ID for the pull-through cache pattern. The plan requires the capability but does not name a product. WP3.0 measures pull-through caches and rate limits, and an ADR records the choice.
+
+  # Data stores
+  - id: sql-server
+    name: Microsoft SQL Server
+    category: data-store
+    tier: A
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-1
+    purpose: Stores the catalog, Keycloak, idempotency, and outbox data used by the sample system.
+    license: proprietary, free developer edition for non-production use
+    license-source: https://www.microsoft.com/en-us/sql-server/sql-server-downloads
+    version: "2022"
+    sources:
+      - https://www.microsoft.com/en-us/sql-server/sql-server-downloads
+      - https://learn.microsoft.com/en-us/sql/linux/containers/deploy
+      - https://go.microsoft.com/fwlink/?linkid=866658
+    adrs: ["0012", "0018", "0019"]
+    notes: The project uses SQL Server 2022 container images for teaching and testing and pins the exact digest at implementation time.
+  - id: valkey
+    name: Valkey
+    category: data-store
+    tier: A
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-1
+    purpose: Supplies the distributed cache, backplane, and selected ephemeral coordination data.
+    license: BSD-3-Clause
+    license-source: https://github.com/valkey-io/valkey
+    version: "9.1.2"
+    repo: https://github.com/valkey-io/valkey
+    sources:
+      - https://github.com/valkey-io/valkey
+      - https://github.com/valkey-io/valkey/releases/tag/9.1.2
+      - https://valkey.io/download/
+    adrs: ["0016"]
+
+  # Developer environment
+  - id: aspire
+    name: .NET Aspire
+    category: dev-environment
+    tier: n/a
+    lifecycle: hold
+    usage: evaluated-only
+    introduced: n/a
+    purpose: Was evaluated as a local orchestration layer before the plan kept Docker Compose and Kubernetes profiles.
+    license: MIT
+    license-source: https://github.com/dotnet/aspire
+    version: "v13.6.0"
+    repo: https://github.com/dotnet/aspire
+    sources:
+      - https://github.com/dotnet/aspire
+      - https://github.com/dotnet/aspire/releases/tag/v13.6.0
+      - https://learn.microsoft.com/en-us/dotnet/aspire/whats-new/dotnet-aspire-13
+    adrs: ["0019"]
+    notes: Held because Docker Compose already covers the API-only path and the full platform path still needs Kubernetes, so Aspire adds overlap without solving the core teaching goal.
+  - id: codespaces
+    name: GitHub Codespaces
+    category: dev-environment
+    tier: B
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-1
+    purpose: Gives learners an x86-64 cloud workstation for the documented quick-start and fallback host path.
+    license: service
+    license-source: https://docs.github.com/en/billing/concepts/product-billing/github-codespaces
+    version: n/a
+    sources:
+      - https://docs.github.com/en/billing/concepts/product-billing/github-codespaces
+      - https://docs.github.com/en/codespaces/overview
+    adrs: ["0019"]
+  - id: dev-containers
+    name: Dev Container specification
+    category: dev-environment
+    tier: B
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-1
+    purpose: Defines the reproducible local development environment used by the repo and its Codespaces image.
+    license: CC-BY-4.0
+    license-source: https://github.com/devcontainers/spec
+    version: n/a
+    repo: https://github.com/devcontainers/spec
+    sources:
+      - https://github.com/devcontainers/spec
+      - https://containers.dev/
+    adrs: ["0019"]
+  - id: docker-compose
+    name: Docker Compose
+    category: dev-environment
+    tier: B
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-1
+    purpose: Starts the API-only stack for onboarding, local smoke tests, and identity bootstrap.
+    license: Apache-2.0
+    license-source: https://github.com/docker/compose
+    version: "v5.6.0"
+    repo: https://github.com/docker/compose
+    sources:
+      - https://github.com/docker/compose
+      - https://github.com/docker/compose/releases/tag/v5.6.0
+      - https://docs.docker.com/compose/
+    adrs: ["0019"]
+  - id: mise
+    name: mise
+    category: dev-environment
+    tier: B
+    lifecycle: assess
+    usage: planned
+    introduced: phase-1
+    purpose: Is one candidate for the verified developer tool installer mentioned in the Phase 1 environment plan.
+    license: MIT
+    license-source: https://github.com/jdx/mise
+    version: "v2026.10.2"
+    repo: https://github.com/jdx/mise
+    sources:
+      - https://github.com/jdx/mise
+      - https://github.com/jdx/mise/releases/tag/v2026.10.2
+      - https://mise.jdx.dev/
+    adrs: []
+    notes: The repository has not yet decided between mise and a custom verified installer, so this remains an assessed option.
+  - id: powershell
+    name: PowerShell
+    category: dev-environment
+    tier: B
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-1
+    purpose: Drives the local developer scripts, doctor checks, and governance automation used across the repo.
+    license: MIT
+    license-source: https://github.com/PowerShell/PowerShell
+    version: "v7.6.6"
+    repo: https://github.com/PowerShell/PowerShell
+    sources:
+      - https://github.com/PowerShell/PowerShell
+      - https://github.com/PowerShell/PowerShell/releases/tag/v7.6.6
+      - https://learn.microsoft.com/en-us/powershell/
+    adrs: ["0019"]
+
+  # Documentation tools
+  - id: cspell
+    name: cspell
+    category: docs-tool
+    tier: B
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-1
+    purpose: Catches spelling drift in docs, prompts, and configuration files before publication.
+    license: MIT
+    license-source: https://github.com/streetsidesoftware/cspell
+    version: "v10.3.6"
+    repo: https://github.com/streetsidesoftware/cspell
+    sources:
+      - https://github.com/streetsidesoftware/cspell
+      - https://github.com/streetsidesoftware/cspell/releases/tag/v10.3.6
+      - https://cspell.org/
+    adrs: ["0005"]
+  - id: docfx
+    name: DocFX
+    category: docs-tool
+    tier: A
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-1
+    purpose: Builds the public documentation site and API reference for the teaching repository.
+    license: MIT
+    license-source: https://github.com/dotnet/docfx
+    version: "v2.81.0"
+    repo: https://github.com/dotnet/docfx
+    sources:
+      - https://github.com/dotnet/docfx
+      - https://github.com/dotnet/docfx/releases/tag/v2.81.0
+      - https://dotnet.github.io/docfx/
+    adrs: ["0005"]
+  - id: git-cliff
+    name: git-cliff
+    category: docs-tool
+    tier: B
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-1
+    purpose: Generates the human-readable changelog and release notes from reviewed history.
+    license: Apache-2.0
+    license-source: https://github.com/orhun/git-cliff
+    version: "v2.14.2"
+    repo: https://github.com/orhun/git-cliff
+    sources:
+      - https://github.com/orhun/git-cliff
+      - https://github.com/orhun/git-cliff/releases/tag/v2.14.2
+      - https://git-cliff.org/
+    adrs: ["0005"]
+  - id: lychee
+    name: lychee
+    category: docs-tool
+    tier: B
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-1
+    purpose: Verifies internal and external links across the documentation set.
+    license: Apache-2.0
+    license-source: https://github.com/lycheeverse/lychee
+    version: "lychee-v0.24.2"
+    repo: https://github.com/lycheeverse/lychee
+    sources:
+      - https://github.com/lycheeverse/lychee
+      - https://github.com/lycheeverse/lychee/releases/tag/lychee-v0.24.2
+      - https://lychee.cli.rs/
+    adrs: ["0005"]
+  - id: markdownlint-cli2
+    name: markdownlint-cli2
+    category: docs-tool
+    tier: B
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-1
+    purpose: Enforces the repository's Markdown house style and heading structure.
+    license: MIT
+    license-source: https://github.com/DavidAnson/markdownlint-cli2
+    version: "0.23.3"
+    repo: https://github.com/DavidAnson/markdownlint-cli2
+    sources:
+      - https://github.com/DavidAnson/markdownlint-cli2
+      - https://www.npmjs.com/package/markdownlint-cli2
+      - https://github.com/DavidAnson/markdownlint-cli2/blob/main/README.md
+    adrs: ["0005"]
+  - id: mermaid-cli
+    name: Mermaid CLI
+    category: docs-tool
+    tier: B
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-1
+    purpose: Renders diagrams in CI so documentation pages and artifacts can embed checked visuals.
+    license: MIT
+    license-source: https://github.com/mermaid-js/mermaid-cli
+    version: "12.0.0"
+    repo: https://github.com/mermaid-js/mermaid-cli
+    sources:
+      - https://github.com/mermaid-js/mermaid-cli
+      - https://github.com/mermaid-js/mermaid-cli/releases/tag/12.0.0
+      - https://www.npmjs.com/package/@mermaid-js/mermaid-cli
+    adrs: ["0005"]
+  # .NET libraries
+  - id: asp-versioning
+    name: Asp.Versioning
+    category: dotnet-library
+    tier: C
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-1
+    purpose: Implements explicit API version routing and OpenAPI grouping for the catalog API.
+    license: MIT
+    license-source: https://www.nuget.org/packages/Asp.Versioning.Http/10.2.3/license
+    version: "10.2.3"
+    sources:
+      - https://www.nuget.org/packages/Asp.Versioning.Http
+      - https://dotnet.github.io/aspnet-api-versioning
+    adrs: ["0017"]
+  - id: automapper
+    name: AutoMapper
+    category: dotnet-library
+    tier: n/a
+    lifecycle: hold
+    usage: evaluated-only
+    introduced: n/a
+    purpose: Was evaluated as an object mapping helper before the project decided to keep mapping code explicit.
+    license: proprietary, community/commercial dual license
+    license-source: https://www.nuget.org/packages/AutoMapper/16.2.0/license
+    version: "16.2.0"
+    sources:
+      - https://www.nuget.org/packages/AutoMapper
+      - https://automapper.io/
+    adrs: ["0004"]
+    notes: Held because AutoMapper 15 and later moved to a commercial/RPL model, which the repository's dependency license policy forbids for linked dependencies.
+  - id: efcore
+    name: Entity Framework Core
+    category: dotnet-library
+    tier: A
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-1
+    purpose: Maps aggregates to SQL Server and hosts migrations, idempotency, and outbox persistence.
+    license: MIT
+    license-source: https://github.com/dotnet/efcore
+    version: "v10.0.12"
+    repo: https://github.com/dotnet/efcore
+    sources:
+      - https://github.com/dotnet/efcore
+      - https://github.com/dotnet/efcore/releases/tag/v10.0.12
+      - https://learn.microsoft.com/en-us/ef/core/
+    adrs: ["0012", "0018"]
+  - id: fluentvalidation
+    name: FluentValidation
+    category: dotnet-library
+    tier: C
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-1
+    purpose: Centralizes command and request validation in the application layer.
+    license: Apache-2.0
+    license-source: https://www.nuget.org/packages/FluentValidation/12.1.1/license
+    version: "12.1.1"
+    sources:
+      - https://www.nuget.org/packages/FluentValidation
+      - https://fluentvalidation.net/
+    adrs: ["0018"]
+  - id: fusioncache
+    name: FusionCache
+    category: dotnet-library
+    tier: A
+    lifecycle: trial
+    usage: planned
+    introduced: phase-1
+    purpose: Provides the L1, L2, and backplane caching behavior behind the catalog cache port.
+    license: MIT
+    license-source: https://www.nuget.org/packages/ZiggyCreatures.FusionCache/2.9.0/license
+    version: "2.9.0"
+    repo: https://github.com/ZiggyCreatures/FusionCache
+    sources:
+      - https://github.com/ZiggyCreatures/FusionCache
+      - https://www.nuget.org/packages/ZiggyCreatures.FusionCache
+      - https://raw.githubusercontent.com/ZiggyCreatures/FusionCache/main/docs/MicrosoftHybridCache.md
+    adrs: ["0016"]
+    notes: Trial because Valkey compatibility of the Redis backplane is an inference from the protocol, not a certified combination. WP1.0 proves it with a spike and WP1.9 with two-host tests.
+  - id: hybridcache
+    name: Microsoft HybridCache
+    category: dotnet-library
+    tier: n/a
+    lifecycle: hold
+    usage: evaluated-only
+    introduced: n/a
+    purpose: Was evaluated as the built-in cache abstraction before the project chose a backplane-capable implementation.
+    license: MIT
+    license-source: https://www.nuget.org/packages/Microsoft.Extensions.Caching.Hybrid/10.10.0/license
+    version: "10.10.0"
+    sources:
+      - https://www.nuget.org/packages/Microsoft.Extensions.Caching.Hybrid
+      - https://learn.microsoft.com/en-us/aspnet/core/performance/caching/hybrid?view=aspnetcore-10.0
+      - https://raw.githubusercontent.com/ZiggyCreatures/FusionCache/main/docs/MicrosoftHybridCache.md
+    adrs: ["0016"]
+    notes: Held because .NET 10 HybridCache still has no built-in cross-node L1 invalidation, which would leave replicas serving stale data until local TTL expiry.
+  - id: masstransit
+    name: MassTransit
+    category: dotnet-library
+    tier: n/a
+    lifecycle: hold
+    usage: evaluated-only
+    introduced: n/a
+    purpose: Was evaluated as a richer messaging stack before the project chose an EF Core outbox without a broker dependency.
+    license: proprietary, commercial license
+    license-source: https://massient.com/license
+    version: "9.2.3"
+    sources:
+      - https://www.nuget.org/packages/MassTransit
+      - https://massient.com/license
+    adrs: ["0004", "0012"]
+    notes: Held because MassTransit 9 moved to a commercial license and adds infrastructure that the repository does not need for its teaching scope.
+  - id: mediatr
+    name: MediatR
+    category: dotnet-library
+    tier: n/a
+    lifecycle: hold
+    usage: evaluated-only
+    introduced: n/a
+    purpose: Was evaluated for in-process request dispatch before the project chose explicit handlers and decorators.
+    license: proprietary, community/commercial dual license
+    license-source: https://www.nuget.org/packages/MediatR/14.2.0/license
+    version: "14.2.0"
+    sources:
+      - https://www.nuget.org/packages/MediatR
+      - https://mediatr.io/
+    adrs: ["0004", "0012"]
+    notes: Held because MediatR 13 and later moved to a commercial/RPL model and the repository prefers explicit CQRS plumbing for teaching value.
+  - id: opentelemetry-dotnet
+    name: OpenTelemetry .NET
+    category: dotnet-library
+    tier: B
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-1
+    purpose: Emits traces, metrics, and logs from the API and its supporting jobs.
+    license: Apache-2.0
+    license-source: https://github.com/open-telemetry/opentelemetry-dotnet
+    version: "core-1.19.1"
+    repo: https://github.com/open-telemetry/opentelemetry-dotnet
+    sources:
+      - https://github.com/open-telemetry/opentelemetry-dotnet
+      - https://github.com/open-telemetry/opentelemetry-dotnet/releases/tag/core-1.19.1
+      - https://opentelemetry.io/docs/languages/dotnet/
+    adrs: []
+    notes: The core SDK and the ASP.NET Core and SqlClient instrumentations are stable. The EF Core (1.19.1-beta.1) and StackExchange.Redis (1.19.0-beta.1) instrumentation packages have never had a stable release, so pin them exactly and review them on every upgrade.
+  - id: sqlclient
+    name: Microsoft.Data.SqlClient
+    category: dotnet-library
+    tier: C
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-1
+    purpose: Connects the API, migrator, and tests to SQL Server.
+    license: MIT
+    license-source: https://www.nuget.org/packages/Microsoft.Data.SqlClient/7.1.1/license
+    version: "7.1.1"
+    sources:
+      - https://www.nuget.org/packages/Microsoft.Data.SqlClient
+      - https://aka.ms/sqlclientproject
+    adrs: ["0018"]
+
+  # .NET runtime
+  - id: aspnet-core
+    name: ASP.NET Core
+    category: dotnet-runtime
+    tier: A
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-1
+    purpose: Hosts the minimal API, authentication, OpenAPI, and health endpoints for the sample service.
+    license: MIT
+    license-source: https://github.com/dotnet/aspnetcore
+    version: "10.0.12"
+    repo: https://github.com/dotnet/aspnetcore
+    sources:
+      - https://github.com/dotnet/aspnetcore
+      - https://learn.microsoft.com/en-us/aspnet/core/?view=aspnetcore-10.0
+      - https://learn.microsoft.com/en-us/aspnet/core/fundamentals/openapi/aspnetcore-openapi?view=aspnetcore-10.0
+    adrs: ["0017"]
+  - id: dotnet-sdk
+    name: .NET SDK
+    category: dotnet-runtime
+    tier: A
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-1
+    purpose: Supplies the compiler, test runner integration, package restore, and CLI used throughout the repo.
+    license: MIT
+    license-source: https://raw.githubusercontent.com/dotnet/core/main/release-notes/10.0/releases.json
+    version: "10.0.401"
+    sources:
+      - https://raw.githubusercontent.com/dotnet/core/main/release-notes/10.0/releases.json
+      - https://learn.microsoft.com/en-us/dotnet/core/tools/global-json
+      - https://dotnet.microsoft.com/en-us/platform/support/policy/dotnet-core
+    adrs: ["0018"]
+  # GitHub services
+  - id: ghcr
+    name: GitHub Container Registry
+    category: github-service
+    tier: A
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-2
+    purpose: Publishes the signed and attested container images that later promotion stages consume.
+    license: service
+    license-source: https://docs.github.com/en/packages/learn-github-packages/about-permissions-for-github-packages
+    version: n/a
+    sources:
+      - https://docs.github.com/en/packages/learn-github-packages/about-permissions-for-github-packages
+      - https://docs.github.com/en/packages/learn-github-packages/configuring-a-packages-access-control-and-visibility
+    adrs: ["0013"]
+  - id: github-apps
+    name: GitHub Apps
+    category: github-service
+    tier: A
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-4
+    purpose: Provides least-privilege identities for promotion and deployment-reporting automation.
+    license: service
+    license-source: https://docs.github.com/en/apps/creating-github-apps/about-creating-github-apps
+    version: n/a
+    sources:
+      - https://docs.github.com/en/apps/creating-github-apps/about-creating-github-apps
+      - https://docs.github.com/en/apps/creating-github-apps/about-creating-github-apps/best-practices-for-creating-a-github-app
+    adrs: ["0010"]
+  - id: github-attestations
+    name: GitHub artifact attestations
+    category: github-service
+    tier: A
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-2
+    purpose: Generates provenance and SBOM attestations for released artifacts.
+    license: service
+    license-source: https://docs.github.com/en/actions/concepts/security/artifact-attestations
+    version: n/a
+    sources:
+      - https://docs.github.com/en/actions/concepts/security/artifact-attestations
+      - https://docs.github.com/en/actions/how-tos/secure-your-work/use-artifact-attestations/use-artifact-attestations
+    adrs: ["0013"]
+    notes: Native attestations work only once the repository is public or on GitHub Enterprise Cloud; the plan depends on the repository becoming public before Phase 2.
+  - id: github-deployments
+    name: GitHub Deployments
+    category: github-service
+    tier: B
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-4
+    purpose: Records environment rollout status back into GitHub from Argo CD notifications.
+    license: service
+    license-source: https://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/manage-environments
+    version: n/a
+    sources:
+      - https://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/manage-environments
+      - https://docs.github.com/en/actions/reference/workflows-and-actions/deployments-and-environments
+    adrs: ["0011"]
+  - id: github-pages
+    name: GitHub Pages
+    category: github-service
+    tier: B
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-1
+    purpose: Publishes the public documentation site from the repository.
+    license: service
+    license-source: https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages
+    version: n/a
+    sources:
+      - https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages
+      - https://docs.github.com/en/get-started/learning-about-github/githubs-plans
+    adrs: ["0005"]
+  - id: github-rulesets
+    name: GitHub rulesets
+    category: github-service
+    tier: B
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-0
+    purpose: Enforces workflow pinning, protected branches, and promotion rules once the repository is public.
+    license: service
+    license-source: https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/about-rulesets
+    version: n/a
+    sources:
+      - https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/about-rulesets
+      - https://docs.github.com/en/get-started/learning-about-github/githubs-plans
+    adrs: ["0002", "0013"]
+  - id: github-secret-scanning
+    name: GitHub secret scanning
+    category: github-service
+    tier: B
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-0
+    purpose: Adds hosted secret detection and push protection on the public repository.
+    license: service
+    license-source: https://docs.github.com/en/code-security/concepts/secret-security/secret-scanning
+    version: n/a
+    sources:
+      - https://docs.github.com/en/code-security/concepts/secret-security/secret-scanning
+      - https://docs.github.com/en/get-started/learning-about-github/about-github-advanced-security
+    adrs: ["0013"]
+
+  # GitOps and delivery
+  - id: argo-cd
+    name: Argo CD
+    category: gitops
+    tier: A
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-4
+    purpose: Reconciles the declarative Kubernetes application state from the repository.
+    license: Apache-2.0
+    license-source: https://github.com/argoproj/argo-cd
+    version: "v3.5.3"
+    repo: https://github.com/argoproj/argo-cd
+    sources:
+      - https://github.com/argoproj/argo-cd
+      - https://github.com/argoproj/argo-cd/releases/tag/v3.5.3
+      - https://argo-cd.readthedocs.io/en/stable/
+    adrs: ["0011"]
+  - id: argo-rollouts
+    name: Argo Rollouts
+    category: gitops
+    tier: A
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-4
+    purpose: Runs canary rollouts and analysis steps for progressive delivery.
+    license: Apache-2.0
+    license-source: https://github.com/argoproj/argo-rollouts
+    version: "v1.10.0"
+    repo: https://github.com/argoproj/argo-rollouts
+    sources:
+      - https://github.com/argoproj/argo-rollouts
+      - https://github.com/argoproj/argo-rollouts/releases/tag/v1.10.0
+      - https://argo-rollouts.readthedocs.io/
+    adrs: ["0011"]
+  - id: argo-rollouts-gatewayapi-plugin
+    name: Argo Rollouts Gateway API plugin
+    category: gitops
+    tier: B
+    lifecycle: trial
+    usage: planned
+    introduced: phase-4
+    purpose: Connects Rollouts traffic shifting to Gateway API routes managed by Envoy Gateway.
+    license: Apache-2.0
+    license-source: https://github.com/argoproj-labs/rollouts-plugin-trafficrouter-gatewayapi
+    version: "v0.17.0"
+    repo: https://github.com/argoproj-labs/rollouts-plugin-trafficrouter-gatewayapi
+    sources:
+      - https://github.com/argoproj-labs/rollouts-plugin-trafficrouter-gatewayapi
+      - https://github.com/argoproj-labs/rollouts-plugin-trafficrouter-gatewayapi/releases/tag/v0.17.0
+      - https://rollouts-plugin-trafficrouter-gatewayapi.readthedocs.io/en/latest/
+    adrs: ["0015"]
+    notes: Trial because the plugin lives in argoproj-labs and its documented Envoy Gateway test (Envoy Gateway 1.7.2, Gateway API 1.4.1, plugin 0.13.0) is older than the combination pinned here. WP4.0 proves the pinned combination.
+  - id: argocd-image-updater
+    name: Argo CD Image Updater
+    category: gitops
+    tier: n/a
+    lifecycle: hold
+    usage: evaluated-only
+    introduced: n/a
+    purpose: Was evaluated as a GitOps image promotion helper before the project chose Kargo.
+    license: Apache-2.0
+    license-source: https://github.com/argoproj-labs/argocd-image-updater
+    version: "v1.3.0"
+    repo: https://github.com/argoproj-labs/argocd-image-updater
+    sources:
+      - https://github.com/argoproj-labs/argocd-image-updater
+      - https://github.com/argoproj-labs/argocd-image-updater/releases/tag/v1.3.0
+    adrs: ["0010"]
+    notes: Held because it focuses on image-tag updates and does not model the full verified dev-to-staging-to-prod promotion flow this repository teaches.
+  - id: flux
+    name: Flux
+    category: gitops
+    tier: n/a
+    lifecycle: hold
+    usage: evaluated-only
+    introduced: n/a
+    purpose: Was evaluated as the pull-based GitOps controller alternative to Argo CD.
+    license: Apache-2.0
+    license-source: https://github.com/fluxcd/flux2
+    version: "v2.9.6"
+    repo: https://github.com/fluxcd/flux2
+    sources:
+      - https://github.com/fluxcd/flux2
+      - https://github.com/fluxcd/flux2/releases/tag/v2.9.6
+      - https://fluxcd.io/
+    adrs: ["0011"]
+    notes: Held because the plan values Argo CD's teaching UI, ApplicationSet model, and first-class Rollouts and Kargo integration more highly for this repository.
+  - id: gitops-promoter
+    name: gitops-promoter
+    category: gitops
+    tier: n/a
+    lifecycle: hold
+    usage: evaluated-only
+    introduced: n/a
+    purpose: Was evaluated as a promotion engine before the project chose Kargo.
+    license: Apache-2.0
+    license-source: https://github.com/argoproj-labs/gitops-promoter
+    version: "v0.42.1"
+    repo: https://github.com/argoproj-labs/gitops-promoter
+    sources:
+      - https://github.com/argoproj-labs/gitops-promoter
+      - https://github.com/argoproj-labs/gitops-promoter/releases/tag/v0.42.1
+    adrs: ["0010"]
+    notes: Held because the plan describes it as experimental and chose Kargo's documented pull-request steps and wait semantics instead.
+  - id: kargo
+    name: Kargo
+    category: gitops
+    tier: A
+    lifecycle: trial
+    usage: planned
+    introduced: phase-4
+    purpose: Promotes one verified image digest across environments by opening and merging GitOps pull requests.
+    license: Apache-2.0
+    license-source: https://github.com/akuity/kargo
+    version: "v1.12.1"
+    repo: https://github.com/akuity/kargo
+    sources:
+      - https://github.com/akuity/kargo
+      - https://github.com/akuity/kargo/releases/tag/v1.12.1
+      - https://docs.kargo.io/user-guide/reference-docs/promotion-steps/git-open-pr
+    adrs: ["0010", "0011"]
+    notes: Trial until WP4.0 proves it under this repository's rulesets. git-merge-pr with wait must respect required checks, and git-wait-for-pr covers the manual production path.
+
+  # Infrastructure as code
+  - id: terraform
+    name: Terraform
+    category: iac
+    tier: A
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-3
+    purpose: Declares the local platform, cluster services, and GitOps control plane stacks.
+    license: BUSL-1.1
+    license-source: https://raw.githubusercontent.com/hashicorp/terraform/main/LICENSE
+    version: "v1.16.5"
+    repo: https://github.com/hashicorp/terraform
+    sources:
+      - https://github.com/hashicorp/terraform
+      - https://github.com/hashicorp/terraform/releases/tag/v1.16.5
+      - https://developer.hashicorp.com/terraform/docs
+    adrs: ["0004", "0014"]
+    notes: Terraform is under the Business Source License 1.1, so this repository treats it as a tool and not as a linked redistributable dependency.
+  - id: tflint
+    name: TFLint
+    category: iac
+    tier: B
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-3
+    purpose: Lints Terraform code before plan and apply steps run.
+    license: MPL-2.0
+    license-source: https://github.com/terraform-linters/tflint
+    version: "v0.64.0"
+    repo: https://github.com/terraform-linters/tflint
+    sources:
+      - https://github.com/terraform-linters/tflint
+      - https://github.com/terraform-linters/tflint/releases/tag/v0.64.0
+      - https://github.com/terraform-linters/tflint/blob/master/README.md
+    adrs: ["0014"]
+
+  # Identity
+  - id: keycloak
+    name: Keycloak
+    category: identity
+    tier: A
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-1
+    purpose: Issues OAuth 2.0 and OIDC tokens for the API and platform sign-in flows.
+    license: Apache-2.0
+    license-source: https://github.com/keycloak/keycloak
+    version: "26.8.0"
+    repo: https://github.com/keycloak/keycloak
+    sources:
+      - https://github.com/keycloak/keycloak
+      - https://github.com/keycloak/keycloak/releases/tag/26.8.0
+      - https://www.keycloak.org/server/db
+    adrs: ["0008", "0009"]
+  - id: keycloak-config-cli
+    name: keycloak-config-cli
+    category: identity
+    tier: B
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-3
+    purpose: Reconciles realm configuration from the repository into the running Keycloak instance.
+    license: Apache-2.0
+    license-source: https://github.com/adorsys/keycloak-config-cli
+    version: "v6.5.1"
+    repo: https://github.com/adorsys/keycloak-config-cli
+    sources:
+      - https://github.com/adorsys/keycloak-config-cli
+      - https://github.com/adorsys/keycloak-config-cli/releases/tag/v6.5.1
+      - https://adorsys.github.io/keycloak-config-cli/
+    adrs: ["0008"]
+  - id: keycloak-operator
+    name: Keycloak Operator
+    category: identity
+    tier: A
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-3
+    purpose: Runs the in-cluster Keycloak runtime that later receives declarative realm configuration.
+    license: Apache-2.0
+    license-source: https://github.com/keycloak/keycloak
+    version: "26.8.0"
+    repo: https://github.com/keycloak/keycloak
+    sources:
+      - https://github.com/keycloak/keycloak
+      - https://www.keycloak.org/operator/realm-import
+      - https://www.keycloak.org/server/db
+    adrs: ["0008"]
+  # Kubernetes platform
+  - id: bitnami-charts
+    name: Bitnami charts
+    category: kubernetes
+    tier: n/a
+    lifecycle: hold
+    usage: evaluated-only
+    introduced: n/a
+    purpose: Was evaluated as a source of packaged Kubernetes applications before the project kept manifests and maintained charts under direct control.
+    license: Apache-2.0
+    license-source: https://raw.githubusercontent.com/bitnami/charts/main/LICENSE.md
+    version: n/a
+    repo: https://github.com/bitnami/charts
+    sources:
+      - https://github.com/bitnami/charts
+      - https://raw.githubusercontent.com/bitnami/charts/main/LICENSE.md
+      - https://community.broadcom.com/tanzu/article/changes-to-the-bitnami-catalog
+    adrs: []
+    notes: Held because the free Bitnami catalog was frozen in August 2025 and moved to an unsupported legacy registry in September 2025.
+  - id: cert-manager
+    name: cert-manager
+    category: kubernetes
+    tier: A
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-3
+    purpose: Issues the local PKI materials that secure ingress, services, and selected platform workloads.
+    license: Apache-2.0
+    license-source: https://github.com/cert-manager/cert-manager
+    version: "v1.21.2"
+    repo: https://github.com/cert-manager/cert-manager
+    sources:
+      - https://github.com/cert-manager/cert-manager
+      - https://github.com/cert-manager/cert-manager/releases/tag/v1.21.2
+      - https://cert-manager.io/docs/
+    adrs: ["0015"]
+  - id: cilium
+    name: Cilium
+    category: kubernetes
+    tier: n/a
+    lifecycle: hold
+    usage: evaluated-only
+    introduced: n/a
+    purpose: Was evaluated as a heavier CNI and policy stack before the project stayed with kindnet.
+    license: Apache-2.0
+    license-source: https://github.com/cilium/cilium
+    version: "v1.20.2"
+    repo: https://github.com/cilium/cilium
+    sources:
+      - https://github.com/cilium/cilium
+      - https://github.com/cilium/cilium/releases/tag/v1.20.2
+      - https://docs.cilium.io/en/stable/installation/kind/
+    adrs: ["0019"]
+    notes: Held because the plan prefers kindnet's lighter footprint and only documents Cilium as the fallback for FQDN egress or richer networking needs.
+  - id: envoy-gateway
+    name: Envoy Gateway
+    category: kubernetes
+    tier: A
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-3
+    purpose: Implements the repository's only ingress path on top of Gateway API.
+    license: Apache-2.0
+    license-source: https://github.com/envoyproxy/gateway
+    version: "v1.9.2"
+    repo: https://github.com/envoyproxy/gateway
+    sources:
+      - https://github.com/envoyproxy/gateway
+      - https://github.com/envoyproxy/gateway/releases/tag/v1.9.2
+      - https://gateway.envoyproxy.io/news/releases/matrix/
+    adrs: ["0015"]
+  - id: helm
+    name: Helm
+    category: kubernetes
+    tier: B
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-3
+    purpose: Installs selected platform services that are intentionally consumed as upstream charts.
+    license: Apache-2.0
+    license-source: https://github.com/helm/helm
+    version: "v4.3.0"
+    repo: https://github.com/helm/helm
+    sources:
+      - https://github.com/helm/helm
+      - https://github.com/helm/helm/releases/tag/v4.3.0
+      - https://helm.sh/docs/
+    adrs: []
+  - id: ingress-nginx
+    name: ingress-nginx
+    category: kubernetes
+    tier: n/a
+    lifecycle: hold
+    usage: evaluated-only
+    introduced: n/a
+    purpose: Was the original ingress candidate before the plan switched to Gateway API and Envoy Gateway.
+    license: Apache-2.0
+    license-source: https://github.com/kubernetes/ingress-nginx
+    version: "controller-v1.15.1"
+    repo: https://github.com/kubernetes/ingress-nginx
+    sources:
+      - https://github.com/kubernetes/ingress-nginx
+      - https://kubernetes.io/blog/2025/11/11/ingress-nginx-retirement/
+      - https://kubernetes.io/blog/2026/01/29/ingress-nginx-statement/
+    adrs: ["0015"]
+    notes: Held because ingress-nginx is retired and archived read-only, and its best-effort maintenance ended in March 2026.
+  - id: kind
+    name: kind
+    category: kubernetes
+    tier: A
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-3
+    purpose: Hosts the cloud-agnostic local Kubernetes platform used for all later phases.
+    license: Apache-2.0
+    license-source: https://github.com/kubernetes-sigs/kind
+    version: "v0.33.0"
+    repo: https://github.com/kubernetes-sigs/kind
+    sources:
+      - https://github.com/kubernetes-sigs/kind
+      - https://github.com/kubernetes-sigs/kind/releases/tag/v0.33.0
+      - https://kind.sigs.k8s.io/
+    adrs: ["0019"]
+  - id: kindnet
+    name: kindnet
+    category: kubernetes
+    tier: B
+    lifecycle: trial
+    usage: planned
+    introduced: phase-3
+    purpose: Provides the default CNI and baseline NetworkPolicy enforcement inside the kind cluster.
+    license: Apache-2.0
+    license-source: https://github.com/kubernetes-sigs/kindnet
+    version: "v1.0.2"
+    repo: https://github.com/kubernetes-sigs/kindnet
+    sources:
+      - https://github.com/kubernetes-sigs/kindnet
+      - https://github.com/kubernetes-sigs/kindnet/releases/tag/v1.0.2
+      - https://kindnet.sigs.k8s.io/docs/user/network-policies/
+    adrs: ["0019"]
+    notes: Trial until WP3.0 proves ingress and egress NetworkPolicy enforcement, including kubelet probes. Upstream documents enforcement through kube-network-policies, but this repository has not measured it yet.
+  - id: kube-prometheus-stack
+    name: kube-prometheus-stack
+    category: kubernetes
+    tier: A
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-3
+    purpose: Installs the trimmed Prometheus and Grafana stack used for cluster observability.
+    license: Apache-2.0
+    license-source: https://prometheus-community.github.io/helm-charts/index.yaml
+    version: "91.9.0"
+    repo: https://github.com/prometheus-community/helm-charts
+    sources:
+      - https://github.com/prometheus-community/helm-charts
+      - https://prometheus-community.github.io/helm-charts/index.yaml
+      - https://artifacthub.io/packages/helm/prometheus-community/kube-prometheus-stack
+    adrs: []
+  - id: kubernetes
+    name: Kubernetes
+    category: kubernetes
+    tier: A
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-3
+    purpose: Supplies the platform API, workload model, and security boundaries that the repository teaches.
+    license: Apache-2.0
+    license-source: https://github.com/kubernetes/kubernetes
+    version: "v1.37.1"
+    repo: https://github.com/kubernetes/kubernetes
+    sources:
+      - https://github.com/kubernetes/kubernetes
+      - https://github.com/kubernetes/kubernetes/releases/tag/v1.37.1
+      - https://kubernetes.io/docs/home/
+    adrs: ["0015", "0019"]
+    notes: The latest upstream release is 1.37.1, but the plan intentionally pins the kind node image to a Kubernetes 1.33-1.36 build because Envoy Gateway 1.9 does not support 1.37 yet.
+  - id: kustomize
+    name: Kustomize
+    category: kubernetes
+    tier: B
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-4
+    purpose: Manages overlay rendering and image-digest updates under GitOps.
+    license: Apache-2.0
+    license-source: https://github.com/kubernetes-sigs/kustomize
+    version: "kustomize/v5.8.2"
+    repo: https://github.com/kubernetes-sigs/kustomize
+    sources:
+      - https://github.com/kubernetes-sigs/kustomize
+      - https://github.com/kubernetes-sigs/kustomize/releases/tag/kustomize%2Fv5.8.2
+      - https://kubectl.docs.kubernetes.io/guides/introduction/kustomize/
+    adrs: ["0011"]
+  - id: nginx-gateway-fabric
+    name: NGINX Gateway Fabric
+    category: kubernetes
+    tier: n/a
+    lifecycle: hold
+    usage: evaluated-only
+    introduced: n/a
+    purpose: Was evaluated as a Gateway API implementation before the project chose Envoy Gateway.
+    license: Apache-2.0
+    license-source: https://github.com/nginx/nginx-gateway-fabric
+    version: "v2.7.2"
+    repo: https://github.com/nginx/nginx-gateway-fabric
+    sources:
+      - https://github.com/nginx/nginx-gateway-fabric
+      - https://github.com/nginx/nginx-gateway-fabric/releases/tag/v2.7.2
+    adrs: ["0015"]
+    notes: Held because the plan standardized on Envoy Gateway after verifying Gateway API support, rollouts integration, and kind exposure guidance there.
+  - id: trust-manager
+    name: trust-manager
+    category: kubernetes
+    tier: A
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-3
+    purpose: Distributes trusted CA bundles across namespaces and workloads.
+    license: Apache-2.0
+    license-source: https://github.com/cert-manager/trust-manager
+    version: "v0.25.0"
+    repo: https://github.com/cert-manager/trust-manager
+    sources:
+      - https://github.com/cert-manager/trust-manager
+      - https://github.com/cert-manager/trust-manager/releases/tag/v0.25.0
+      - https://cert-manager.io/docs/trust/trust-manager/
+    adrs: ["0015"]
+
+  # Observability
+  - id: grafana
+    name: Grafana
+    category: observability
+    tier: A
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-3
+    purpose: Visualizes platform and application dashboards, SLOs, and traces-linked exemplars.
+    license: AGPL-3.0
+    license-source: https://github.com/grafana/grafana
+    version: "v13.2.3"
+    repo: https://github.com/grafana/grafana
+    sources:
+      - https://github.com/grafana/grafana
+      - https://github.com/grafana/grafana/releases/tag/v13.2.3
+      - https://grafana.com/docs/grafana/latest/
+    adrs: ["0004"]
+    notes: AGPL-3.0. The repository deploys the upstream image unmodified for local use and does not offer it as a hosted service, so ADR-0004 treats it as tool-only.
+  - id: loki
+    name: Loki
+    category: observability
+    tier: A
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-3
+    purpose: Stores the centralized logs used in the full local platform profile.
+    license: AGPL-3.0
+    license-source: https://github.com/grafana/loki
+    version: "v3.7.8"
+    repo: https://github.com/grafana/loki
+    sources:
+      - https://github.com/grafana/loki
+      - https://github.com/grafana/loki/releases/tag/v3.7.8
+      - https://grafana.com/docs/loki/latest/
+    adrs: ["0004"]
+    notes: AGPL-3.0. The repository deploys the upstream image unmodified for local use and does not offer it as a hosted service, so ADR-0004 treats it as tool-only.
+  - id: otel-collector
+    name: OpenTelemetry Collector
+    category: observability
+    tier: A
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-3
+    purpose: Receives, processes, and exports telemetry from the API and Kubernetes workloads.
+    license: Apache-2.0
+    license-source: https://github.com/open-telemetry/opentelemetry-collector-releases
+    version: "v0.162.0"
+    repo: https://github.com/open-telemetry/opentelemetry-collector-releases
+    sources:
+      - https://github.com/open-telemetry/opentelemetry-collector-releases
+      - https://github.com/open-telemetry/opentelemetry-collector-releases/releases/tag/v0.162.0
+      - https://opentelemetry.io/docs/collector/
+    adrs: []
+  - id: otel-lgtm
+    name: grafana/otel-lgtm
+    category: observability
+    tier: B
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-1
+    purpose: Supplies the lightweight local observability stack for the Compose quick-start profile.
+    license: Apache-2.0
+    license-source: https://github.com/grafana/docker-otel-lgtm
+    version: "v0.35.0"
+    repo: https://github.com/grafana/docker-otel-lgtm
+    sources:
+      - https://github.com/grafana/docker-otel-lgtm
+      - https://github.com/grafana/docker-otel-lgtm/releases/tag/v0.35.0
+      - https://grafana.com/docs/opentelemetry/collector/opentelemetry-collector/quickstart/
+    adrs: ["0004"]
+    notes: The image bundles Grafana, Loki, Tempo, and Prometheus, so it includes AGPL-3.0 components. It is used for local development only and is not redistributed, so ADR-0004 treats it as tool-only.
+  - id: prometheus
+    name: Prometheus
+    category: observability
+    tier: A
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-3
+    purpose: Scrapes metrics, records SLO rules, and drives alerting for the platform and rollouts.
+    license: Apache-2.0
+    license-source: https://github.com/prometheus/prometheus
+    version: "v3.15.0"
+    repo: https://github.com/prometheus/prometheus
+    sources:
+      - https://github.com/prometheus/prometheus
+      - https://github.com/prometheus/prometheus/releases/tag/v3.15.0
+      - https://prometheus.io/docs/introduction/overview/
+    adrs: []
+  - id: tempo
+    name: Tempo
+    category: observability
+    tier: A
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-3
+    purpose: Stores traces in the full platform profile without requiring Kafka in monolithic mode.
+    license: AGPL-3.0
+    license-source: https://github.com/grafana/tempo
+    version: "v3.1.0"
+    repo: https://github.com/grafana/tempo
+    sources:
+      - https://github.com/grafana/tempo
+      - https://github.com/grafana/tempo/releases/tag/v3.1.0
+      - https://grafana.com/docs/tempo/latest/set-up-for-tracing/setup-tempo/plan/deployment-modes/
+    adrs: ["0004"]
+    notes: AGPL-3.0. The repository deploys the upstream image unmodified for local use and does not offer it as a hosted service, so ADR-0004 treats it as tool-only.
+
+  # Policy
+  - id: kyverno
+    name: Kyverno
+    category: policy
+    tier: A
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-3
+    purpose: Enforces workload, image-verification, and security policy in the cluster.
+    license: Apache-2.0
+    license-source: https://github.com/kyverno/kyverno
+    version: "v1.19.1"
+    repo: https://github.com/kyverno/kyverno
+    sources:
+      - https://github.com/kyverno/kyverno
+      - https://github.com/kyverno/kyverno/releases/tag/v1.19.1
+      - https://kyverno.io/docs/policy-types/image-validating-policy/
+    adrs: ["0013", "0015"]
+  - id: kyverno-cli
+    name: Kyverno CLI
+    category: policy
+    tier: B
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-2
+    purpose: Verifies policies and image-signing rules in CI and lab exercises.
+    license: Apache-2.0
+    license-source: https://github.com/kyverno/kyverno
+    version: "v1.19.1"
+    repo: https://github.com/kyverno/kyverno
+    sources:
+      - https://github.com/kyverno/kyverno
+      - https://github.com/kyverno/kyverno/releases/tag/v1.19.1
+      - https://kyverno.io/docs/kyverno-cli/
+    adrs: ["0013", "0015"]
+  - id: opa-gatekeeper
+    name: OPA Gatekeeper
+    category: policy
+    tier: n/a
+    lifecycle: hold
+    usage: evaluated-only
+    introduced: n/a
+    purpose: Was evaluated as a Kubernetes admission and policy controller before the project chose Kyverno.
+    license: Apache-2.0
+    license-source: https://github.com/open-policy-agent/gatekeeper
+    version: "v3.23.1"
+    repo: https://github.com/open-policy-agent/gatekeeper
+    sources:
+      - https://github.com/open-policy-agent/gatekeeper
+      - https://github.com/open-policy-agent/gatekeeper/releases/tag/v3.23.1
+      - https://open-policy-agent.github.io/gatekeeper/website/
+    adrs: ["0015"]
+    notes: Held because the project chose Kyverno's native Kubernetes UX and ImageValidatingPolicy support for Cosign, SBOM, and provenance checks.
+
+  # Secrets and secret delivery
+  - id: openbao
+    name: OpenBao
+    category: secrets
+    tier: n/a
+    lifecycle: hold
+    usage: evaluated-only
+    introduced: n/a
+    purpose: Was evaluated as the secrets broker before the project switched to Vault.
+    license: MPL-2.0
+    license-source: https://github.com/openbao/openbao
+    version: "v2.7.1"
+    repo: https://github.com/openbao/openbao
+    sources:
+      - https://github.com/openbao/openbao
+      - https://github.com/openbao/openbao/releases/tag/v2.7.1
+      - https://openbao.org/docs/secrets/databases/
+    adrs: ["0008"]
+    notes: Held because OpenBao 2.7.1 has no SQL Server database plugin, so it cannot issue the dynamic SQL Server credentials this design requires.
+  - id: vault
+    name: HashiCorp Vault Community Edition
+    category: secrets
+    tier: A
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-3
+    purpose: Brokers workload identity and issues database and application secrets for the platform.
+    license: BUSL-1.1
+    license-source: https://raw.githubusercontent.com/hashicorp/vault/main/LICENSE
+    version: "v2.1.1"
+    repo: https://github.com/hashicorp/vault
+    sources:
+      - https://github.com/hashicorp/vault
+      - https://github.com/hashicorp/vault/releases/tag/v2.1.1
+      - https://raw.githubusercontent.com/hashicorp/vault/main/LICENSE
+    adrs: ["0004", "0008", "0009"]
+    notes: Vault is a tool-only dependency under ADR-0004; the BSL 1.1 additional use grant is acceptable for this internal teaching use and Vault provides the MSSQL secrets engine OpenBao lacks.
+  - id: vault-agent
+    name: Vault Agent
+    category: secrets
+    tier: A
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-3
+    purpose: Renders short-lived SQL Server and Valkey credentials into workload sidecars.
+    license: BUSL-1.1
+    license-source: https://raw.githubusercontent.com/hashicorp/vault/main/LICENSE
+    version: "v2.1.1"
+    repo: https://github.com/hashicorp/vault
+    sources:
+      - https://developer.hashicorp.com/vault/docs/agent-and-proxy/agent
+      - https://github.com/hashicorp/vault/releases/tag/v2.1.1
+      - https://raw.githubusercontent.com/hashicorp/vault/main/LICENSE
+    adrs: ["0008", "0009"]
+    notes: Runs as the vault agent command from the Vault image, so it follows Vault's license and version. ADR-0008 uses it as an explicit native sidecar. The separate vault-k8s injector (MPL-2.0, v1.7.6) is not used.
+  - id: vault-secrets-operator
+    name: Vault Secrets Operator
+    category: secrets
+    tier: A
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-3
+    purpose: Syncs selected Vault secrets into Kubernetes for platform controllers that cannot use the native sidecar path.
+    license: BUSL-1.1
+    license-source: https://raw.githubusercontent.com/hashicorp/vault-secrets-operator/main/LICENSE
+    version: "v1.6.0"
+    repo: https://github.com/hashicorp/vault-secrets-operator
+    sources:
+      - https://github.com/hashicorp/vault-secrets-operator
+      - https://github.com/hashicorp/vault-secrets-operator/releases/tag/v1.6.0
+      - https://raw.githubusercontent.com/hashicorp/vault-secrets-operator/main/LICENSE
+    adrs: ["0004", "0008"]
+    notes: BUSL-1.1, like Vault. It runs as a platform controller and is not linked into or redistributed with the application, so ADR-0004 treats it as tool-only.
+  # Security tools
+  - id: actionlint
+    name: actionlint
+    category: security-tool
+    tier: B
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-2
+    purpose: Catches GitHub Actions syntax and workflow-shape mistakes before the secure CI pipeline runs.
+    license: MIT
+    license-source: https://github.com/rhysd/actionlint
+    version: "v1.7.12"
+    repo: https://github.com/rhysd/actionlint
+    sources:
+      - https://github.com/rhysd/actionlint
+      - https://github.com/rhysd/actionlint/releases/tag/v1.7.12
+      - https://github.com/rhysd/actionlint/blob/main/README.md
+    adrs: ["0013"]
+  - id: codeql
+    name: CodeQL
+    category: security-tool
+    tier: A
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-2
+    purpose: Runs static analysis over C# and workflow code once the repository is public.
+    license: proprietary, OSS-only without GHAS for private code
+    license-source: https://raw.githubusercontent.com/github/codeql-cli-binaries/main/LICENSE.md
+    version: "2.27.1"
+    sources:
+      - https://raw.githubusercontent.com/github/codeql-cli-binaries/main/LICENSE.md
+      - https://github.com/github/codeql-action
+      - https://docs.github.com/en/get-started/learning-about-github/about-github-advanced-security
+    adrs: ["0002", "0013"]
+    notes: The CodeQL terms permit this use only on an open-source codebase or under a paid GHAS license, so private learner forks must skip it.
+  - id: gitleaks
+    name: gitleaks
+    category: security-tool
+    tier: B
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-1
+    purpose: Scans commits and working trees for leaked secrets before publication or release.
+    license: MIT
+    license-source: https://github.com/gitleaks/gitleaks
+    version: "v8.30.1"
+    repo: https://github.com/gitleaks/gitleaks
+    sources:
+      - https://github.com/gitleaks/gitleaks
+      - https://github.com/gitleaks/gitleaks/releases/tag/v8.30.1
+      - https://gitleaks.io/
+    adrs: ["0013"]
+  - id: tfsec
+    name: tfsec
+    category: security-tool
+    tier: n/a
+    lifecycle: hold
+    usage: evaluated-only
+    introduced: n/a
+    purpose: Was evaluated as the Terraform misconfiguration scanner named in the brief before the project mapped the requirement to Trivy.
+    license: MIT
+    license-source: https://github.com/aquasecurity/tfsec
+    version: "v1.28.14"
+    repo: https://github.com/aquasecurity/tfsec
+    sources:
+      - https://github.com/aquasecurity/tfsec
+      - https://github.com/aquasecurity/tfsec/releases/tag/v1.28.14
+      - https://github.com/aquasecurity/tfsec/blob/master/tfsec-to-trivy-migration-guide.md
+    adrs: ["0014"]
+    notes: Held because tfsec is frozen and its own repository says it is now part of Trivy. Aqua's migration guide points to trivy config. Whether tfsec rule IDs carry over to Trivy is unverified, and WP3.1 verifies it with a fixture.
+  - id: tfsec-action
+    name: tfsec-action
+    category: security-tool
+    tier: n/a
+    lifecycle: hold
+    usage: evaluated-only
+    introduced: n/a
+    purpose: Was evaluated as the GitHub Action wrapper for tfsec before the project consolidated on Trivy.
+    license: MIT
+    license-source: https://github.com/aquasecurity/tfsec-action
+    version: "v1.0.3"
+    repo: https://github.com/aquasecurity/tfsec-action
+    sources:
+      - https://github.com/aquasecurity/tfsec-action
+      - https://github.com/aquasecurity/tfsec-action/releases/tag/v1.0.3
+      - https://github.com/aquasecurity/tfsec/blob/master/tfsec-to-trivy-migration-guide.md
+    adrs: ["0014"]
+    notes: Held because the action has had no release since January 2023 and the plan uses Trivy's maintained IaC scanner instead.
+  - id: trivy
+    name: Trivy
+    category: security-tool
+    tier: A
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-2
+    purpose: Scans the built image and Terraform code for vulnerabilities and misconfigurations.
+    license: Apache-2.0
+    license-source: https://github.com/aquasecurity/trivy
+    version: "v0.75.0"
+    repo: https://github.com/aquasecurity/trivy
+    sources:
+      - https://github.com/aquasecurity/trivy
+      - https://github.com/aquasecurity/trivy/releases/tag/v0.75.0
+      - https://github.com/aquasecurity/tfsec/blob/master/tfsec-to-trivy-migration-guide.md
+    adrs: ["0013", "0014"]
+  - id: zizmor
+    name: zizmor
+    category: security-tool
+    tier: B
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-2
+    purpose: Reviews GitHub Actions workflows for security anti-patterns and risky defaults.
+    license: MIT
+    license-source: https://github.com/woodruffw/zizmor
+    version: "v1.30.1"
+    repo: https://github.com/woodruffw/zizmor
+    sources:
+      - https://github.com/woodruffw/zizmor
+      - https://github.com/woodruffw/zizmor/releases/tag/v1.30.1
+      - https://woodruffw.github.io/zizmor/
+    adrs: ["0013"]
+
+  # Standards
+  - id: conventional-commits
+    name: Conventional Commits
+    category: standard
+    tier: B
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-0
+    purpose: Standardizes PR titles and changelog-relevant commit messages across the repository.
+    license: MIT
+    license-source: https://github.com/conventional-commits/conventionalcommits.org
+    version: n/a
+    repo: https://github.com/conventional-commits/conventionalcommits.org
+    sources:
+      - https://www.conventionalcommits.org/en/v1.0.0/
+      - https://github.com/conventional-commits/conventionalcommits.org
+    adrs: []
+  - id: cyclonedx
+    name: CycloneDX
+    category: standard
+    tier: A
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-2
+    purpose: Defines one of the SBOM formats emitted for releases and later verification.
+    license: Apache-2.0
+    license-source: https://github.com/CycloneDX/specification
+    version: n/a
+    repo: https://github.com/CycloneDX/specification
+    sources:
+      - https://github.com/CycloneDX/specification
+      - https://cyclonedx.org/specification/overview/
+    adrs: ["0013"]
+  - id: gateway-api
+    name: Gateway API
+    category: standard
+    tier: A
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-3
+    purpose: Defines the Kubernetes networking resources that Envoy Gateway and Argo Rollouts both target.
+    license: Apache-2.0
+    license-source: https://github.com/kubernetes-sigs/gateway-api
+    version: v1.6.2
+    repo: https://github.com/kubernetes-sigs/gateway-api
+    sources:
+      - https://github.com/kubernetes-sigs/gateway-api
+      - https://gateway-api.sigs.k8s.io/
+      - https://gateway.envoyproxy.io/news/releases/matrix/
+    adrs: ["0015"]
+    notes: The latest upstream release is v1.6.2, but the plan pins the 1.5.x line, which the Kubernetes verification record reports as GA. WP3.0 confirms the exact version against the Envoy Gateway compatibility matrix.
+  - id: openapi
+    name: OpenAPI Specification
+    category: standard
+    tier: A
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-1
+    purpose: Defines the contract-first HTTP API that the repository authors, tests, and versions.
+    license: Apache-2.0
+    license-source: https://github.com/OAI/OpenAPI-Specification
+    version: n/a
+    repo: https://github.com/OAI/OpenAPI-Specification
+    sources:
+      - https://github.com/OAI/OpenAPI-Specification
+      - https://spec.openapis.org/oas/latest.html
+      - https://learn.microsoft.com/en-us/aspnet/core/fundamentals/openapi/aspnetcore-openapi?view=aspnetcore-10.0
+    adrs: ["0017"]
+  - id: openvex
+    name: OpenVEX
+    category: standard
+    tier: A
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-2
+    purpose: Records time-bounded vulnerability exception statements for image-scanning decisions.
+    license: CC0-1.0
+    license-source: https://github.com/openvex/spec
+    version: n/a
+    repo: https://github.com/openvex/spec
+    sources:
+      - https://github.com/openvex/spec
+      - https://openvex.dev/
+    adrs: ["0013"]
+  - id: sarif
+    name: SARIF
+    category: standard
+    tier: B
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-2
+    purpose: Carries scan results from security and IaC tooling into GitHub and release evidence.
+    license: OASIS RF on RAND terms
+    license-source: https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/LICENSE.md
+    version: n/a
+    repo: https://github.com/oasis-tcs/sarif-spec
+    sources:
+      - https://github.com/oasis-tcs/sarif-spec
+      - https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/LICENSE.md
+      - https://sarifweb.azurewebsites.net/
+    adrs: ["0013", "0014"]
+    notes: A specification, not software. Its license covers the specification text only.
+  - id: slsa
+    name: SLSA
+    category: standard
+    tier: A
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-2
+    purpose: Supplies the provenance level model used for the repository's release and attestation design.
+    license: Community-Spec-1.0
+    license-source: https://raw.githubusercontent.com/slsa-framework/slsa/main/LICENSE.md
+    version: n/a
+    repo: https://github.com/slsa-framework/slsa
+    sources:
+      - https://github.com/slsa-framework/slsa
+      - https://raw.githubusercontent.com/slsa-framework/slsa/main/LICENSE.md
+      - https://slsa.dev/spec/v1.0/levels
+    adrs: ["0013"]
+    notes: A specification, not software. Its license covers the specification text only.
+  - id: spdx
+    name: SPDX
+    category: standard
+    tier: A
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-2
+    purpose: Defines one of the SBOM formats emitted for releases and supply-chain evidence.
+    license: Community-Spec-1.0 and CC-BY-3.0
+    license-source: https://raw.githubusercontent.com/spdx/spdx-spec/master/LICENSE
+    version: n/a
+    repo: https://github.com/spdx/spdx-spec
+    sources:
+      - https://github.com/spdx/spdx-spec
+      - https://raw.githubusercontent.com/spdx/spdx-spec/master/LICENSE
+      - https://spdx.github.io/spdx-spec/
+    adrs: ["0013"]
+    notes: A specification, not software. Its license covers the specification text only.
+
+  # Supply chain
+  - id: cosign
+    name: Cosign
+    category: supply-chain
+    tier: A
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-2
+    purpose: Signs released images and verifies signatures and attestations in CI and admission tests.
+    license: Apache-2.0
+    license-source: https://github.com/sigstore/cosign
+    version: "v3.1.3"
+    repo: https://github.com/sigstore/cosign
+    sources:
+      - https://github.com/sigstore/cosign
+      - https://github.com/sigstore/cosign/releases/tag/v3.1.3
+      - https://blog.sigstore.dev/cosign-3-0-available/
+    adrs: ["0013"]
+  - id: dependabot
+    name: Dependabot
+    category: supply-chain
+    tier: B
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-1
+    purpose: Opens update pull requests for supported ecosystems from a first-party GitHub service.
+    license: service
+    license-source: https://docs.github.com/en/code-security/how-tos/secure-your-supply-chain/secure-your-dependencies/configure-version-updates
+    version: n/a
+    sources:
+      - https://docs.github.com/en/code-security/how-tos/secure-your-supply-chain/secure-your-dependencies/configure-version-updates
+      - https://docs.github.com/en/code-security/dependabot
+    adrs: ["0013"]
+  - id: dependency-review
+    name: Dependency review
+    category: supply-chain
+    tier: A
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-2
+    purpose: Blocks vulnerable or license-incompatible dependency changes at pull request time.
+    license: service
+    license-source: https://docs.github.com/en/code-security/concepts/supply-chain-security/dependency-review
+    version: n/a
+    sources:
+      - https://docs.github.com/en/code-security/concepts/supply-chain-security/dependency-review
+      - https://docs.github.com/en/get-started/learning-about-github/about-github-advanced-security
+    adrs: ["0013"]
+  - id: nuget-license
+    name: nuget-license
+    category: supply-chain
+    tier: B
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-1
+    purpose: Enforces the repository's linked-dependency license allowlist in CI.
+    license: Apache-2.0
+    license-source: https://github.com/sensslen/nuget-license
+    version: "4.0.18"
+    repo: https://github.com/sensslen/nuget-license
+    sources:
+      - https://github.com/sensslen/nuget-license
+      - https://www.nuget.org/packages/nuget-license
+    adrs: ["0004"]
+  - id: renovate
+    name: Renovate
+    category: supply-chain
+    tier: n/a
+    lifecycle: hold
+    usage: evaluated-only
+    introduced: n/a
+    purpose: Was evaluated as an update bot before the project chose first-party Dependabot plus targeted freshness reporting.
+    license: AGPL-3.0
+    license-source: https://github.com/renovatebot/renovate
+    version: "44.133.0"
+    repo: https://github.com/renovatebot/renovate
+    sources:
+      - https://github.com/renovatebot/renovate
+      - https://github.com/renovatebot/renovate/releases/tag/44.133.0
+      - https://docs.renovatebot.com/
+    adrs: ["0013"]
+    notes: Held because the plan avoids granting a third-party app write access to the public teaching repository and instead prefers Dependabot where it covers the ecosystem.
+  - id: scorecard
+    name: OpenSSF Scorecard
+    category: supply-chain
+    tier: B
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-2
+    purpose: Publishes an external security posture score for the public repository.
+    license: Apache-2.0
+    license-source: https://github.com/ossf/scorecard
+    version: "v5.5.0"
+    repo: https://github.com/ossf/scorecard
+    sources:
+      - https://github.com/ossf/scorecard
+      - https://github.com/ossf/scorecard/releases/tag/v5.5.0
+      - https://securityscorecards.dev/
+    adrs: ["0013"]
+  - id: sigstore
+    name: Sigstore
+    category: supply-chain
+    tier: A
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-2
+    purpose: Supplies the Fulcio and Rekor trust model behind keyless signing and verification.
+    license: Apache-2.0
+    license-source: https://github.com/sigstore/sigstore
+    version: "v1.11.0"
+    repo: https://github.com/sigstore/sigstore
+    sources:
+      - https://github.com/sigstore/sigstore
+      - https://github.com/sigstore/sigstore/releases/tag/v1.11.0
+      - https://www.sigstore.dev/
+    adrs: ["0013"]
+  - id: slsa-github-generator
+    name: slsa-github-generator
+    category: supply-chain
+    tier: n/a
+    lifecycle: hold
+    usage: evaluated-only
+    introduced: n/a
+    purpose: Was evaluated as a provenance generator before the project standardized on GitHub attestations plus Cosign.
+    license: Apache-2.0
+    license-source: https://github.com/slsa-framework/slsa-github-generator
+    version: "v2.1.0"
+    repo: https://github.com/slsa-framework/slsa-github-generator
+    sources:
+      - https://github.com/slsa-framework/slsa-github-generator
+      - https://github.com/slsa-framework/slsa-github-generator/releases/tag/v2.1.0
+      - https://github.com/slsa-framework/slsa-github-generator/blob/main/internal/builders/container/README.md
+    adrs: ["0013"]
+    notes: Held because the container builder is explicitly no longer actively maintained and GitHub recommends native artifact attestations for new integrations.
+  - id: syft
+    name: Syft
+    category: supply-chain
+    tier: A
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-2
+    purpose: Generates SPDX and CycloneDX SBOMs for every released image.
+    license: Apache-2.0
+    license-source: https://github.com/anchore/syft
+    version: "v1.54.0"
+    repo: https://github.com/anchore/syft
+    sources:
+      - https://github.com/anchore/syft
+      - https://github.com/anchore/syft/releases/tag/v1.54.0
+      - https://anchore.com/syft/
+    adrs: ["0013"]
+  # Test frameworks
+  - id: microsoft-testing-platform
+    name: Microsoft.Testing.Platform
+    category: test-framework
+    tier: A
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-1
+    purpose: Provides the repo's native .NET 10 test runner and reporting integration.
+    license: MIT
+    license-source: https://www.nuget.org/packages/Microsoft.Testing.Platform/2.4.1/license
+    version: "2.4.1"
+    sources:
+      - https://www.nuget.org/packages/Microsoft.Testing.Platform
+      - https://learn.microsoft.com/en-us/dotnet/core/testing/unit-testing-with-dotnet-test
+    adrs: ["0018"]
+  - id: xunit-v3
+    name: xUnit v3
+    category: test-framework
+    tier: A
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-1
+    purpose: Runs the unit and integration test suites for the application and its auditors.
+    license: Apache-2.0
+    license-source: https://www.nuget.org/packages/xunit.v3/4.0.1/license
+    version: "4.0.1"
+    repo: https://github.com/xunit/xunit
+    sources:
+      - https://www.nuget.org/packages/xunit.v3
+      - https://github.com/xunit/xunit
+      - https://xunit.net/docs/getting-started/v3/getting-started
+    adrs: ["0018"]
+
+  # Test tools
+  - id: archunitnet
+    name: TngTech.ArchUnitNET
+    category: test-tool
+    tier: B
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-1
+    purpose: Enforces Clean Architecture boundaries as executable architecture rules.
+    license: Apache-2.0
+    license-source: https://www.nuget.org/packages/TngTech.ArchUnitNET.xUnitV3/0.13.4/license
+    version: "0.13.4"
+    repo: https://github.com/TNG/ArchUnitNET
+    sources:
+      - https://www.nuget.org/packages/TngTech.ArchUnitNET.xUnitV3
+      - https://github.com/TNG/ArchUnitNET
+    adrs: ["0018"]
+  - id: awesomeassertions
+    name: AwesomeAssertions
+    category: test-tool
+    tier: B
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-1
+    purpose: Supplies fluent assertion helpers without the new FluentAssertions commercial terms.
+    license: Apache-2.0
+    license-source: https://www.nuget.org/packages/AwesomeAssertions/9.6.0/license
+    version: "9.6.0"
+    repo: https://github.com/AwesomeAssertions/AwesomeAssertions
+    sources:
+      - https://www.nuget.org/packages/AwesomeAssertions
+      - https://github.com/AwesomeAssertions/AwesomeAssertions
+    adrs: ["0004", "0018"]
+  - id: chainsaw
+    name: Chainsaw
+    category: test-tool
+    tier: B
+    lifecycle: trial
+    usage: planned
+    introduced: phase-3
+    purpose: Runs Kubernetes-native test scenarios for networking, policy, and rollback drills.
+    license: Apache-2.0
+    license-source: https://github.com/kyverno/chainsaw
+    version: "v0.2.15"
+    repo: https://github.com/kyverno/chainsaw
+    sources:
+      - https://github.com/kyverno/chainsaw
+      - https://github.com/kyverno/chainsaw/releases/tag/v0.2.15
+      - https://kyverno.github.io/chainsaw/
+    adrs: ["0015"]
+    notes: Trial because the project is pre-1.0 (v0.2.x). Pin the version and review the changelog on every upgrade.
+  - id: coverlet
+    name: coverlet.collector
+    category: test-tool
+    tier: n/a
+    lifecycle: hold
+    usage: evaluated-only
+    introduced: n/a
+    purpose: Was evaluated for .NET coverage collection before the project chose the native MTP extension.
+    license: MIT
+    license-source: https://www.nuget.org/packages/coverlet.collector/10.1.0/license
+    version: "10.1.0"
+    repo: https://github.com/coverlet-coverage/coverlet
+    sources:
+      - https://www.nuget.org/packages/coverlet.collector
+      - https://github.com/coverlet-coverage/coverlet
+    adrs: ["0018"]
+    notes: Held because coverlet does not support Microsoft.Testing.Platform v2, while the repository standardizes on MTP for .NET 10.
+  - id: cscheck
+    name: CsCheck
+    category: test-tool
+    tier: B
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-1
+    purpose: Supplies the property-based tests used for value objects and invariants.
+    license: Apache-2.0
+    license-source: https://www.nuget.org/packages/CsCheck/4.9.1/license
+    version: "4.9.1"
+    repo: https://github.com/AnthonyLloyd/CsCheck
+    sources:
+      - https://www.nuget.org/packages/CsCheck
+      - https://github.com/AnthonyLloyd/CsCheck
+    adrs: ["0018"]
+  - id: fluentassertions
+    name: FluentAssertions
+    category: test-tool
+    tier: n/a
+    lifecycle: hold
+    usage: evaluated-only
+    introduced: n/a
+    purpose: Was evaluated for fluent assertions before the project switched to an Apache-licensed fork.
+    license: proprietary, community/commercial dual license
+    license-source: https://www.nuget.org/packages/FluentAssertions/8.11.0/license
+    version: "8.11.0"
+    sources:
+      - https://www.nuget.org/packages/FluentAssertions
+      - https://xceed.com/products/unit-testing/fluent-assertions/
+    adrs: ["0004", "0018"]
+    notes: Held because FluentAssertions 8 and later is commercial for many uses, which violates the repository's linked-dependency policy.
+  - id: k6
+    name: k6
+    category: test-tool
+    tier: A
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-2
+    purpose: Runs smoke, load, and rollout-analysis traffic against the API and cluster.
+    license: AGPL-3.0
+    license-source: https://github.com/grafana/k6
+    version: "v2.3.0"
+    repo: https://github.com/grafana/k6
+    sources:
+      - https://github.com/grafana/k6
+      - https://github.com/grafana/k6/releases/tag/v2.3.0
+      - https://grafana.com/docs/k6/latest/
+    adrs: ["0004", "0018"]
+    notes: k6 is accepted as a tool-only AGPL dependency under ADR-0004 and is not linked into the distributed application.
+  - id: ms-code-coverage
+    name: Microsoft Code Coverage
+    category: test-tool
+    tier: B
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-1
+    purpose: Produces coverage data in the native Microsoft.Testing.Platform test path.
+    license: Microsoft .NET Library License
+    license-source: https://www.nuget.org/packages/Microsoft.Testing.Extensions.CodeCoverage/18.11.2/license
+    version: "18.11.2"
+    repo: https://github.com/microsoft/codecoverage
+    sources:
+      - https://www.nuget.org/packages/Microsoft.Testing.Extensions.CodeCoverage
+      - https://github.com/microsoft/codecoverage
+    adrs: ["0004", "0018"]
+    notes: This extension is closed-source but free to use and was chosen because coverlet does not support Microsoft.Testing.Platform v2.
+  - id: netarchtest
+    name: NetArchTest.eNhancedEdition
+    category: test-tool
+    tier: n/a
+    lifecycle: hold
+    usage: evaluated-only
+    introduced: n/a
+    purpose: Was evaluated as an architecture-testing library before the project chose ArchUnitNET.
+    license: MIT
+    license-source: https://www.nuget.org/packages/NetArchTest.eNhancedEdition/1.4.5/license
+    version: "1.4.5"
+    repo: https://github.com/NeVeSpl/NetArchTest.eNhancedEdition
+    sources:
+      - https://www.nuget.org/packages/NetArchTest.eNhancedEdition
+      - https://github.com/NeVeSpl/NetArchTest.eNhancedEdition
+    adrs: ["0018"]
+    notes: Held because the original NetArchTest is abandoned and the eNhancedEdition fork is dormant, while ArchUnitNET is active and has xUnit v3 support.
+  - id: nsubstitute
+    name: NSubstitute
+    category: test-tool
+    tier: C
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-1
+    purpose: Supplies sparingly used mocks where a hand-written fake is not clearer.
+    license: BSD-3-Clause
+    license-source: https://www.nuget.org/packages/NSubstitute/6.2.0/license
+    version: "6.2.0"
+    sources:
+      - https://www.nuget.org/packages/NSubstitute
+      - https://nsubstitute.github.io/
+    adrs: ["0018"]
+  - id: pact-broker
+    name: Pact Broker
+    category: test-tool
+    tier: B
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-4
+    purpose: Optionally records pact versions and deployability checks in the full profile.
+    license: MIT
+    license-source: https://github.com/pact-foundation/pact_broker
+    version: "v2.122.0"
+    repo: https://github.com/pact-foundation/pact_broker
+    sources:
+      - https://github.com/pact-foundation/pact_broker
+      - https://github.com/pact-foundation/pact_broker/releases/tag/v2.122.0
+      - https://docs.pact.io/pact_broker
+    adrs: ["0018"]
+  - id: pactflow
+    name: PactFlow
+    category: test-tool
+    tier: n/a
+    lifecycle: hold
+    usage: evaluated-only
+    introduced: n/a
+    purpose: Was evaluated as a hosted contract broker before the plan preferred the OSS Pact Broker.
+    license: service
+    license-source: https://pactflow.io/
+    version: n/a
+    sources:
+      - https://pactflow.io/
+      - https://docs.pact.io/
+    adrs: ["0018"]
+    notes: Held because the PactFlow free-tier terms were not verified clearly enough during the October 2026 review, while the OSS Pact Broker is healthy and self-hostable.
+  - id: pactnet
+    name: PactNet
+    category: test-tool
+    tier: A
+    lifecycle: trial
+    usage: planned
+    introduced: phase-4
+    purpose: Verifies consumer and provider HTTP contracts against the running API.
+    license: MIT
+    license-source: https://www.nuget.org/packages/PactNet/5.0.1/license
+    version: "5.0.1"
+    repo: https://github.com/pact-foundation/pact-net
+    sources:
+      - https://www.nuget.org/packages/PactNet
+      - https://github.com/pact-foundation/pact-net
+      - https://docs.pact.io/implementation_guides/net
+    adrs: ["0017", "0018"]
+    notes: Trial because PactNet 5.0.1 is dormant, provider verification needs a real socket via UseKestrel, and it is not supported on Alpine or other musl-based images.
+  - id: pester
+    name: Pester
+    category: test-tool
+    tier: B
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-1
+    purpose: Tests the repository's PowerShell setup and developer scripts.
+    license: Apache-2.0
+    license-source: https://raw.githubusercontent.com/pester/Pester/master/LICENSE
+    version: "6.2.0"
+    repo: https://github.com/pester/Pester
+    sources:
+      - https://github.com/pester/Pester
+      - https://github.com/pester/Pester/releases/tag/6.2.0
+      - https://pester.dev/
+    adrs: ["0018"]
+  - id: psscriptanalyzer
+    name: PSScriptAnalyzer
+    category: test-tool
+    tier: B
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-1
+    purpose: Lints PowerShell scripts and keeps the developer tooling path consistent across hosts.
+    license: MIT
+    license-source: https://github.com/PowerShell/PSScriptAnalyzer
+    version: "1.25.0"
+    repo: https://github.com/PowerShell/PSScriptAnalyzer
+    sources:
+      - https://github.com/PowerShell/PSScriptAnalyzer
+      - https://github.com/PowerShell/PSScriptAnalyzer/releases/tag/1.25.0
+      - https://learn.microsoft.com/en-us/powershell/utility-modules/psscriptanalyzer/overview
+    adrs: ["0018"]
+  - id: reportgenerator
+    name: ReportGenerator
+    category: test-tool
+    tier: B
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-1
+    purpose: Renders coverage reports from the native test artifacts into readable CI and docs outputs.
+    license: Apache-2.0
+    license-source: https://www.nuget.org/packages/dotnet-reportgenerator-globaltool/5.5.11/license
+    version: "5.5.11"
+    repo: https://github.com/danielpalme/ReportGenerator
+    sources:
+      - https://www.nuget.org/packages/dotnet-reportgenerator-globaltool
+      - https://github.com/danielpalme/ReportGenerator
+    adrs: ["0018"]
+  - id: schemathesis
+    name: Schemathesis
+    category: test-tool
+    tier: A
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-4
+    purpose: Fuzzes the running API from the OpenAPI contract to catch boundary and invariance bugs.
+    license: MIT
+    license-source: https://github.com/schemathesis/schemathesis
+    version: "v4.29.2"
+    repo: https://github.com/schemathesis/schemathesis
+    sources:
+      - https://github.com/schemathesis/schemathesis
+      - https://github.com/schemathesis/schemathesis/releases/tag/v4.29.2
+      - https://schemathesis.readthedocs.io/
+    adrs: ["0018"]
+  - id: stryker-net
+    name: Stryker.NET
+    category: test-tool
+    tier: B
+    lifecycle: trial
+    usage: planned
+    introduced: phase-1
+    purpose: Measures mutation resistance for the core domain and application logic.
+    license: MIT
+    license-source: https://www.nuget.org/packages/dotnet-stryker/5.0.0/license
+    version: "5.0.0"
+    repo: https://github.com/stryker-mutator/stryker-net
+    sources:
+      - https://www.nuget.org/packages/dotnet-stryker
+      - https://github.com/stryker-mutator/stryker-net
+      - https://stryker-mutator.io/docs/stryker-net/introduction/
+    adrs: ["0018"]
+    notes: Trial because the Microsoft.Testing.Platform runner is still preview, so the plan reports mutation score but does not gate merges on it yet.
+  - id: testcontainers-dotnet
+    name: Testcontainers for .NET
+    category: test-tool
+    tier: A
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-1
+    purpose: Brings up SQL Server, Valkey, and Keycloak dependencies for repeatable integration tests.
+    license: MIT
+    license-source: https://www.nuget.org/packages/Testcontainers/4.15.0/license
+    version: "4.15.0"
+    repo: https://github.com/testcontainers/testcontainers-dotnet
+    sources:
+      - https://www.nuget.org/packages/Testcontainers
+      - https://github.com/testcontainers/testcontainers-dotnet
+      - https://dotnet.testcontainers.org/
+    adrs: ["0018"]
+  - id: verify
+    name: Verify
+    category: test-tool
+    tier: B
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-1
+    purpose: Stores snapshot baselines for generated contracts and other deterministic artifacts.
+    license: MIT
+    license-source: https://www.nuget.org/packages/Verify.XunitV3/33.2.0/license
+    version: "33.2.0"
+    repo: https://github.com/VerifyTests/Verify
+    sources:
+      - https://www.nuget.org/packages/Verify.XunitV3
+      - https://github.com/VerifyTests/Verify
+    adrs: ["0018"]
