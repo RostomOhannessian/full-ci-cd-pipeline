@@ -1,0 +1,32 @@
+[
+  {
+    "title": "Phase 0: Foundation",
+    "description": "Make the project portable and publicly verifiable before any code exists.",
+    "state": "open"
+  },
+  {
+    "title": "Phase 1: API core",
+    "description": "A production-quality Clean Architecture API that runs locally with one command, plus the governance, documentation, and testing machinery every later phase relies on. Release v0.1.0.",
+    "state": "open"
+  },
+  {
+    "title": "Phase 2: Secure CI",
+    "description": "Every change is built once, then tested, analyzed, scanned, inventoried, signed, attested, and verifiable. Release v0.2.0.",
+    "state": "open"
+  },
+  {
+    "title": "Phase 3: Zero-trust platform",
+    "description": "A reproducible local Kubernetes platform where every hop is authenticated, encrypted, authorized, segmented, observable, and policy-checked. Release v0.3.0.",
+    "state": "open"
+  },
+  {
+    "title": "Phase 4: Contracts and GitOps",
+    "description": "Versioned, consumer-verified contracts and fully declarative delivery with rehearsed rollback. Release v0.4.0.",
+    "state": "open"
+  },
+  {
+    "title": "v1.0 launch",
+    "description": "Turn the public repository into a polished, versioned portfolio release. Release v1.0.0.",
+    "state": "open"
+  }
+]

@@ -93,6 +93,13 @@ and workflow policy.
 Later phases confirm the production-path rule whenever promotion pull requests and migration changes follow the
 CODEOWNERS paths defined here.
 
+Execution record (WP0.7, 2026-10-04): the two rulesets were created from governance/github/rulesets/, and GitHub
+reports the owner's bypass as pull_requests_only on both. A direct push to master was rejected. The owner's own
+pull request that changed governance/ became mergeable (mergeStateStatus CLEAN) as soon as the three required
+checks passed, so the code owner rule did not block it and no bypass was needed. Pull requests from other authors,
+such as Dependabot and the promotion bot, still need the owner's review. GitHub cannot limit a bypass to a single rule,
+so using it for anything other than a code owner review remains a policy exception that GitHub records.
+
 ## Pros and cons of the options
 
 ### Public-repository rulesets, CODEOWNERS, and documented bypass for the solo-maintainer case

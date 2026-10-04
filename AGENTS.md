@@ -51,14 +51,15 @@ These steps come from plan section 6.
 | `docs/project/` | `status.yaml`, its schema, `STATUS.md` with **Resume here**, and the risk register | Maintainer | exists |
 | `docs/requirements/` | `requirements.yaml`, its schema, and the brief traceability map | Maintainer | exists |
 | `docs/reference/tools/inventory.yaml` | Tool inventory and lifecycle record | Maintainer | exists |
+| `docs/journal/` | Phase retrospectives: what was built, what went wrong, and what changed | Maintainer | exists |
 | `docs/security/threat-model.md` | Trust boundaries, assets, and controls | Maintainer | exists |
 | `docs/testing/strategy.md` | Test philosophy, suites, and thresholds | Maintainer | exists |
 | `docs/governance/ai-skills.md` | How AI instructions and skills are governed | Maintainer | exists |
-| `docs/governance/github-settings.md` | The target GitHub settings and the state of each | Maintainer | exists; applied in WP0.7 |
+| `docs/governance/github-settings.md` | The GitHub settings, why each was chosen, and the evidence that it is applied | Maintainer | exists |
 | `.github/workflows/docs-quality.yml` | The current CI gate for docs, links, and secret scans | Maintainer | exists |
 | `tools/lint/compose.yaml` | Lint container definitions used locally and in CI | Maintainer | exists |
 | `.github/copilot-instructions.md`, `.github/instructions/`, `.github/skills/` | Repository-wide rules, path-scoped rules, and repository skills | Maintainer | exists |
-| `governance/github/` | Repository settings, rulesets, and labels as code | Maintainer | planned in WP0.7 |
+| `governance/github/` | Rulesets, labels, and milestones as code, plus a snapshot of the live settings | Maintainer | exists |
 | `.config/dotnet-tools.json`, `src/`, `tests/` | Local .NET tools, application source under Clean Architecture boundaries, and tests | Maintainer | planned in WP1.1 |
 | `tools/Governance.Auditor/` | The deterministic governance CLI | Maintainer | planned in WP1.2 |
 | `tools/Documentation.Auditor/` | The documentation and inventory auditor | Maintainer | planned in WP1.3 |

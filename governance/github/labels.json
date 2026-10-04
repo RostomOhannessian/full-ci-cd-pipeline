@@ -1,0 +1,21 @@
+[
+  { "name": "bug", "color": "d73a4a", "description": "Something is broken" },
+  { "name": "documentation", "color": "0075ca", "description": "Documentation defect or improvement" },
+  { "name": "work-package", "color": "5319e7", "description": "A planned work package (WPn.m)" },
+  { "name": "spike", "color": "fbca04", "description": "A time-boxed risk spike" },
+  { "name": "risk", "color": "b60205", "description": "Tracks an entry in the risk register" },
+  { "name": "security", "color": "e11d21", "description": "Security finding or hardening; report vulnerabilities privately first" },
+  { "name": "privacy", "color": "f9d0c4", "description": "Privacy exposure or data-handling concern" },
+  { "name": "flaky", "color": "e99695", "description": "Quarantined flaky test; the quarantine expires after 7 days" },
+  { "name": "triage", "color": "ededed", "description": "Needs maintainer triage" },
+  { "name": "blocked", "color": "000000", "description": "Blocked by a dependency or a decision" },
+  { "name": "dependencies", "color": "0366d6", "description": "Dependency update" },
+  { "name": "phase:0", "color": "c5def5", "description": "Phase 0: Foundation" },
+  { "name": "phase:1", "color": "c5def5", "description": "Phase 1: API core" },
+  { "name": "phase:2", "color": "c5def5", "description": "Phase 2: Secure CI" },
+  { "name": "phase:3", "color": "c5def5", "description": "Phase 3: Zero-trust platform" },
+  { "name": "phase:4", "color": "c5def5", "description": "Phase 4: Contracts and GitOps" },
+  { "name": "size:S", "color": "c2e0c6", "description": "Up to 1 day of focused effort" },
+  { "name": "size:M", "color": "8fd19e", "description": "2 to 4 days of focused effort" },
+  { "name": "size:L", "color": "3fa34d", "description": "5 to 8 days of focused effort" }
+]

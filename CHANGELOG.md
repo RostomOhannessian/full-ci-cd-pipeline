@@ -20,5 +20,7 @@ Conventional Commits and attached to each release together with its evidence bun
 - Documentation quality gate: Markdown style, offline link and anchor checks, and a full-history secret scan, run identically
   in CI and locally.
 - Dependabot configuration for GitHub Actions and the pinned lint tool images.
+- Publication: the repository is public with secret scanning, push protection, private vulnerability reporting, hardened Actions settings, two rulesets, labels, milestones, and the 14 Phase 1 work-package Issues. The settings are recorded in `docs/governance/github-settings.md` and `governance/github/`.
+- The Phase 0 retrospective.
 
 [Unreleased]: https://github.com/RostomOhannessian/full-ci-cd-pipeline/commits/master
