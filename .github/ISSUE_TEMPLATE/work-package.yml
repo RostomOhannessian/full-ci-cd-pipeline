@@ -1,0 +1,77 @@
+name: Work package
+description: A planned unit of delivery from a phase plan. Used to track scope, tests, documentation, and evidence.
+title: "WPx.y: "
+labels: ["work-package"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Work packages are defined in [the implementation plan](../blob/master/docs/plans/implementation-plan.md) and the phase plans.
+        Put the stable ID on the first line of the description so that tooling can find this Issue again:
+        `<!-- governance:id=WPx.y -->`
+  - type: input
+    id: wp-id
+    attributes:
+      label: Work package ID
+      placeholder: WP1.8
+    validations:
+      required: true
+  - type: dropdown
+    id: phase
+    attributes:
+      label: Phase
+      options:
+        - Phase 0 (foundation)
+        - Phase 1 (API core)
+        - Phase 2 (secure CI)
+        - Phase 3 (zero-trust platform)
+        - Phase 4 (contracts and GitOps)
+        - v1.0 launch
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope and non-goals
+      description: What is in, and what is explicitly out.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Testable statements. Each one should map to a test or a piece of evidence.
+    validations:
+      required: true
+  - type: input
+    id: requirements
+    attributes:
+      label: Requirement IDs
+      description: Comma-separated IDs from docs/requirements/requirements.yaml.
+      placeholder: REQ-APP-001, REQ-DATA-002
+  - type: textarea
+    id: tests
+    attributes:
+      label: Planned tests
+      description: Suites and cases, including negative and failure-injection cases.
+  - type: textarea
+    id: docs
+    attributes:
+      label: Documentation deliverables
+      description: Tool pages, tutorials, labs, ADRs, runbooks, and threat-model updates this package owes.
+  - type: dropdown
+    id: size
+    attributes:
+      label: Size
+      description: S is a day or less, M is two to four days, L is five to eight days. Split anything larger.
+      options:
+        - S
+        - M
+        - L
+    validations:
+      required: true
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Depends on
+      description: Work packages or Issues that must be finished first.

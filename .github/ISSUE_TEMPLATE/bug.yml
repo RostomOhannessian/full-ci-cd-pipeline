@@ -1,0 +1,70 @@
+name: Bug report
+description: Something in the code, the scripts, the infrastructure, or the documented commands does not behave as described.
+title: "bug: "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time. Do not include secrets, tokens, or personal data. If you think this is a security
+        vulnerability, stop and use the private report link on the issue chooser instead.
+  - type: textarea
+    id: summary
+    attributes:
+      label: What happened
+      description: A short description of the problem and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Exact commands or actions, starting from a fresh clone if you can. Link the tutorial or lab step if one applies.
+      placeholder: |
+        1. git clone ...
+        2. dev doctor
+        3. ...
+    validations:
+      required: true
+  - type: dropdown
+    id: profile
+    attributes:
+      label: Resource profile
+      options:
+        - api (Docker Compose)
+        - lite (kind, dev only)
+        - full (kind, dev, staging, prod)
+        - ci (kind on a CI runner)
+        - Not applicable
+    validations:
+      required: true
+  - type: input
+    id: commit
+    attributes:
+      label: Commit or release
+      description: Output of `git rev-parse --short HEAD`, or the release tag.
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Host operating system and CPU architecture, Docker version and its memory and CPU allocation, and whether you use the Dev Container or Codespaces. `dev doctor` output is ideal.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs and output
+      description: Relevant output only. Remove tokens, hostnames you do not want to share, and personal data.
+      render: text
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before you submit
+      options:
+        - label: I searched existing Issues and Discussions.
+          required: true
+        - label: I removed secrets and personal data from everything I pasted.
+          required: true

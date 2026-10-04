@@ -1,0 +1,17 @@
+# Code owners are requested for review automatically, and the `master` ruleset enforces their review.
+# Only security- and delivery-critical paths are owned individually; everything else is reviewed under the normal
+# pull request rules.
+#
+# The owner is also the only maintainer. GitHub does not let an author approve their own pull request, so the ruleset
+# lets the owner bypass pull request rules when this review is the only unmet rule. GitHub records every bypass.
+# See docs/adr/0007-solo-maintainer-governance.md and docs/governance/github-settings.md.
+#
+# Later entries override earlier ones, and the paths below match the sensitive-path list in the implementation plan.
+
+/.github/                         @RostomOhannessian
+/governance/                      @RostomOhannessian
+/policies/                        @RostomOhannessian
+/infra/                           @RostomOhannessian
+/k8s/apps/*/overlays/prod/        @RostomOhannessian
+/contracts/                       @RostomOhannessian
+/src/**/Migrations/               @RostomOhannessian
