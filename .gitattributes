@@ -1,0 +1,24 @@
+# Normalize line endings. The repository stores LF and so does the working tree on every platform,
+# regardless of core.autocrlf, so scripts and manifests behave the same in the Dev Container, on Windows, and in CI.
+* text=auto eol=lf
+
+# Windows command scripts require CRLF.
+*.cmd text eol=crlf
+*.bat text eol=crlf
+
+# Binary assets.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.zip binary
+*.gz binary
+*.nupkg binary
+
+# Verbatim research records are evidence, not project documentation, and generated lock files are not hand-written.
+docs/research/*-verification.md linguist-documentation
+*.lock.json linguist-generated
+.terraform.lock.hcl linguist-generated
+packages.lock.json linguist-generated
