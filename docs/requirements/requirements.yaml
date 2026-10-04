@@ -1,0 +1,1660 @@
+schema-version: 1
+last-verified: '2026-10-04'
+areas:
+  ARC: Architecture and layering
+  DOM: Domain model
+  APP: Application layer
+  API: HTTP API and contract
+  DATA: Persistence and data
+  CACHE: Caching
+  SEC: Application and platform security
+  IDN: Identity and authorization
+  OBS: Observability
+  QUA: Quality and testing
+  CI: Continuous integration
+  SUP: Supply chain
+  INF: Infrastructure as code and platform
+  NET: Network segmentation
+  POL: Runtime policy
+  GIT: GitOps and delivery
+  CON: Contracts and consumer testing
+  DOC: Documentation and learning
+  DX: Developer experience and portability
+  GOV: Governance and project management
+  AI: AI enablement
+requirements:
+- id: REQ-ARC-001
+  title: Layer references stay within Clean Architecture
+  statement: The solution enforces the layer reference rules in section 8.1 so Domain references only the BCL, Application references only Domain, Contracts reference nothing, Infrastructure and CrossCutting reference only Application, Api is the only composition root, and Catalog.Client never references server projects.
+  source: brief
+  brief-rows:
+  - 1
+  delivered-by:
+  - WP1.1
+  - WP1.6
+  - WP1.7
+  - WP1.8
+  - WP1.10
+  verification:
+  - architecture
+  - docs
+  evidence: ArchUnitNET layer report and project graph
+  status: planned
+- id: REQ-ARC-002
+  title: Api is the only composition root
+  statement: Only Catalog.Api may inject IServiceProvider or register dependency wiring, and no business logic may live in the composition root.
+  source: plan
+  delivered-by:
+  - WP1.1
+  - WP1.10
+  verification:
+  - architecture
+  - manual
+  evidence: composition-root review
+  status: planned
+- id: REQ-ARC-003
+  title: Application ports are interface-segregated
+  statement: Application ports are segregated by capability and include repositories, IUnitOfWork, ICatalogCache, IIdGenerator, ICurrentPrincipal, the outbox dispatcher, and telemetry abstractions so handlers depend only on the interfaces they use.
+  source: brief
+  brief-rows:
+  - 1
+  delivered-by:
+  - WP1.7
+  - WP1.8
+  - WP1.9
+  verification:
+  - architecture
+  - unit
+  evidence: port definitions and handler unit tests
+  status: planned
+- id: REQ-ARC-004
+  title: Endpoints depend on contracts and handler interfaces only
+  statement: HTTP endpoints depend only on request and response contracts plus the specific handler interfaces they call, and never on domain entities or infrastructure types.
+  source: plan
+  delivered-by:
+  - WP1.7
+  - WP1.10
+  verification:
+  - architecture
+  - integration
+  evidence: endpoint dependency rules and API tests
+  status: planned
+- id: REQ-ARC-005
+  title: Handlers are sealed and state is not global
+  statement: Command and query handlers are internal sealed types, and the solution forbids static mutable state outside the composition root.
+  source: plan
+  delivered-by:
+  - WP1.1
+  - WP1.7
+  verification:
+  - architecture
+  evidence: ArchUnitNET naming and state rules
+  status: planned
+- id: REQ-DOM-001
+  title: Catalog aggregates use UUIDv7 identifiers
+  statement: Product and category aggregates use ProductId and CategoryId values created through IIdGenerator with Guid.CreateVersion7 as the default implementation so identifiers stay versioned and testable.
+  source: brief
+  brief-rows:
+  - 2
+  delivered-by:
+  - WP1.6
+  verification:
+  - unit
+  - property
+  evidence: domain entity and property-test results
+  status: planned
+- id: REQ-DOM-002
+  title: Catalog value objects enforce normalization and bounds
+  statement: Sku, ProductName, CategoryName, Description, and Money normalize input and enforce the bounds, currency rules, and precision described in section 8.3.
+  source: brief
+  brief-rows:
+  - 2
+  delivered-by:
+  - WP1.6
+  verification:
+  - unit
+  - property
+  evidence: value-object tests and CsCheck report
+  status: planned
+- id: REQ-DOM-003
+  title: Discontinued products reject mutable changes
+  statement: A discontinued product rejects price and category changes, and HTTP discontinue behavior remains idempotent.
+  source: brief
+  brief-rows:
+  - 2
+  delivered-by:
+  - WP1.6
+  - WP1.10
+  verification:
+  - unit
+  - integration
+  evidence: lifecycle tests and API denied-change cases
+  status: planned
+- id: REQ-DOM-004
+  title: Domain events are versioned and time-stamped
+  statement: Each domain event carries a schemaVersion and an occurredAt value sourced from TimeProvider so outbox payloads stay versioned and deterministic.
+  source: plan
+  delivered-by:
+  - WP1.6
+  - WP1.8
+  verification:
+  - unit
+  - integration
+  - snapshot
+  evidence: event snapshots and outbox tests
+  status: planned
+- id: REQ-DOM-005
+  title: Category assignment requires an active category
+  statement: A product may be assigned only to a category that exists and is active at the time of the command.
+  source: brief
+  brief-rows:
+  - 2
+  delivered-by:
+  - WP1.6
+  - WP1.8
+  verification:
+  - unit
+  - integration
+  evidence: category invariant tests
+  status: planned
+- id: REQ-APP-001
+  title: Use cases use direct CQRS handler interfaces
+  statement: Commands and queries execute through explicit ICommandHandler<TCommand, TResult> and IQueryHandler<TQuery, TResult> interfaces with no mediator or runtime type-dispatch layer.
+  source: brief
+  brief-rows:
+  - 3
+  delivered-by:
+  - WP1.7
+  verification:
+  - unit
+  - architecture
+  evidence: handler interface tests
+  status: planned
+- id: REQ-APP-002
+  title: Command decorators run in the approved order
+  statement: 'Command handling applies decorators in this outermost-first order: telemetry and logging, validation, authorization, idempotency when a key is present, transaction and unit of work, then the handler.'
+  source: plan
+  delivered-by:
+  - WP1.7
+  verification:
+  - unit
+  - architecture
+  - docs
+  evidence: decorator order tests and ADR
+  status: planned
+- id: REQ-APP-003
+  title: Query decorators run in the approved order
+  statement: 'Query handling applies decorators in this outermost-first order: telemetry, validation, authorization, query caching for marked queries, then the handler.'
+  source: plan
+  delivered-by:
+  - WP1.7
+  verification:
+  - unit
+  - architecture
+  - docs
+  evidence: query decorator tests and ADR
+  status: planned
+- id: REQ-APP-004
+  title: Application results use typed error cases
+  statement: Application use cases return Result<T> values that use the typed errors ValidationFailed, NotFound, Conflict, PreconditionFailed, PreconditionRequired, Forbidden, and IdempotencyKeyReused.
+  source: plan
+  delivered-by:
+  - WP1.7
+  - WP1.10
+  verification:
+  - unit
+  - integration
+  evidence: Result<T> tests and Problem Details mapping cases
+  status: planned
+- id: REQ-APP-005
+  title: Validators and use-case authorization run before handlers
+  statement: FluentValidation validators and application-layer authorization requirements run before handler logic for every protected command and query.
+  source: brief
+  brief-rows:
+  - 3
+  - 7
+  delivered-by:
+  - WP1.7
+  - WP1.10
+  verification:
+  - unit
+  - integration
+  evidence: validator tests and denied-path tests
+  status: planned
+- id: REQ-APP-006
+  title: Feature registration is explicit and deterministic
+  statement: Each feature registers its handlers and decorators through explicit extension methods so dependency wiring remains deterministic and reviewable.
+  source: plan
+  delivered-by:
+  - WP1.7
+  - WP1.10
+  verification:
+  - architecture
+  - unit
+  evidence: registration extension tests
+  status: planned
+- id: REQ-API-001
+  title: v1 endpoints expose products and categories
+  statement: The v1 API exposes /api/v1/categories, /api/v1/categories/{id}, /api/v1/products, /api/v1/products/{id}, and POST discontinue actions, and product listing supports categoryId, status, q, sort, pageSize of at most 100, and cursor.
+  source: brief
+  brief-rows:
+  - 8
+  - 26
+  delivered-by:
+  - WP1.5
+  - WP1.10
+  verification:
+  - contract
+  - integration
+  - docs
+  evidence: OpenAPI contract and endpoint integration tests
+  status: planned
+- id: REQ-API-002
+  title: Responses advertise API versions and deprecation
+  statement: Versioned responses send api-supported-versions and use the Deprecation header from RFC 9745 plus the Sunset header from RFC 8594 when a version enters its documented support window.
+  source: plan
+  delivered-by:
+  - WP1.5
+  - WP4.1
+  verification:
+  - contract
+  - integration
+  evidence: header assertions and API versioning tests
+  status: planned
+- id: REQ-API-003
+  title: Conditional requests enforce strong ETags
+  statement: GET supports If-None-Match with 304, and update or discontinue operations require If-Match so a missing header returns 428 and a stale header returns 412.
+  source: plan
+  delivered-by:
+  - WP1.5
+  - WP1.10
+  verification:
+  - integration
+  - contract
+  evidence: 412, 428, and 304 API cases
+  status: planned
+- id: REQ-API-004
+  title: POST creates require an Idempotency-Key
+  statement: Product-creation POST requests require an Idempotency-Key header, and reusing a key with a different payload returns 422 while concurrent use returns 409.
+  source: plan
+  delivered-by:
+  - WP1.5
+  - WP1.8
+  - WP1.10
+  verification:
+  - integration
+  - contract
+  evidence: idempotency replay and conflict cases
+  status: planned
+- id: REQ-API-005
+  title: Errors use RFC 9457 Problem Details
+  statement: Errors are returned as application/problem+json with RFC 9457 Problem Details whose type URIs resolve to the published error catalog and whose payloads include traceId and per-field validation messages when relevant.
+  source: plan
+  delivered-by:
+  - WP1.5
+  - WP1.10
+  verification:
+  - snapshot
+  - integration
+  - contract
+  evidence: Problem Details snapshots
+  status: planned
+- id: REQ-API-006
+  title: JSON input is strict and bounded
+  statement: The API rejects unknown JSON properties with 400 and enforces the configured body-size and depth limits for request payloads.
+  source: plan
+  delivered-by:
+  - WP1.10
+  verification:
+  - integration
+  - contract
+  evidence: 400 input validation cases
+  status: planned
+- id: REQ-API-007
+  title: Rate limits return 429 and Retry-After
+  statement: When a caller exceeds the configured request limits, the API returns 429 and includes a Retry-After header.
+  source: plan
+  delivered-by:
+  - WP1.10
+  - WP4.4
+  verification:
+  - integration
+  - performance
+  evidence: rate-limit API tests and rollout metrics
+  status: planned
+- id: REQ-API-008
+  title: Representative product flows exercise CQRS cache and events
+  statement: The representative product flows prove CQRS handlers, domain events, cache fill and invalidation, and their end-to-end behavior through integration tests and Labs 1 to 3.
+  source: brief
+  brief-rows:
+  - 8
+  delivered-by:
+  - WP1.10
+  - WP1.13
+  verification:
+  - e2e
+  - docs
+  evidence: end-to-end flow test and labs 1 to 3
+  status: planned
+- id: REQ-DATA-001
+  title: The catalog schema uses concurrency tokens and keyset indexes
+  statement: The catalog schema contains Products, Categories, OutboxMessages, OutboxReceipts, IdempotencyRecords, and EF migrations history in the catalog schema, uses rowversion concurrency tokens, keeps a filtered unique index on normalized SKU, and includes the keyset indexes and decimal precision from section 8.4.
+  source: brief
+  brief-rows:
+  - 4
+  delivered-by:
+  - WP1.8
+  verification:
+  - integration
+  - architecture
+  evidence: migration snapshot and EF mapping tests
+  status: planned
+- id: REQ-DATA-002
+  title: Each unit of work commits data and outbox rows together
+  statement: IUnitOfWork wraps one DbContext transaction, and a SaveChangesInterceptor writes recorded domain events into outbox rows inside the same commit.
+  source: brief
+  brief-rows:
+  - 4
+  delivered-by:
+  - WP1.8
+  verification:
+  - integration
+  evidence: transactional outbox tests
+  status: planned
+- id: REQ-DATA-003
+  title: The outbox delivers at least once and records receipts
+  statement: The outbox processor delivers messages at least once, leases work with READPAST, UPDLOCK, and ROWLOCK semantics, retries with exponential backoff and jitter, moves exhausted work to dead-letter state, and records a receipt for each idempotent handler execution.
+  source: plan
+  delivered-by:
+  - WP1.8
+  - WP4.4
+  verification:
+  - integration
+  - e2e
+  evidence: outbox processor tests and rollout evidence
+  status: planned
+- id: REQ-DATA-004
+  title: Idempotency records persist request fingerprints for 24 hours
+  statement: Each idempotency record stores the key, caller sub or azp, request hash, status, and response snapshot in the same transaction as the command effect and expires after 24 hours.
+  source: plan
+  delivered-by:
+  - WP1.8
+  - WP1.10
+  verification:
+  - integration
+  evidence: IdempotencyRecords tests
+  status: planned
+- id: REQ-DATA-005
+  title: Database connections rotate credentials without disabling pooling
+  statement: An IDbConnectionInterceptor reads credentials from a cached ICredentialSource on ConnectionOpeningAsync, keeps pooling enabled, and clears pools keyed by the old credential after a grace period when rotation occurs.
+  source: plan
+  delivered-by:
+  - WP1.0
+  - WP1.8
+  - WP3.3
+  - WP3.4
+  verification:
+  - integration
+  - e2e
+  evidence: credential rotation transcript
+  status: planned
+- id: REQ-DATA-006
+  title: Only the migrator identity applies schema changes
+  statement: CI builds an EF migration bundle and an idempotent SQL script for review, a one-shot catalog-migrator job runs the bundle, and application replicas never perform migrations.
+  source: brief
+  brief-rows:
+  - 4
+  delivered-by:
+  - WP1.8
+  - WP3.8
+  - WP4.4
+  verification:
+  - integration
+  - policy
+  - e2e
+  evidence: migration bundle run and PreSync job
+  status: planned
+- id: REQ-DATA-007
+  title: Seed data is created through the API and never by migrations
+  statement: Demonstration seed data is created through the API command path, and the production overlay is never seeded.
+  source: plan
+  delivered-by:
+  - WP1.8
+  - WP1.13
+  verification:
+  - integration
+  - docs
+  evidence: seed command transcript
+  status: planned
+- id: REQ-DATA-008
+  title: Destructive schema changes use expand and contract
+  statement: Drops, renames, narrowing alters, and new NOT NULL columns without defaults take two releases through an expand step and a later contract step, and rollback never rolls back the schema.
+  source: review
+  delivered-by:
+  - WP1.12
+  - WP4.4
+  - WP4.6
+  verification:
+  - ci
+  - e2e
+  - docs
+  evidence: blast-radius report and N-1 job
+  status: planned
+- id: REQ-CACHE-001
+  title: Catalog caching uses FusionCache over L1 L2 and a backplane
+  statement: Catalog caching uses FusionCache behind ICatalogCache with an IMemoryCache L1, an IDistributedCache L2 backed by Valkey through StackExchange.Redis, and a Valkey pub-sub backplane scoped by environment prefix.
+  source: brief
+  brief-rows:
+  - 5
+  delivered-by:
+  - WP1.9
+  verification:
+  - integration
+  - architecture
+  evidence: two-host cache tests
+  status: planned
+- id: REQ-CACHE-002
+  title: Writes invalidate product and list caches deterministically
+  statement: After a successful write, the writing node synchronously removes affected keys and tags, awaits L2 removal, publishes backplane invalidation, repeats the invalidation through the outbox, guarantees read-your-own-write behavior, and bounds other-reader staleness to the backplane latency or the default 30-second L1 TTL.
+  source: plan
+  delivered-by:
+  - WP1.9
+  - WP4.4
+  verification:
+  - integration
+  - e2e
+  evidence: cross-node invalidation tests
+  status: planned
+- id: REQ-CACHE-003
+  title: Cache degradation keeps readiness green and reports stale risk
+  statement: If Valkey is unavailable, caching degrades behind a circuit breaker to L1 plus the database while readiness stays green, and if the backplane is unavailable the system widens staleness to the L1 TTL and reports that condition through metrics and alerts.
+  source: brief
+  brief-rows:
+  - 5
+  delivered-by:
+  - WP1.9
+  - WP1.11
+  - WP4.4
+  verification:
+  - integration
+  - performance
+  evidence: Valkey-down chaos test and cache metrics
+  status: planned
+- id: REQ-SEC-001
+  title: GitHub and repository content contain no stored secrets
+  statement: The repository and its workflows store no secrets, gitleaks scans the full history and working tree, push protection and secret scanning stay enabled, and the blocking auditor allows only GITHUB_TOKEN and OIDC-based authentication in Actions.
+  source: brief
+  brief-rows:
+  - 21
+  delivered-by:
+  - WP0.6
+  - WP1.2
+  - WP3.3
+  verification:
+  - scan
+  - ci
+  - policy
+  evidence: gitleaks reports and auditor output
+  status: planned
+- id: REQ-SEC-002
+  title: Workflow execution follows GitHub hardening rules
+  statement: GitHub Actions uses a read-only default token, per-job minimum permissions, persist-credentials set to false, SHA-pinned allowlisted actions, approval for outside-contributor fork runs, and no pull_request_target workflow that executes pull-request code.
+  source: plan
+  delivered-by:
+  - WP0.7
+  - WP2.2
+  verification:
+  - ci
+  - policy
+  - scan
+  evidence: actionlint, zizmor, and workflow-permission reports
+  status: planned
+- id: REQ-SEC-003
+  title: Runtime secrets come from Vault-delivered material only
+  statement: Runtime workloads receive credentials only from Vault-delivered files or scoped Kubernetes Secrets and never from committed configuration or GitHub Actions secrets.
+  source: plan
+  delivered-by:
+  - WP3.3
+  - WP3.8
+  verification:
+  - integration
+  - e2e
+  - policy
+  evidence: Vault auth tests and sidecar manifests
+  status: planned
+- id: REQ-SEC-004
+  title: Every trust anchor has custody and rotation guidance
+  statement: Each trust anchor is listed with custody, scope, rotation, and break-glass procedures in the trust-anchor register.
+  source: plan
+  delivered-by:
+  - WP3.3
+  - WP4.7
+  verification:
+  - docs
+  - manual
+  evidence: trust-anchor register
+  status: planned
+- id: REQ-SEC-005
+  title: Security incidents have rehearsed response runbooks
+  statement: Runbooks cover credential leaks, compromised actions or dependencies, vulnerable released images, and policy bypasses, and the relevant drills leave evidence.
+  source: plan
+  delivered-by:
+  - WP3.10
+  - WP4.6
+  - LAUNCH
+  verification:
+  - docs
+  - drill
+  - manual
+  evidence: incident runbooks and drill transcripts
+  status: planned
+- id: REQ-SEC-006
+  title: Logs and test data exclude personal and secret material
+  statement: Test and demo data are synthetic, logs contain no secrets or personal data, and publication review scans the repository, release assets, issues, and workflow logs for privacy violations.
+  source: plan
+  delivered-by:
+  - WP0.1
+  - WP1.11
+  - LAUNCH
+  verification:
+  - docs
+  - scan
+  - manual
+  evidence: privacy scan and redaction tests
+  status: planned
+- id: REQ-SEC-007
+  title: Access rights stay least privilege across delivery and runtime
+  statement: Vault policies, Kubernetes RBAC, SQL roles, GitHub App permissions, and workflow tokens grant only the privileges required for their documented tasks.
+  source: brief
+  brief-rows:
+  - 20
+  delivered-by:
+  - WP1.2
+  - WP2.2
+  - WP3.2
+  - WP3.3
+  - WP3.4
+  - WP4.5
+  verification:
+  - policy
+  - integration
+  - ci
+  evidence: Vault policy, RBAC, SQL role, and workflow permission tests
+  status: planned
+- id: REQ-IDN-001
+  title: The catalog realm defines the API audience and scopes
+  statement: The catalog realm defines the catalog.read, catalog.write, and catalog.admin scopes, maps them to realm roles, and issues aud=catalog-api for the API audience.
+  source: plan
+  delivered-by:
+  - WP1.4
+  - WP1.10
+  - WP3.5
+  verification:
+  - contract
+  - integration
+  evidence: realm file and JWT assertions
+  status: planned
+- id: REQ-IDN-002
+  title: Catalog permissions map scopes to endpoint behavior
+  statement: catalog.read grants all GET operations, catalog.write grants product create and update operations, and catalog.admin grants discontinue plus all category write operations.
+  source: brief
+  brief-rows:
+  - 7
+  delivered-by:
+  - WP1.7
+  - WP1.10
+  - WP3.5
+  verification:
+  - integration
+  - contract
+  evidence: authorization matrix tests
+  status: planned
+- id: REQ-IDN-003
+  title: JWT validation checks issuer audience algorithms and clock skew
+  statement: JWT validation enforces exact issuer and audience checks, allows only RS256 and ES256, tolerates no more than 30 seconds of clock skew, and accepts JWKS rotation.
+  source: plan
+  delivered-by:
+  - WP1.10
+  verification:
+  - integration
+  evidence: token validation cases
+  status: planned
+- id: REQ-IDN-004
+  title: Platform UIs use the platform realm and remove local admins
+  statement: Vault, Grafana, Argo CD, and Kargo use the platform realm for sign-in, and local admin accounts are disabled after bootstrap.
+  source: plan
+  delivered-by:
+  - WP3.5
+  - WP4.3
+  verification:
+  - integration
+  - manual
+  evidence: SSO setup and bootstrap record
+  status: planned
+- id: REQ-IDN-005
+  title: Realm files are the single source across environments
+  statement: The realm files under identity/keycloak/realms with ${ENV} placeholders are the single source consumed by Compose, Testcontainers, and keycloak-config-cli reconciliation.
+  source: review
+  delivered-by:
+  - WP1.4
+  - WP1.10
+  - WP3.5
+  verification:
+  - integration
+  - docs
+  evidence: shared realm files and import tests
+  status: planned
+- id: REQ-IDN-006
+  title: Workload identity uses bound GitHub OIDC and Kubernetes claims
+  statement: Vault JWT auth binds GitHub OIDC tokens to the expected repository, workflow ref, ref, event, and audience claims, and Vault Kubernetes auth binds workloads to the exact namespace and service account pairs that are documented for them.
+  source: brief
+  brief-rows:
+  - 19
+  delivered-by:
+  - WP3.3
+  verification:
+  - integration
+  - policy
+  evidence: positive and negative Vault login tests
+  status: planned
+- id: REQ-OBS-001
+  title: Traces cover HTTP data access cache and domain workflows
+  statement: Tracing includes ASP.NET Core, HttpClient, SqlClient, FusionCache, custom ActivitySources for handlers, the outbox, and credential rotation, and it labels EF Core and StackExchange.Redis instrumentation as pinned beta dependencies.
+  source: brief
+  brief-rows:
+  - 6
+  delivered-by:
+  - WP1.11
+  verification:
+  - integration
+  - snapshot
+  evidence: telemetry assertion tests
+  status: planned
+- id: REQ-OBS-002
+  title: Metrics expose SLOs cache behavior and outbox health
+  statement: Metrics include ASP.NET Core and runtime defaults plus custom series for cache hit, miss, and stale counts, outbox backlog, age, and failures, handler duration, credential rotations, and idempotency replays.
+  source: brief
+  brief-rows:
+  - 6
+  delivered-by:
+  - WP1.11
+  - WP3.7
+  - WP4.4
+  verification:
+  - integration
+  - performance
+  evidence: metrics assertions and AnalysisTemplate queries
+  status: planned
+- id: REQ-OBS-003
+  title: Logs are structured JSON and redacted by classification
+  statement: Logs are exported as structured JSON through OpenTelemetry and redacted with Microsoft.Extensions.Compliance.Redaction classifications so tokens, secrets, and personal data never appear.
+  source: brief
+  brief-rows:
+  - 6
+  delivered-by:
+  - WP1.11
+  verification:
+  - integration
+  - snapshot
+  evidence: redacted log snapshots
+  status: planned
+- id: REQ-OBS-004
+  title: The collector validates a fixed OTLP processing pipeline
+  statement: The OpenTelemetry Collector receives OTLP, processes data through memory_limiter, k8sattributes, attribute redaction, and batch processors, exports to Prometheus, Tempo, and Loki for the full profile, and validates the configuration with otelcol validate.
+  source: plan
+  delivered-by:
+  - WP3.7
+  verification:
+  - script
+  - integration
+  evidence: otelcol validate output
+  status: planned
+- id: REQ-OBS-005
+  title: Dashboards and alerts encode the teaching SLOs
+  statement: Dashboards and alert rules as code enforce the teaching SLOs of availability at least 99.5 percent in dev and staging and 99.9 percent in prod, p95 cached product GET at most 100 ms, p95 writes at most 300 ms, 5xx rate below 1 percent, cache hit ratio at least 80 percent for product details under read-heavy load, and outbox age p95 below 5 seconds.
+  source: plan
+  delivered-by:
+  - WP3.7
+  - WP4.4
+  - WP4.7
+  verification:
+  - docs
+  - performance
+  - manual
+  evidence: Grafana dashboards and alert rules
+  status: planned
+- id: REQ-QUA-001
+  title: Integration suites use real SQL Server Valkey and Keycloak containers
+  statement: Infrastructure, API, identity, and provider-verification tests run against real SQL Server, Valkey, and Keycloak containers instead of mocks for those dependencies.
+  source: brief
+  brief-rows:
+  - 11
+  delivered-by:
+  - WP1.8
+  - WP1.10
+  - WP4.2
+  verification:
+  - integration
+  - ci
+  evidence: Testcontainers CI reports
+  status: planned
+- id: REQ-QUA-002
+  title: The suite matrix blocks changes at the right depth
+  statement: The suite matrix in section 10.1 runs the required unit, architecture, snapshot, integration, contract, policy, IaC, performance, script, docs, onboarding, and drill checks on the paths and events they are designed to gate.
+  source: plan
+  delivered-by:
+  - WP1.1
+  - WP1.8
+  - WP1.10
+  - WP2.2
+  - WP3.1
+  - WP3.6
+  - WP4.2
+  - WP4.8
+  verification:
+  - ci
+  - manual
+  evidence: test plan and workflow run matrix
+  status: planned
+- id: REQ-QUA-003
+  title: Traceability fails when an in-scope requirement lacks proof
+  statement: governance trace generates docs/testing/traceability.md and fails when any in-scope requirement lacks at least one linked test or evidence entry.
+  source: docs-request
+  brief-rows:
+  - 35
+  delivered-by:
+  - WP0.2
+  - WP1.2
+  - WP1.13
+  - WP4.8
+  verification:
+  - ci
+  - docs
+  evidence: traceability report
+  status: planned
+- id: REQ-QUA-004
+  title: Tests remain deterministic across hosts and reruns
+  statement: Tests use FakeTimeProvider, injected identifiers, invariant-culture execution, logged property-test seeds, digest-pinned container images, declared assembly parallelism, and synthetic builders so failures can be replayed on another machine.
+  source: plan
+  delivered-by:
+  - WP1.1
+  - WP1.6
+  - WP1.8
+  - WP4.8
+  verification:
+  - unit
+  - integration
+  - ci
+  evidence: test fixtures and replayable seeds
+  status: planned
+- id: REQ-QUA-005
+  title: Coverage stays above the initial thresholds
+  statement: Line coverage stays at or above 90 percent for Domain, 85 percent for Application, and 80 percent across the solution excluding generated code and migrations, and branch coverage stays at or above 80 percent for Domain and Application.
+  source: plan
+  delivered-by:
+  - WP1.1
+  - WP1.6
+  - WP1.7
+  verification:
+  - ci
+  evidence: coverage summary
+  status: planned
+- id: REQ-QUA-006
+  title: Mutation testing reports and later gates domain test strength
+  statement: Domain mutation score is reported from Phase 1 and must reach at least 70 percent before it becomes a blocking gate once the Microsoft.Testing.Platform runner is generally available.
+  source: plan
+  delivered-by:
+  - WP1.0
+  - WP1.6
+  - WP1.7
+  - WP4.8
+  verification:
+  - ci
+  - manual
+  evidence: Stryker report
+  status: planned
+- id: REQ-QUA-007
+  title: Flaky tests are quarantined and CI meets feedback budgets
+  statement: Flaky tests have zero tolerance, quarantines expire after 7 days, blanket retries are forbidden, a typical work-package pull request gets feedback within 15 minutes, and a full master build completes within 30 minutes.
+  source: plan
+  delivered-by:
+  - WP1.1
+  - WP2.2
+  - WP4.8
+  verification:
+  - ci
+  - manual
+  evidence: workflow timing and flaky-test issue log
+  status: planned
+- id: REQ-CI-001
+  title: Pull-request CI runs on master and phase branches
+  statement: ci.yml runs on pull requests to master and phase/** and starts with restore, build, unit tests, architecture tests, format verification, and the license gate.
+  source: brief
+  brief-rows:
+  - 10
+  delivered-by:
+  - WP1.1
+  - WP2.2
+  verification:
+  - ci
+  evidence: ci.yml workflow runs
+  status: planned
+- id: REQ-CI-002
+  title: Every pull request runs the governance auditors
+  statement: From WP1.2 onward, every pull request runs the required /advanced-security-auditor and /blast-radius-evaluator checks backed by deterministic Governance.Auditor commands.
+  source: brief
+  brief-rows:
+  - 32
+  delivered-by:
+  - WP1.2
+  - WP1.12
+  verification:
+  - ci
+  - script
+  evidence: required security and blast-radius checks
+  status: planned
+- id: REQ-CI-003
+  title: Reusable workflows build once and publish only from trusted refs
+  statement: Reusable _build-test, _trusted-image, _scan, and _verify workflows build once per commit, and publish, sign, and attest only from master or version tags through the protected publish or release environments.
+  source: plan
+  delivered-by:
+  - WP2.2
+  - WP2.5
+  verification:
+  - ci
+  - manual
+  evidence: workflow graph and publish-job logs
+  status: planned
+- id: REQ-CI-004
+  title: Job selection caches timeouts and retention are explicit
+  statement: Workflow definitions use blast-radius-driven job selection, lock-file-keyed caches, explicit timeouts, concurrency groups, and bounded artifact retention.
+  source: plan
+  delivered-by:
+  - WP1.2
+  - WP2.2
+  verification:
+  - ci
+  - manual
+  evidence: workflow definitions and job summaries
+  status: planned
+- id: REQ-CI-005
+  title: Docs and onboarding checks run on the intended events
+  statement: Documentation checks run on every pull request for internal links and structure and nightly for external links, and onboarding checks run weekly, at release, and when the devcontainer changes.
+  source: docs-request
+  brief-rows:
+  - 35
+  - 36
+  delivered-by:
+  - WP1.3
+  - WP1.4
+  - WP2.2
+  - WP2.7
+  verification:
+  - ci
+  - docs
+  evidence: docs and devcontainer workflow runs
+  status: planned
+- id: REQ-SUP-001
+  title: The production image is built by a multi-stage Dockerfile
+  statement: The production image is built through a multi-stage Dockerfile with digest-pinned SDK and runtime bases, deterministic publish settings, a chiseled non-root runtime, no shell or build tools, and a read-only-filesystem-compatible startup path.
+  source: brief
+  brief-rows:
+  - 9
+  delivered-by:
+  - WP2.1
+  verification:
+  - integration
+  - ci
+  evidence: Catalog.Image.Tests and image size report
+  status: planned
+- id: REQ-SUP-002
+  title: CodeQL gates the public repository at high severity
+  statement: The public repository runs CodeQL advanced setup for C# with manual build mode and the actions language, uses the security-extended suite, and blocks master on findings at high severity or above.
+  source: brief
+  brief-rows:
+  - 12
+  delivered-by:
+  - WP2.3
+  verification:
+  - scan
+  - ci
+  evidence: code scanning results and ruleset gate
+  status: planned
+- id: REQ-SUP-003
+  title: Dependency intake is license- and vulnerability-aware
+  statement: Dependency intake uses nuget-license and dependency review to block forbidden licenses, flag vulnerabilities, and enforce the repository allowlist for linked packages.
+  source: review
+  delivered-by:
+  - WP1.1
+  - WP2.3
+  verification:
+  - scan
+  - ci
+  evidence: dependency review and nuget-license reports
+  status: planned
+- id: REQ-SUP-004
+  title: Trivy blocks fixable critical image vulnerabilities
+  statement: Trivy scans the exact published digest, fails on any fixable CRITICAL vulnerability, and also fails any unfixed CRITICAL that lacks an unexpired OpenVEX justification with owner approval.
+  source: brief
+  brief-rows:
+  - 13
+  delivered-by:
+  - WP2.4
+  verification:
+  - scan
+  - ci
+  evidence: Trivy SARIF and failing-gate fixture
+  status: planned
+- id: REQ-SUP-005
+  title: Each published platform image carries SPDX and CycloneDX SBOMs
+  statement: Syft produces SPDX and CycloneDX SBOMs for each platform image and publishes them as release evidence and attestations.
+  source: brief
+  brief-rows:
+  - 14
+  delivered-by:
+  - WP2.4
+  verification:
+  - scan
+  - ci
+  evidence: Syft SBOM artifacts
+  status: planned
+- id: REQ-SUP-006
+  title: Each published digest is signed attested and independently verifiable
+  statement: Each published digest is produced by the trusted workflow, carries GitHub SLSA v1 provenance and an SBOM attestation, has a keyless Cosign signature, and passes gh attestation verify, cosign verify, and cosign verify-attestation against the expected identities.
+  source: brief
+  brief-rows:
+  - 15
+  delivered-by:
+  - WP2.0
+  - WP2.5
+  verification:
+  - ci
+  - manual
+  - policy
+  evidence: attestation and Cosign verification transcripts
+  status: planned
+- id: REQ-SUP-007
+  title: Released artifacts stay observable after publication
+  statement: Released images are re-scanned nightly, new critical findings open issues automatically, OpenSSF Scorecard results stay published, immutable releases remain enabled, and each release from v0.2.0 on carries an evidence bundle.
+  source: plan
+  delivered-by:
+  - WP2.4
+  - WP2.6
+  - LAUNCH
+  verification:
+  - scan
+  - docs
+  - manual
+  evidence: nightly re-scan issues, Scorecard result, and release evidence bundle
+  status: planned
+- id: REQ-INF-001
+  title: Infrastructure code is organized into tested Terraform stacks
+  statement: Infrastructure code is split into reusable Terraform modules plus kind, platform, security, and gitops stacks, and every infrastructure pull request runs fmt, validate, test, tflint, and Trivy IaC as the approved tfsec successor.
+  source: review
+  brief-rows:
+  - 16
+  - 23
+  delivered-by:
+  - WP3.1
+  - WP3.9
+  verification:
+  - iac
+  - scan
+  - ci
+  evidence: terraform and Trivy IaC workflow logs
+  status: planned
+- id: REQ-INF-002
+  title: The kind foundation pins compatible Kubernetes node images
+  statement: The kind foundation pins a Kubernetes node image that stays within the Envoy Gateway 1.9 support range, uses profile-specific node counts, exposes high host ports, configures containerd registry mirrors, and enables etcd encryption at rest.
+  source: review
+  delivered-by:
+  - WP3.0
+  - WP3.1
+  verification:
+  - iac
+  - manual
+  evidence: compatibility matrix and cluster config
+  status: planned
+- id: REQ-INF-003
+  title: Terraform owns the shared platform and Argo CD owns k8s
+  statement: Terraform owns cluster-scoped and shared resources including policies and platform services, Argo CD owns everything under k8s/, and Kargo writes only image digests to Git.
+  source: plan
+  delivered-by:
+  - WP3.1
+  - WP4.3
+  - WP4.5
+  verification:
+  - iac
+  - docs
+  - manual
+  evidence: ownership matrix and stack definitions
+  status: planned
+- id: REQ-INF-004
+  title: The data tier provisions isolated SQL Server and Valkey services
+  statement: Terraform provisions SQL Server 2022 with TLS, persistence, probes, disruption control, Vault-managed logins, backup and restore jobs, and per-environment databases, and provisions per-environment Valkey instances with TLS, ACLs, scoped channels, and cache-appropriate persistence settings.
+  source: brief
+  brief-rows:
+  - 16
+  - 17
+  delivered-by:
+  - WP3.4
+  verification:
+  - e2e
+  - policy
+  - integration
+  evidence: StatefulSet manifests and data-tier tests
+  status: planned
+- id: REQ-INF-005
+  title: Phase 3 hosts the API on the platform through a temporary deployment path
+  statement: Phase 3 hosts the API on the platform with a temporary deployment script that includes the Vault Agent sidecar, the migration job, the required service account and network policies, a gateway route, and an end-to-end smoke test, and Phase 4 removes that script when GitOps takes over.
+  source: plan
+  delivered-by:
+  - WP3.8
+  - WP4.3
+  verification:
+  - e2e
+  - docs
+  evidence: platform smoke test and Phase 4 removal diff
+  status: planned
+- id: REQ-INF-006
+  title: Terraform plan results are posted as a sticky sanitized comment
+  statement: Infrastructure pull requests receive one sticky, sanitized, size-bounded Terraform plan comment per run that highlights actions, destroys, and replacements per stack and works for fork pull requests through the ephemeral-baseline flow.
+  source: brief
+  brief-rows:
+  - 24
+  delivered-by:
+  - WP3.9
+  verification:
+  - ci
+  - manual
+  evidence: plan comment transcript
+  status: planned
+- id: REQ-NET-001
+  title: Every namespace starts with default-deny ingress and egress
+  statement: Every namespace starts with default-deny ingress and egress policies before any allow rules are applied.
+  source: brief
+  brief-rows:
+  - 18
+  delivered-by:
+  - WP3.2
+  verification:
+  - e2e
+  - policy
+  evidence: Chainsaw probe matrix
+  status: planned
+- id: REQ-NET-002
+  title: Only the documented tier-to-tier flows are allowed
+  statement: Networking allows only the documented flows among host port 8443, the edge gateway, catalog namespaces, SQL on 1433, Valkey on 6379, Vault on 8200, the collector on 4317, Keycloak through the gateway hostname, and kube-dns on 53.
+  source: brief
+  brief-rows:
+  - 18
+  delivered-by:
+  - WP3.2
+  - WP3.8
+  verification:
+  - e2e
+  - policy
+  evidence: allowed-flow and denied-flow probes
+  status: planned
+- id: REQ-NET-003
+  title: The data tier has no public exposure
+  statement: The data namespace exposes no public Service for SQL Server or Valkey, and platform policy rejects any external Service there.
+  source: brief
+  brief-rows:
+  - 17
+  delivered-by:
+  - WP3.4
+  - WP3.6
+  verification:
+  - e2e
+  - policy
+  evidence: external-service denials and network probes
+  status: planned
+- id: REQ-NET-004
+  title: Internet egress is limited to named controllers on 443
+  statement: Internet egress is limited to the documented controllers on port 443 while excluding private address ranges, and the residual hostname-filtering gap stays documented with Cilium toFQDNs as the upgrade path.
+  source: plan
+  delivered-by:
+  - WP3.2
+  - WP3.6
+  verification:
+  - policy
+  - e2e
+  - docs
+  evidence: NetworkPolicy manifests and residual-risk ADR
+  status: planned
+- id: REQ-POL-001
+  title: Kyverno enforces registry digest and NetworkPolicy hygiene
+  statement: Kyverno requires allowed registries, digest-pinned images outside sandbox and system exceptions, forbids latest tags, and requires a NetworkPolicy for each namespace.
+  source: brief
+  brief-rows:
+  - 22
+  delivered-by:
+  - WP3.6
+  verification:
+  - policy
+  - e2e
+  evidence: kyverno test results
+  status: planned
+- id: REQ-POL-002
+  title: Admission distinguishes first-party provenance from third-party digests
+  statement: Admission in catalog namespaces requires first-party images to carry the trusted workflow identity, Cosign signature, SLSA provenance, and SBOM attestations, and mutates approved third-party tags to digests at pod admission.
+  source: plan
+  delivered-by:
+  - WP2.5
+  - WP3.6
+  verification:
+  - policy
+  - ci
+  - e2e
+  evidence: ImageValidatingPolicy contract tests
+  status: planned
+- id: REQ-POL-003
+  title: Application workloads must use hardened pod security settings
+  statement: Application workloads must run as non-root, use a read-only root filesystem, drop all capabilities, use the RuntimeDefault seccomp profile, forbid privilege escalation, and declare resource requests, limits, and probes.
+  source: plan
+  delivered-by:
+  - WP3.6
+  verification:
+  - policy
+  - e2e
+  evidence: admission denials for root or privileged pods
+  status: planned
+- id: REQ-POL-004
+  title: Policy rollout moves from Audit to Enforce with scoped exceptions only
+  statement: Runtime policy moves from Audit to Enforce only after clean reports, and any PolicyException is scoped, documented, and tested.
+  source: plan
+  delivered-by:
+  - WP3.6
+  verification:
+  - policy
+  - docs
+  - manual
+  evidence: policy reports and exception manifests
+  status: planned
+- id: REQ-POL-005
+  title: Break-glass policy behavior is documented and rehearsed
+  statement: Break-glass procedures define the failurePolicy behavior, the excluded system namespaces, and the steps to return to normal enforcement after an incident.
+  source: plan
+  delivered-by:
+  - WP3.6
+  - WP4.6
+  verification:
+  - docs
+  - drill
+  evidence: break-glass runbook and drill record
+  status: planned
+- id: REQ-GIT-001
+  title: Argo CD bootstraps from the repository k8s directory
+  statement: Argo CD bootstraps from the repository k8s/bootstrap root and manages applications that point to k8s/ for desired state.
+  source: brief
+  brief-rows:
+  - 25
+  delivered-by:
+  - WP4.3
+  verification:
+  - e2e
+  - manual
+  evidence: Argo CD root application and sync status
+  status: planned
+- id: REQ-GIT-002
+  title: Argo CD applications self-heal within restricted project boundaries
+  statement: Argo CD AppProjects restrict repositories, destinations, and resource kinds, and synchronized applications use self-heal and prune so drift recovery leaves Git authoritative.
+  source: plan
+  delivered-by:
+  - WP4.3
+  - WP4.8
+  verification:
+  - e2e
+  - policy
+  - manual
+  evidence: AppProject config and drift-recovery drill
+  status: planned
+- id: REQ-GIT-003
+  title: Kargo promotes one verified digest through dev staging and prod
+  statement: Kargo promotes the same verified image digest through dev automatically, through staging automatically after dev verification, and through prod only after a manual promotion and a CODEOWNERS-approved pull request.
+  source: brief
+  brief-rows:
+  - 28
+  delivered-by:
+  - WP4.0
+  - WP4.5
+  verification:
+  - e2e
+  - manual
+  evidence: Kargo Freight history and promotion PRs
+  status: planned
+- id: REQ-GIT-004
+  title: Canary delivery uses weighted steps and minimum-sample analysis
+  statement: Progressive delivery shifts traffic in 5 percent, 25 percent, 50 percent, and 100 percent steps and pauses on inconclusive analysis when request samples are below the documented minimum.
+  source: review
+  delivered-by:
+  - WP4.0
+  - WP4.4
+  verification:
+  - e2e
+  - performance
+  evidence: AnalysisRun results
+  status: planned
+- id: REQ-GIT-005
+  title: Rollback paths restore service while keeping Git authoritative
+  statement: Automated, manual, and emergency rollback paths restore service, require reconciliation when cluster state diverges from Git, and never roll back the schema with the application.
+  source: brief
+  brief-rows:
+  - 29
+  delivered-by:
+  - WP4.4
+  - WP4.6
+  verification:
+  - drill
+  - e2e
+  evidence: automatic, manual, and emergency rollback transcripts
+  status: planned
+- id: REQ-GIT-006
+  title: GitOps automation uses repository-scoped GitHub Apps
+  statement: The catalog-promoter and catalog-deploy-reporter GitHub Apps are limited to this repository, use minimum permissions, and keep the promoter private key only in Vault and the Kargo namespace that consumes it.
+  source: plan
+  delivered-by:
+  - WP4.3
+  - WP4.5
+  verification:
+  - policy
+  - manual
+  evidence: GitHub App manifests and Vault sync config
+  status: planned
+- id: REQ-CON-001
+  title: The authored OpenAPI document is the contract source of truth
+  statement: The source of truth for the API contract is an authored OpenAPI 3.1 YAML document that defines operations, schemas, Problem Details types, the ETag, If-Match, Idempotency-Key, Retry-After, and Link headers, OAuth scopes, and examples for every response.
+  source: brief
+  brief-rows:
+  - 26
+  delivered-by:
+  - WP1.5
+  verification:
+  - contract
+  - docs
+  evidence: catalog.openapi.yaml
+  status: planned
+- id: REQ-CON-002
+  title: Served and authored contracts stay structurally equal
+  statement: The build generates the served OpenAPI JSON document and blocks on oasdiff unless it is structurally equal to the authored contract after ignoring descriptions, examples, and summaries.
+  source: plan
+  delivered-by:
+  - WP1.5
+  - WP1.10
+  verification:
+  - contract
+  - snapshot
+  evidence: oasdiff conformance output
+  status: planned
+- id: REQ-CON-003
+  title: Breaking v1 contract changes are blocked before merge
+  statement: From WP4.1 onward, every pull request compares the candidate v1 contract to the last released contract and blocks any breaking change.
+  source: plan
+  delivered-by:
+  - WP4.1
+  verification:
+  - contract
+  - ci
+  evidence: breaking-change gate output
+  status: planned
+- id: REQ-CON-004
+  title: The generated Catalog.Client is deterministic and drift-checked
+  statement: Catalog.Client is generated deterministically from the authored contract with Kiota, and CI fails when the committed client differs from regenerated output.
+  source: plan
+  delivered-by:
+  - WP4.1
+  - WP4.2
+  verification:
+  - contract
+  - ci
+  evidence: Kiota generation diff check
+  status: planned
+- id: REQ-CON-005
+  title: Pact verifies the primary consumer scenarios against a real socket
+  statement: Pact consumer tests cover create, get, list and paginate, update with If-Match, conflict, precondition failures, unauthorized, forbidden, not found, discontinue, and idempotent replay scenarios, and provider verification runs against a Kestrel-hosted test server with provider-state middleware excluded from production builds.
+  source: brief
+  brief-rows:
+  - 27
+  delivered-by:
+  - WP1.0
+  - WP4.2
+  verification:
+  - contract
+  - integration
+  - ci
+  evidence: Pact files and provider verification
+  status: planned
+- id: REQ-CON-006
+  title: Schemathesis exercises generated contract inputs against the API
+  statement: Schemathesis runs against the running API on contract changes and nightly schedules to explore generated valid and invalid inputs from the authored contract.
+  source: plan
+  delivered-by:
+  - WP4.1
+  verification:
+  - contract
+  - property
+  - ci
+  evidence: Schemathesis run report
+  status: planned
+- id: REQ-DOC-001
+  title: Documentation follows the Diataxis structure
+  statement: The documentation set uses Diataxis with tutorials, how-to guides, reference, and explanation sections in the locations defined by section 11.1.
+  source: docs-request
+  brief-rows:
+  - 35
+  delivered-by:
+  - WP0.4
+  - WP1.13
+  - WP4.7
+  verification:
+  - docs
+  - manual
+  evidence: docs tree and navigation
+  status: planned
+- id: REQ-DOC-002
+  title: The tool inventory records every adopted and evaluated tool
+  statement: The tool inventory records every tool, library, action, chart, image, and service with its ID, tier, version source, license, lifecycle state, introduced phase, documentation links, ADR link when relevant, authoritative sources, and last-verified date.
+  source: docs-request
+  brief-rows:
+  - 33
+  delivered-by:
+  - WP0.2
+  - WP1.3
+  - WP4.7
+  verification:
+  - docs
+  - ci
+  evidence: inventory audit report
+  status: planned
+- id: REQ-DOC-003
+  title: The documentation auditor rejects undocumented tool usage
+  statement: Documentation.Auditor fails the build when discovered tool usage lacks an inventory entry, lacks the required documentation page, or lacks the required license note for a non-permissive tool.
+  source: docs-request
+  brief-rows:
+  - 33
+  delivered-by:
+  - WP1.3
+  verification:
+  - docs
+  - ci
+  evidence: Documentation.Auditor output
+  status: planned
+- id: REQ-DOC-004
+  title: Tool pages include the required sections for their tier
+  statement: Every Tier A or B tool page includes Overview, Decision rationale, Setup tutorial, and Further research, and Tier A pages also include How this project uses it, Validation and troubleshooting, Security and operations, and a linked lab.
+  source: docs-request
+  brief-rows:
+  - 33
+  delivered-by:
+  - WP1.3
+  - WP1.13
+  - WP2.7
+  - WP3.10
+  - WP4.7
+  verification:
+  - docs
+  - ci
+  evidence: tool-page section audit
+  status: planned
+- id: REQ-DOC-005
+  title: Docs pages use tested includes freshness metadata and valid diagrams
+  statement: Docs pages use tested code or command includes unless a block is marked illustrative, declare the required front matter fields including last-verified, are flagged for review after 180 days, and use Mermaid diagrams with accessible titles and descriptions.
+  source: docs-request
+  brief-rows:
+  - 35
+  delivered-by:
+  - WP0.4
+  - WP1.3
+  - WP1.13
+  verification:
+  - docs
+  - ci
+  evidence: DocFX, Mermaid, and freshness reports
+  status: planned
+- id: REQ-DOC-006
+  title: Labs and learning paths use the standard teaching structure
+  statement: Every lab includes objectives, prerequisites, setup, expected observations, a break-it exercise, cleanup, self-check questions with answers, and further reading, and the seven learning paths are completed by the phases that own them.
+  source: docs-request
+  brief-rows:
+  - 35
+  delivered-by:
+  - WP0.4
+  - WP1.13
+  - WP2.7
+  - WP3.10
+  - WP4.7
+  - WP4.8
+  verification:
+  - docs
+  - manual
+  evidence: lab pages and learning-path checklist
+  status: planned
+- id: REQ-DOC-007
+  title: The public docs experience includes README Pages and portfolio assets
+  statement: The public documentation experience includes a README with Mermaid architecture and boundary diagrams that connect the API, SQL Server, CI, and GitOps, a Docs site on GitHub Pages with a WIP banner before v1.0, and portfolio walkthrough and demo assets for the launch.
+  source: brief
+  brief-rows:
+  - 30
+  - 38
+  delivered-by:
+  - WP0.3
+  - WP1.13
+  - WP4.7
+  - LAUNCH
+  verification:
+  - docs
+  - manual
+  evidence: README, Pages site, and walkthrough
+  status: planned
+- id: REQ-DX-001
+  title: The primary development environment is a pinned Dev Container
+  statement: The primary development environment is a Dev Container with a digest-pinned base image, a committed feature lockfile, docker-in-docker support, and postCreateCommand execution of dev doctor.
+  source: docs-request
+  brief-rows:
+  - 36
+  delivered-by:
+  - WP1.4
+  verification:
+  - docs
+  - ci
+  evidence: devcontainers/ci run
+  status: planned
+- id: REQ-DX-002
+  title: Native setup stays limited to Git Docker and .NET 10
+  statement: The native setup for Windows, Linux, and macOS requires only Git, Docker, and the .NET 10 SDK, restores PowerShell 7 as a local .NET tool, and exposes thin dev and dev.cmd shims that invoke scripts/dev.ps1.
+  source: docs-request
+  brief-rows:
+  - 36
+  delivered-by:
+  - WP1.4
+  verification:
+  - docs
+  - script
+  - manual
+  evidence: doctor output and native setup guide
+  status: planned
+- id: REQ-DX-003
+  title: The dev command is the single local entry point
+  statement: The dev command is the single local entry point for setup, build and test, docs, compose, platform, Terraform, data and demos, and housekeeping tasks, and its behavior is covered by Pester and PSScriptAnalyzer.
+  source: plan
+  delivered-by:
+  - WP1.4
+  - WP3.8
+  verification:
+  - script
+  - ci
+  evidence: Pester suite for dev.ps1
+  status: planned
+- id: REQ-DX-004
+  title: Resource profiles define budgets and host support boundaries
+  statement: The api profile targets about 4 to 5 GB RAM and 2 or more vCPU, lite targets about 10 GB RAM and 4 or more vCPU on a 16 GB host, full targets about 16 to 18 GB RAM and 8 vCPU on a 32 GB host, ci stays within 4 vCPU and 16 GB, and Apple Silicon and Windows on Arm fall back to the documented x86-64 paths when SQL Server container support is unavailable.
+  source: docs-request
+  brief-rows:
+  - 36
+  delivered-by:
+  - WP3.0
+  - WP3.10
+  verification:
+  - docs
+  - manual
+  evidence: published profile measurements
+  status: planned
+- id: REQ-DX-005
+  title: Local platform ergonomics avoid privileged host requirements
+  statement: The local platform uses high host ports 8080 and 8443, documents the localtest.me hosts-file fallback and optional local CA installation, configures pull-through registry caches, and documents machine migration without copying local secrets.
+  source: plan
+  delivered-by:
+  - WP1.4
+  - WP3.1
+  - WP3.10
+  verification:
+  - docs
+  - script
+  - manual
+  evidence: doctor checks, port mapping config, and machine-migration runbook
+  status: planned
+- id: REQ-GOV-001
+  title: Planning and progress artifacts live in the repository
+  statement: The repository keeps the implementation plan, phase plans, status source, status page, requirements register, traceability report, risk register, research records, and retrospectives under version control so work can continue on another machine.
+  source: planning-request
+  brief-rows:
+  - 34
+  delivered-by:
+  - WP0.2
+  verification:
+  - docs
+  - manual
+  evidence: plan, status, risk, and requirements files
+  status: in_progress
+- id: REQ-GOV-002
+  title: Status is tracked in status.yaml and rendered as STATUS.md
+  statement: status.yaml is the source of truth for phase and work-package state, dependencies, blockers, evidence links, and release state, and STATUS.md is rendered from it with drift detection.
+  source: planning-request
+  brief-rows:
+  - 34
+  delivered-by:
+  - WP0.2
+  - WP1.2
+  verification:
+  - docs
+  - script
+  - ci
+  evidence: status render output and drift check
+  status: planned
+- id: REQ-GOV-003
+  title: The resume protocol works from a fresh clone on another machine
+  statement: A fresh clone can resume work by reading STATUS.md, checking out the active branch, running dev doctor, and continuing with the next action, and the end-of-session protocol updates status, regenerates STATUS.md, commits, and keeps the draft pull request current.
+  source: planning-request
+  brief-rows:
+  - 34
+  delivered-by:
+  - WP0.2
+  - WP0.5
+  - WP0.7
+  - WP1.2
+  verification:
+  - manual
+  - docs
+  evidence: fresh-clone resume transcript
+  status: planned
+- id: REQ-GOV-004
+  title: Definition of Ready and Done govern every work package
+  statement: Every work package requires an issue with scope, non-goals, acceptance criteria, requirement IDs, planned test cases, documentation deliverables, size, and dependencies before it starts, and must satisfy all nine Done criteria before it merges.
+  source: plan
+  delivered-by:
+  - WP0.3
+  - WP1.2
+  verification:
+  - docs
+  - manual
+  evidence: CONTRIBUTING and pull-request template
+  status: planned
+- id: REQ-GOV-005
+  title: Every significant decision becomes an ADR with recorded evidence
+  statement: Every decision that changes architecture, a trust boundary, a dependency policy, a tool, or a process is recorded as an ADR in docs/adr, and the four brief ADRs are proposed in Phase 0 and accepted by WP1.8, WP2.5, WP3.3, and WP4.3.
+  source: brief
+  brief-rows:
+  - 31
+  delivered-by:
+  - WP0.4
+  - WP1.8
+  - WP2.5
+  - WP3.3
+  - WP4.3
+  verification:
+  - docs
+  - manual
+  evidence: docs/adr index
+  status: planned
+- id: REQ-GOV-006
+  title: The repository is public after Phase 0 and clearly marked WIP
+  statement: The repository becomes public after Phase 0, stays clearly marked as work in progress until v1.0, and publishes evidence, documentation, and releases that make its engineering claims publicly verifiable.
+  source: review
+  brief-rows:
+  - 38
+  delivered-by:
+  - WP0.3
+  - WP0.7
+  - WP4.7
+  - LAUNCH
+  verification:
+  - manual
+  - docs
+  evidence: public repository settings and README banner
+  status: planned
+- id: REQ-GOV-007
+  title: Repository governance covers branches reviews and publishable history
+  statement: The default branch is master, work flows through phase/<n>-<slug> integration branches and wp/<phase>.<nn>-<slug> work-package branches, master and phase/** are protected by rulesets, sensitive paths require CODEOWNERS review, the solo-maintainer bypass is limited to pull requests when self-review is the only unmet rule, release history stays publishable, and commits use the GitHub noreply identity.
+  source: review
+  delivered-by:
+  - WP0.1
+  - WP0.3
+  - WP0.7
+  verification:
+  - manual
+  - policy
+  - docs
+  evidence: rulesets, CODEOWNERS, and governance settings
+  status: in_progress
+- id: REQ-AI-001
+  title: Repository instructions travel with the codebase
+  statement: AGENTS.md, .github/copilot-instructions.md, path-specific instruction files, and REVIEW.md travel with the repository and define the mission, doctrine, prohibited actions, review checks, and status-update protocol for AI-assisted work.
+  source: docs-request
+  brief-rows:
+  - 37
+  delivered-by:
+  - WP0.5
+  verification:
+  - docs
+  - manual
+  evidence: AGENTS, Copilot instructions, and REVIEW files
+  status: in_progress
+- id: REQ-AI-002
+  title: Repository skills wrap deterministic tooling with safe scopes
+  statement: Repository skills for advanced-security-auditor, blast-radius-evaluator, documentation-auditor, test-plan-evaluator, adr-assistant, tool-doc-author, and session-handoff declare purpose, inputs, read and write scope, outputs, and prompt-injection controls, and they wrap deterministic CLI behavior instead of duplicating policy logic.
+  source: docs-request
+  brief-rows:
+  - 37
+  delivered-by:
+  - WP0.5
+  - WP1.2
+  - WP1.3
+  - WP1.12
+  verification:
+  - docs
+  - script
+  - ci
+  evidence: skill fixtures and governance tests
+  status: planned
+- id: REQ-AI-003
+  title: External skills require recorded review pinning and approval
+  statement: No external skill is installed unless its publisher and license were reviewed, its exact commit was pinned, its content and tool use were read, its overlap with repository skills was assessed, and separate user approval was recorded.
+  source: plan
+  delivered-by:
+  - WP0.5
+  verification:
+  - docs
+  - manual
+  evidence: ai-skills review record
+  status: in_progress

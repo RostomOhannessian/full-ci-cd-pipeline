@@ -1,0 +1,611 @@
+# Source of truth for phase and work-package progress. The schema is status.schema.json.
+# STATUS.md is the readable view of this file and is hand-maintained until WP1.2 generates it.
+# Update this file in the same commit as the change it records (see the end-of-session protocol in AGENTS.md).
+schema-version: 1
+updated: "2026-10-04"
+project:
+  name: "Secure Product Catalog Platform"
+  repository: "RostomOhannessian/full-ci-cd-pipeline"
+  plan: "docs/plans/implementation-plan.md"
+  plan-version: "2.0.1"
+current:
+  phase: 0
+  work-package: "WP0.6"
+  branch: "phase/0-foundation"
+resume:
+  last-completed: "WP0.1 to WP0.5 are written and lint-clean on the phase/0-foundation branch. The docs-quality workflow has not run in CI yet."
+  next-action: "Open the Phase 0 pull request to master, confirm the three docs-quality checks pass, then merge it with a merge commit. After the merge, start WP0.7: run the publication checklist and, with the owner's explicit confirmation, make the repository public and apply the settings recorded under governance/github/."
+  open-pull-requests: []
+  environment-notes:
+    - "Phase 0 needs only Git, Docker, and the GitHub CLI. Run the lint gate with the docker compose commands in AGENTS.md."
+    - "Use the repository-local noreply Git identity described in ADR-0006 and never set a personal email in this repository."
+    - "Local clusters, Vault keys, and generated passwords belong to one machine and are never migrated. They do not exist yet."
+phases:
+  - id: 0
+    name: "Foundation and early publication"
+    state: in_progress
+    branch: "phase/0-foundation"
+    plan: "docs/plans/phases/phase-0-foundation.md"
+    milestone: "Phase 0: Foundation"
+    release: null
+    issue: null
+    pull-request: null
+    work-packages:
+      - id: "WP0.1"
+        title: "Identity and hygiene"
+        size: S
+        state: completed
+        branch: null
+        issue: null
+        pull-request: null
+        depends-on: []
+        evidence:
+          - "docs/adr/0006-commit-identity-and-privacy.md"
+          - ".gitattributes"
+          - ".gitignore"
+          - ".editorconfig"
+        blockers: []
+      - id: "WP0.2"
+        title: "Plans and tracking"
+        size: M
+        state: completed
+        branch: null
+        issue: null
+        pull-request: null
+        depends-on: ["WP0.1"]
+        evidence:
+          - "docs/plans/implementation-plan.md"
+          - "docs/plans/phases/"
+          - "docs/requirements/requirements.yaml"
+          - "docs/requirements/brief-traceability.md"
+          - "docs/project/status.yaml"
+          - "docs/project/risk-register.md"
+          - "docs/research/"
+          - "docs/reference/tools/inventory.yaml"
+        blockers: []
+      - id: "WP0.3"
+        title: "Governance and community files"
+        size: S
+        state: completed
+        branch: null
+        issue: null
+        pull-request: null
+        depends-on: ["WP0.1"]
+        evidence:
+          - "README.md"
+          - "LICENSE"
+          - "NOTICE"
+          - "CONTRIBUTING.md"
+          - "CODE_OF_CONDUCT.md"
+          - "SECURITY.md"
+          - "SUPPORT.md"
+          - "GOVERNANCE.md"
+          - "CHANGELOG.md"
+          - ".github/ISSUE_TEMPLATE/"
+          - ".github/PULL_REQUEST_TEMPLATE.md"
+          - ".github/CODEOWNERS"
+        blockers: []
+      - id: "WP0.4"
+        title: "Decisions and docs skeleton"
+        size: M
+        state: completed
+        branch: null
+        issue: null
+        pull-request: null
+        depends-on: ["WP0.1"]
+        evidence:
+          - "docs/adr/"
+          - "docs/templates/"
+          - "docs/glossary.md"
+          - "docs/security/threat-model.md"
+          - "docs/testing/strategy.md"
+        blockers: []
+      - id: "WP0.5"
+        title: "AI enablement"
+        size: S
+        state: completed
+        branch: null
+        issue: null
+        pull-request: null
+        depends-on: ["WP0.1"]
+        evidence:
+          - "AGENTS.md"
+          - "REVIEW.md"
+          - ".github/copilot-instructions.md"
+          - ".github/instructions/"
+          - ".github/skills/"
+          - "docs/governance/ai-skills.md"
+        blockers: []
+      - id: "WP0.6"
+        title: "Documentation quality gate"
+        size: S
+        state: in_progress
+        branch: null
+        issue: null
+        pull-request: null
+        depends-on: ["WP0.1"]
+        evidence:
+          - ".github/workflows/docs-quality.yml"
+          - "tools/lint/compose.yaml"
+          - ".github/dependabot.yml"
+        blockers: []
+      - id: "WP0.7"
+        title: "Publication and GitHub configuration"
+        size: S
+        state: planned
+        branch: null
+        issue: null
+        pull-request: null
+        depends-on: ["WP0.2", "WP0.3", "WP0.4", "WP0.5", "WP0.6"]
+        evidence: []
+        blockers: []
+  - id: 1
+    name: "API core, data layer, and engineering foundation"
+    state: planned
+    branch: "phase/1-api-core"
+    plan: "docs/plans/phases/phase-1-api-core.md"
+    milestone: "Phase 1: API core"
+    release: "v0.1.0"
+    issue: null
+    pull-request: null
+    work-packages:
+      - id: "WP1.0"
+        title: "Risk spikes"
+        size: S
+        state: planned
+        branch: null
+        issue: null
+        pull-request: null
+        depends-on: ["WP0.7"]
+        evidence: []
+        blockers: []
+      - id: "WP1.1"
+        title: "Solution and build foundation"
+        size: M
+        state: planned
+        branch: null
+        issue: null
+        pull-request: null
+        depends-on: ["WP0.7"]
+        evidence: []
+        blockers: []
+      - id: "WP1.2"
+        title: "Governance core"
+        size: M
+        state: planned
+        branch: null
+        issue: null
+        pull-request: null
+        depends-on: ["WP1.1"]
+        evidence: []
+        blockers: []
+      - id: "WP1.3"
+        title: "Documentation toolchain"
+        size: M
+        state: planned
+        branch: null
+        issue: null
+        pull-request: null
+        depends-on: ["WP1.1"]
+        evidence: []
+        blockers: []
+      - id: "WP1.4"
+        title: "Developer environment"
+        size: L
+        state: planned
+        branch: null
+        issue: null
+        pull-request: null
+        depends-on: ["WP1.1"]
+        evidence: []
+        blockers: []
+      - id: "WP1.5"
+        title: "Contract v1 design"
+        size: M
+        state: planned
+        branch: null
+        issue: null
+        pull-request: null
+        depends-on: ["WP1.1"]
+        evidence: []
+        blockers: []
+      - id: "WP1.6"
+        title: "Domain model"
+        size: M
+        state: planned
+        branch: null
+        issue: null
+        pull-request: null
+        depends-on: ["WP1.1"]
+        evidence: []
+        blockers: []
+      - id: "WP1.7"
+        title: "Application layer"
+        size: L
+        state: planned
+        branch: null
+        issue: null
+        pull-request: null
+        depends-on: ["WP1.6"]
+        evidence: []
+        blockers: []
+      - id: "WP1.8"
+        title: "Persistence and outbox"
+        size: L
+        state: planned
+        branch: null
+        issue: null
+        pull-request: null
+        depends-on: ["WP1.0", "WP1.7"]
+        evidence: []
+        blockers: []
+      - id: "WP1.9"
+        title: "Caching"
+        size: M
+        state: planned
+        branch: null
+        issue: null
+        pull-request: null
+        depends-on: ["WP1.0", "WP1.7"]
+        evidence: []
+        blockers: []
+      - id: "WP1.10"
+        title: "HTTP API"
+        size: L
+        state: planned
+        branch: null
+        issue: null
+        pull-request: null
+        depends-on: ["WP1.4", "WP1.5", "WP1.8", "WP1.9"]
+        evidence: []
+        blockers: []
+      - id: "WP1.11"
+        title: "Observability"
+        size: M
+        state: planned
+        branch: null
+        issue: null
+        pull-request: null
+        depends-on: ["WP1.10"]
+        evidence: []
+        blockers: []
+      - id: "WP1.12"
+        title: "Auditor depth and AI skills"
+        size: M
+        state: planned
+        branch: null
+        issue: null
+        pull-request: null
+        depends-on: ["WP1.2", "WP1.3"]
+        evidence: []
+        blockers: []
+      - id: "WP1.13"
+        title: "Learning content and phase exit"
+        size: M
+        state: planned
+        branch: null
+        issue: null
+        pull-request: null
+        depends-on: ["WP1.11", "WP1.12"]
+        evidence: []
+        blockers: []
+  - id: 2
+    name: "CI pipeline and shift-left security"
+    state: planned
+    branch: "phase/2-secure-ci"
+    plan: "docs/plans/phases/phase-2-secure-ci.md"
+    milestone: "Phase 2: Secure CI"
+    release: "v0.2.0"
+    issue: null
+    pull-request: null
+    work-packages:
+      - id: "WP2.0"
+        title: "Risk spikes"
+        size: S
+        state: planned
+        branch: null
+        issue: null
+        pull-request: null
+        depends-on: ["WP1.13"]
+        evidence: []
+        blockers: []
+      - id: "WP2.1"
+        title: "Secure container image"
+        size: M
+        state: planned
+        branch: null
+        issue: null
+        pull-request: null
+        depends-on: ["WP1.13"]
+        evidence: []
+        blockers: []
+      - id: "WP2.2"
+        title: "Workflow architecture and hardening"
+        size: M
+        state: planned
+        branch: null
+        issue: null
+        pull-request: null
+        depends-on: ["WP1.13"]
+        evidence: []
+        blockers: []
+      - id: "WP2.3"
+        title: "CodeQL and SCA"
+        size: S
+        state: planned
+        branch: null
+        issue: null
+        pull-request: null
+        depends-on: ["WP2.2"]
+        evidence: []
+        blockers: []
+      - id: "WP2.4"
+        title: "Image scanning and SBOM"
+        size: M
+        state: planned
+        branch: null
+        issue: null
+        pull-request: null
+        depends-on: ["WP2.1", "WP2.2"]
+        evidence: []
+        blockers: []
+      - id: "WP2.5"
+        title: "Provenance, attestations, and signing"
+        size: M
+        state: planned
+        branch: null
+        issue: null
+        pull-request: null
+        depends-on: ["WP2.0", "WP2.4"]
+        evidence: []
+        blockers: []
+      - id: "WP2.6"
+        title: "Release engineering"
+        size: S
+        state: planned
+        branch: null
+        issue: null
+        pull-request: null
+        depends-on: ["WP2.5"]
+        evidence: []
+        blockers: []
+      - id: "WP2.7"
+        title: "Learning content and phase exit"
+        size: M
+        state: planned
+        branch: null
+        issue: null
+        pull-request: null
+        depends-on: ["WP2.3", "WP2.6"]
+        evidence: []
+        blockers: []
+  - id: 3
+    name: "Zero-trust platform with Terraform"
+    state: planned
+    branch: "phase/3-zero-trust-platform"
+    plan: "docs/plans/phases/phase-3-zero-trust-platform.md"
+    milestone: "Phase 3: Zero-trust platform"
+    release: "v0.3.0"
+    issue: null
+    pull-request: null
+    work-packages:
+      - id: "WP3.0"
+        title: "Risk spikes and measurements"
+        size: M
+        state: planned
+        branch: null
+        issue: null
+        pull-request: null
+        depends-on: ["WP2.7"]
+        evidence: []
+        blockers: []
+      - id: "WP3.1"
+        title: "Terraform foundations and kind stack"
+        size: M
+        state: planned
+        branch: null
+        issue: null
+        pull-request: null
+        depends-on: ["WP2.7"]
+        evidence: []
+        blockers: []
+      - id: "WP3.2"
+        title: "Platform baseline"
+        size: L
+        state: planned
+        branch: null
+        issue: null
+        pull-request: null
+        depends-on: ["WP3.0", "WP3.1"]
+        evidence: []
+        blockers: []
+      - id: "WP3.3"
+        title: "Secrets and workload identity"
+        size: L
+        state: planned
+        branch: null
+        issue: null
+        pull-request: null
+        depends-on: ["WP3.2"]
+        evidence: []
+        blockers: []
+      - id: "WP3.4"
+        title: "Data tier"
+        size: M
+        state: planned
+        branch: null
+        issue: null
+        pull-request: null
+        depends-on: ["WP3.3"]
+        evidence: []
+        blockers: []
+      - id: "WP3.5"
+        title: "Identity"
+        size: M
+        state: planned
+        branch: null
+        issue: null
+        pull-request: null
+        depends-on: ["WP3.4"]
+        evidence: []
+        blockers: []
+      - id: "WP3.6"
+        title: "Policy enforcement"
+        size: M
+        state: planned
+        branch: null
+        issue: null
+        pull-request: null
+        depends-on: ["WP3.2"]
+        evidence: []
+        blockers: []
+      - id: "WP3.7"
+        title: "Observability platform"
+        size: M
+        state: planned
+        branch: null
+        issue: null
+        pull-request: null
+        depends-on: ["WP3.2"]
+        evidence: []
+        blockers: []
+      - id: "WP3.8"
+        title: "Application hosting"
+        size: M
+        state: planned
+        branch: null
+        issue: null
+        pull-request: null
+        depends-on: ["WP3.5", "WP3.6", "WP3.7"]
+        evidence: []
+        blockers: []
+      - id: "WP3.9"
+        title: "Terraform CI and plan comments"
+        size: M
+        state: planned
+        branch: null
+        issue: null
+        pull-request: null
+        depends-on: ["WP3.3", "WP3.6"]
+        evidence: []
+        blockers: []
+      - id: "WP3.10"
+        title: "Learning content and phase exit"
+        size: L
+        state: planned
+        branch: null
+        issue: null
+        pull-request: null
+        depends-on: ["WP3.8", "WP3.9"]
+        evidence: []
+        blockers: []
+  - id: 4
+    name: "Contract testing, GitOps, and progressive delivery"
+    state: planned
+    branch: "phase/4-contracts-gitops"
+    plan: "docs/plans/phases/phase-4-contracts-gitops.md"
+    milestone: "Phase 4: Contracts and GitOps"
+    release: "v0.4.0"
+    issue: null
+    pull-request: null
+    work-packages:
+      - id: "WP4.0"
+        title: "Risk spikes"
+        size: S
+        state: planned
+        branch: null
+        issue: null
+        pull-request: null
+        depends-on: ["WP3.10"]
+        evidence: []
+        blockers: []
+      - id: "WP4.1"
+        title: "Contract governance"
+        size: M
+        state: planned
+        branch: null
+        issue: null
+        pull-request: null
+        depends-on: ["WP3.10"]
+        evidence: []
+        blockers: []
+      - id: "WP4.2"
+        title: "Consumer and Pact"
+        size: M
+        state: planned
+        branch: null
+        issue: null
+        pull-request: null
+        depends-on: ["WP4.1"]
+        evidence: []
+        blockers: []
+      - id: "WP4.3"
+        title: "GitOps control plane"
+        size: M
+        state: planned
+        branch: null
+        issue: null
+        pull-request: null
+        depends-on: ["WP4.0"]
+        evidence: []
+        blockers: []
+      - id: "WP4.4"
+        title: "Progressive delivery"
+        size: L
+        state: planned
+        branch: null
+        issue: null
+        pull-request: null
+        depends-on: ["WP4.2", "WP4.3"]
+        evidence: []
+        blockers: []
+      - id: "WP4.5"
+        title: "Promotion pipeline"
+        size: L
+        state: planned
+        branch: null
+        issue: null
+        pull-request: null
+        depends-on: ["WP4.4"]
+        evidence: []
+        blockers: []
+      - id: "WP4.6"
+        title: "Rollback and resilience drills"
+        size: M
+        state: planned
+        branch: null
+        issue: null
+        pull-request: null
+        depends-on: ["WP4.5"]
+        evidence: []
+        blockers: []
+      - id: "WP4.7"
+        title: "Portfolio and documentation completion"
+        size: L
+        state: planned
+        branch: null
+        issue: null
+        pull-request: null
+        depends-on: ["WP4.6"]
+        evidence: []
+        blockers: []
+      - id: "WP4.8"
+        title: "Final end-to-end audit"
+        size: M
+        state: planned
+        branch: null
+        issue: null
+        pull-request: null
+        depends-on: ["WP4.7"]
+        evidence: []
+        blockers: []
+  - id: "launch"
+    name: "v1.0 launch gate"
+    state: planned
+    branch: null
+    plan: "docs/plans/phases/launch-v1.md"
+    milestone: "v1.0 launch"
+    release: "v1.0.0"
+    issue: null
+    pull-request: null
+    work-packages: []
