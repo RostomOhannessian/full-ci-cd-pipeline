@@ -61,7 +61,7 @@ Work packages per phase: Phase 0 has 7, Phase 1 has 14, Phase 2 has 8, Phase 3 h
 | WP0.3 | Governance and community files | S | Completed | [README](../../README.md), [CONTRIBUTING](../../CONTRIBUTING.md), [SECURITY](../../SECURITY.md), [GOVERNANCE](../../GOVERNANCE.md), Issue forms |
 | WP0.4 | Decisions and docs skeleton | M | Completed | [ADR index](../adr/README.md), [templates](../templates/adr-template.md), [glossary](../glossary.md), [threat model](../security/threat-model.md) |
 | WP0.5 | AI enablement | S | Completed | [AGENTS.md](../../AGENTS.md), [REVIEW.md](../../REVIEW.md), [AI skills record](../governance/ai-skills.md) |
-| WP0.6 | Documentation quality gate | S | Completed | [docs-quality run on pull request 1](https://github.com/RostomOhannessian/full-ci-cd-pipeline/actions/runs/37242882717): Markdown style, Internal links, and Secret scan (full history) all pass |
+| WP0.6 | Documentation quality gate | S | Completed | [docs-quality run on pull request 1](https://github.com/RostomOhannessian/full-ci-cd-pipeline/actions/runs/37243822276): Markdown style, Internal links, and Secret scan (full history) all pass |
 | WP0.7 | Publication and GitHub configuration | S | Planned | Starts after the Phase 0 pull request merges |
 
 ## What comes next

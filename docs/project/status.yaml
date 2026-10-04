@@ -131,7 +131,7 @@ phases:
           - ".github/workflows/docs-quality.yml"
           - "tools/lint/compose.yaml"
           - ".github/dependabot.yml"
-          - "https://github.com/RostomOhannessian/full-ci-cd-pipeline/actions/runs/37242882717"
+          - "https://github.com/RostomOhannessian/full-ci-cd-pipeline/actions/runs/37243822276"
         blockers: []
       - id: "WP0.7"
         title: "Publication and GitHub configuration"
