@@ -1526,7 +1526,7 @@ requirements:
   - docs
   - manual
   evidence: plan, status, risk, and requirements files
-  status: in_progress
+  status: verified
 - id: REQ-GOV-002
   title: Status is tracked in status.yaml and rendered as STATUS.md
   statement: status.yaml is the source of truth for phase and work-package state, dependencies, blockers, evidence links, and release state, and STATUS.md is rendered from it with drift detection.
@@ -1630,7 +1630,7 @@ requirements:
   - docs
   - manual
   evidence: AGENTS, Copilot instructions, and REVIEW files
-  status: in_progress
+  status: verified
 - id: REQ-AI-002
   title: Repository skills wrap deterministic tooling with safe scopes
   statement: Repository skills for advanced-security-auditor, blast-radius-evaluator, documentation-auditor, test-plan-evaluator, adr-assistant, tool-doc-author, and session-handoff declare purpose, inputs, read and write scope, outputs, and prompt-injection controls, and they wrap deterministic CLI behavior instead of duplicating policy logic.
@@ -1658,4 +1658,4 @@ requirements:
   - docs
   - manual
   evidence: ai-skills review record
-  status: in_progress
+  status: verified

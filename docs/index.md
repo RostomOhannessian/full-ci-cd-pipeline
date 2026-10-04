@@ -29,6 +29,7 @@ The structure follows [Diataxis](https://diataxis.fr/): each kind of page answer
 | Operate or recover something | [Runbooks](runbooks/index.md) | Planned, from Phase 1 |
 | See how the project is planned and how far it has come | [Implementation plan](plans/implementation-plan.md), [phase plans](plans/phases/phase-0-foundation.md), [status](project/STATUS.md) | Available now |
 | Check what we know and how we know it | [Research records](research/README.md) | Available now |
+| Read what each phase taught us | [Phase 0 retrospective](journal/phase-0-retrospective.md) | Available now |
 | Judge the security design | [Threat model](security/threat-model.md) | First version available now |
 | Judge the testing approach | [Testing strategy](testing/strategy.md) | Available now |
 | Trace a requirement to its delivery and evidence | [Brief traceability](requirements/brief-traceability.md), [risk register](project/risk-register.md) | Available now |

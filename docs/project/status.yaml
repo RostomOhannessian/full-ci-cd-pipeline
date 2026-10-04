@@ -9,27 +9,26 @@ project:
   plan: "docs/plans/implementation-plan.md"
   plan-version: "2.0.2"
 current:
-  phase: 0
-  work-package: "WP0.7"
-  branch: "phase/0-foundation"
+  phase: 1
+  work-package: null
+  branch: "master"
 resume:
-  last-completed: "WP0.1 to WP0.6 are complete. The three docs-quality checks pass on pull request 1."
-  next-action: "Merge pull request 1 with a merge commit after the owner confirms. Then start WP0.7: run the publication checklist and, with the owner's explicit confirmation, make the repository public and apply the settings in docs/governance/github-settings.md."
-  open-pull-requests:
-    - number: 1
-      title: "docs(phase-0): foundation and early publication"
-      branch: "phase/0-foundation"
+  last-completed: "Phase 0 is complete. The repository is public with its protections applied, the Phase 1 Milestone and its 14 work-package Issues exist, and the plan, decisions, and tracking are on master."
+  next-action: "Wait for the owner to start Phase 1. Then create phase/1-api-core from master (ADR-0003) and begin WP1.0, the risk spikes tracked in Issue 2."
+  open-pull-requests: []
   environment-notes:
     - "Phase 0 needs only Git, Docker, and the GitHub CLI. Run the lint gate with the docker compose commands in AGENTS.md."
     - "Use the repository-local noreply Git identity described in ADR-0006 and never set a personal email in this repository."
+    - "Keep the GitHub account setting Keep my email addresses private turned on. After every merge, check the author and committer emails of the merged range (see AGENTS.md)."
     - "Local clusters, Vault keys, and generated passwords belong to one machine and are never migrated. They do not exist yet."
 phases:
   - id: 0
     name: "Foundation and early publication"
-    state: in_progress
+    state: completed
     branch: "phase/0-foundation"
     plan: "docs/plans/phases/phase-0-foundation.md"
     milestone: "Phase 0: Foundation"
+    milestone-url: "https://github.com/RostomOhannessian/full-ci-cd-pipeline/milestone/1"
     release: null
     issue: null
     pull-request: 1
@@ -136,12 +135,15 @@ phases:
       - id: "WP0.7"
         title: "Publication and GitHub configuration"
         size: S
-        state: planned
-        branch: null
+        state: completed
+        branch: "wp/0.7-publication-record"
         issue: null
-        pull-request: null
+        pull-request: 16
         depends-on: ["WP0.2", "WP0.3", "WP0.4", "WP0.5", "WP0.6"]
-        evidence: []
+        evidence:
+          - "docs/governance/github-settings.md"
+          - "governance/github/"
+          - "docs/journal/phase-0-retrospective.md"
         blockers: []
   - id: 1
     name: "API core, data layer, and engineering foundation"
@@ -149,6 +151,7 @@ phases:
     branch: "phase/1-api-core"
     plan: "docs/plans/phases/phase-1-api-core.md"
     milestone: "Phase 1: API core"
+    milestone-url: "https://github.com/RostomOhannessian/full-ci-cd-pipeline/milestone/2"
     release: "v0.1.0"
     issue: null
     pull-request: null
@@ -158,7 +161,7 @@ phases:
         size: S
         state: planned
         branch: null
-        issue: null
+        issue: 2
         pull-request: null
         depends-on: ["WP0.7"]
         evidence: []
@@ -168,7 +171,7 @@ phases:
         size: M
         state: planned
         branch: null
-        issue: null
+        issue: 3
         pull-request: null
         depends-on: ["WP0.7"]
         evidence: []
@@ -178,7 +181,7 @@ phases:
         size: M
         state: planned
         branch: null
-        issue: null
+        issue: 4
         pull-request: null
         depends-on: ["WP1.1"]
         evidence: []
@@ -188,7 +191,7 @@ phases:
         size: M
         state: planned
         branch: null
-        issue: null
+        issue: 5
         pull-request: null
         depends-on: ["WP1.1"]
         evidence: []
@@ -198,7 +201,7 @@ phases:
         size: L
         state: planned
         branch: null
-        issue: null
+        issue: 6
         pull-request: null
         depends-on: ["WP1.1"]
         evidence: []
@@ -208,7 +211,7 @@ phases:
         size: M
         state: planned
         branch: null
-        issue: null
+        issue: 7
         pull-request: null
         depends-on: ["WP1.1"]
         evidence: []
@@ -218,7 +221,7 @@ phases:
         size: M
         state: planned
         branch: null
-        issue: null
+        issue: 8
         pull-request: null
         depends-on: ["WP1.1"]
         evidence: []
@@ -228,7 +231,7 @@ phases:
         size: L
         state: planned
         branch: null
-        issue: null
+        issue: 9
         pull-request: null
         depends-on: ["WP1.6"]
         evidence: []
@@ -238,7 +241,7 @@ phases:
         size: L
         state: planned
         branch: null
-        issue: null
+        issue: 10
         pull-request: null
         depends-on: ["WP1.0", "WP1.7"]
         evidence: []
@@ -248,7 +251,7 @@ phases:
         size: M
         state: planned
         branch: null
-        issue: null
+        issue: 11
         pull-request: null
         depends-on: ["WP1.0", "WP1.7"]
         evidence: []
@@ -258,7 +261,7 @@ phases:
         size: L
         state: planned
         branch: null
-        issue: null
+        issue: 12
         pull-request: null
         depends-on: ["WP1.4", "WP1.5", "WP1.8", "WP1.9"]
         evidence: []
@@ -268,7 +271,7 @@ phases:
         size: M
         state: planned
         branch: null
-        issue: null
+        issue: 13
         pull-request: null
         depends-on: ["WP1.10"]
         evidence: []
@@ -278,7 +281,7 @@ phases:
         size: M
         state: planned
         branch: null
-        issue: null
+        issue: 14
         pull-request: null
         depends-on: ["WP1.2", "WP1.3"]
         evidence: []
@@ -288,7 +291,7 @@ phases:
         size: M
         state: planned
         branch: null
-        issue: null
+        issue: 15
         pull-request: null
         depends-on: ["WP1.11", "WP1.12"]
         evidence: []
@@ -299,6 +302,7 @@ phases:
     branch: "phase/2-secure-ci"
     plan: "docs/plans/phases/phase-2-secure-ci.md"
     milestone: "Phase 2: Secure CI"
+    milestone-url: "https://github.com/RostomOhannessian/full-ci-cd-pipeline/milestone/3"
     release: "v0.2.0"
     issue: null
     pull-request: null
@@ -389,6 +393,7 @@ phases:
     branch: "phase/3-zero-trust-platform"
     plan: "docs/plans/phases/phase-3-zero-trust-platform.md"
     milestone: "Phase 3: Zero-trust platform"
+    milestone-url: "https://github.com/RostomOhannessian/full-ci-cd-pipeline/milestone/4"
     release: "v0.3.0"
     issue: null
     pull-request: null
@@ -509,6 +514,7 @@ phases:
     branch: "phase/4-contracts-gitops"
     plan: "docs/plans/phases/phase-4-contracts-gitops.md"
     milestone: "Phase 4: Contracts and GitOps"
+    milestone-url: "https://github.com/RostomOhannessian/full-ci-cd-pipeline/milestone/5"
     release: "v0.4.0"
     issue: null
     pull-request: null
@@ -609,6 +615,7 @@ phases:
     branch: null
     plan: "docs/plans/phases/launch-v1.md"
     milestone: "v1.0 launch"
+    milestone-url: "https://github.com/RostomOhannessian/full-ci-cd-pipeline/milestone/6"
     release: "v1.0.0"
     issue: null
     pull-request: null

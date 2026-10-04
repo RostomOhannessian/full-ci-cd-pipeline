@@ -147,7 +147,7 @@ Phase 0 is documentation and configuration, so its tests are checks on content, 
 - The pull request with green `docs-quality` runs.
 - The negative-control transcript.
 - JSON snapshots of the repository settings and rulesets, kept under `governance/github/` and described in the settings record.
-- The publication checklist, the ruleset smoke-test result, and the fresh-clone resume transcript.
+- The publication checklist, the ruleset smoke-test result, and the fresh-clone resume transcript, recorded in [the settings record](../../governance/github-settings.md) and [the retrospective](../../journal/phase-0-retrospective.md).
 
 ## Risks and rollback
 
