@@ -46,6 +46,7 @@ The test cloned the repository into a new directory with no session state, and u
 | Check that the next action can be taken | Issue 2 (WP1.0) is open, and `phase/1-api-core` does not exist yet, as expected until Phase 1 starts |
 
 ## What went well
+
 - **Verify before deciding.** The research found facts that changed the plan before any code existed. GitHub Free private repositories lack rulesets, code scanning, and artifact attestations. CodeQL's terms forbid private repositories. OpenBao has no SQL Server plugin. ingress-nginx is retired, and tfsec is frozen. The trivy-action tags were hijacked in 2026. ([Plan section 1.1](../plans/implementation-plan.md) lists every finding.)
 - **One quality gate, identical everywhere.** The same three commands run locally and in CI, and the negative controls proved that a broken link, a broken heading anchor, and a seeded fake secret each fail the gate.
 - **Drafting in parallel, then reviewing.** Background agents drafted ADRs, the inventory, the AI configuration, the glossary, and the requirements register while the maintainer reviewed. The review found real problems, listed next.
