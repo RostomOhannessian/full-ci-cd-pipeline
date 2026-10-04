@@ -87,7 +87,7 @@ Later work packages extend the required checks: the build, test, governance, and
 | Check | Result |
 | --- | --- |
 | A direct push to `master` | Rejected: "Changes must be made through a pull request" and "3 of 3 required status checks are expected" (push declined due to repository rule violations) |
-| A pull request whose checks have not passed | `mergeStateStatus` is `BLOCKED` until the three checks pass |
+| A pull request whose checks have not passed | `mergeStateStatus` was `BLOCKED` while the checks were queued and again while the Markdown style check failed on this closeout pull request, and it became `CLEAN` only after all three checks passed |
 | An owner-authored pull request that changes a CODEOWNERS path, after the checks pass | `mergeStateStatus` becomes `CLEAN`, so no bypass is needed ([ADR-0007](../adr/0007-solo-maintainer-governance.md)) |
 | The owner's bypass | `current_user_can_bypass` reports `pull_requests_only` on both rulesets |
 
