@@ -2,7 +2,7 @@
 title: "Secure Product Catalog Platform: implementation plan"
 description: "The approved plan of record: decisions, architecture, delivery model, quality strategy, and the phase overview."
 type: plan
-version: 2.0.1
+version: 2.0.2
 status: approved
 date: 2026-10-04
 audience: [maintainers, learners]
@@ -14,7 +14,7 @@ owner: "@RostomOhannessian"
 
 | Field | Value |
 | --- | --- |
-| Version | 2.0.1 |
+| Version | 2.0.2 |
 | Date | 2026-10-04 |
 | Status | Approved by the project owner on 2026-10-04. This file is the plan of record. Amend it by pull request and add a revision entry (section 19). |
 | Phase plans | One file per phase, listed in section 14 |
@@ -41,7 +41,7 @@ The review kept every v1 outcome and the original premise. It checked time-sensi
 | F10 | Bitnami's free images and charts have been frozen since August–September 2025. | Chart sources unspecified | No Bitnami artifacts; use official charts and operators, or manifests kept in this repo. |
 | F11 | SQL Server containers are x86-64 only, and Microsoft does not support running them under Rosetta, Prism, or QEMU emulation. | All hosts treated alike | An explicit host support matrix, with Codespaces or an x86-64 machine as the fallback. |
 | F12 | kind v0.33.0 defaults to Kubernetes 1.37, but Envoy Gateway 1.9 supports only 1.33–1.36. | No version compatibility matrix | Pin the node image to the newest Kubernetes minor version that every component supports. |
-| F13 | The repository's original initial commit and the local Git configuration used a personal email address. | Not considered | A repository-local GitHub noreply identity, and a one-time re-creation of the empty initial commit before publication (done in WP0.1 after the owner confirmed it). GitHub can keep the replaced commit retrievable by its ID for a time; see [ADR-0006](../adr/0006-commit-identity-and-privacy.md). |
+| F13 | The repository's original initial commit and the local Git configuration used a personal email address. | Not considered | A repository-local GitHub noreply identity, and a one-time re-creation of the empty initial commit before publication (done in WP0.1 after the owner confirmed it). GitHub can keep the replaced commit retrievable by its ID for a time, and WP0.7 later found that merges GitHub creates use the account's primary email, so the repository was recreated before publication; see [ADR-0006](../adr/0006-commit-identity-and-privacy.md). |
 | F14 | PactNet 5.0.1 has had no release for 19 months, and provider verification needs a real network socket. .NET 10 adds `WebApplicationFactory.UseKestrel()`. | In-process provider verification | Verify against a Kestrel-hosted provider, with an early spike to reduce risk. |
 | F15 | FluentAssertions 8+, MediatR 13+, AutoMapper 15+, and MassTransit 9+ moved to commercial licenses. | No license policy | An enforced license allowlist, using nuget-license and dependency review. |
 | F16 | coverlet does not work with Microsoft.Testing.Platform (MTP) v2, and the OpenTelemetry EF Core and StackExchange.Redis instrumentations are still beta. | Unspecified | MTP with Microsoft Code Coverage; beta instrumentations pinned and labeled as beta. |
@@ -809,7 +809,7 @@ sequenceDiagram
   - External skills are reviewed and pinned before use (§13).
 - **Incident response:** runbooks cover credential leaks, a compromised action or dependency, a vulnerable released image, and a policy bypass. The tj-actions (2025) and trivy-action (2026) incidents are written up as case studies, each mapped to the controls that would have mitigated it.
 - **Privacy:**
-  - Commits use the noreply identity.
+  - Commits use the noreply identity, including the merge and squash commits GitHub creates. The account setting that guarantees this is verified before the first merge.
   - Test and demo data are synthetic.
   - Logs carry no personal data.
 
@@ -1182,3 +1182,4 @@ Pin exact versions and digests in `Directory.Packages.props`, `tools/versions.ya
 | 1.1 | 2026-08-22 | Added the documentation, teaching, portability, progress-tracking, and AI-skill requirements, and the public-release gate. |
 | 2.0 | 2026-10-04 | Deep review with re-verified facts. Section 1 lists every finding and change. |
 | 2.0.1 | 2026-10-04 | Published to the repository: split into this plan and one plan per phase, added the `ARC` and `QUA` requirement areas, removed private details, and corrected the Trivy rule-ID statement, which Aqua's migration guide does not make. |
+| 2.0.2 | 2026-10-04 | Recorded the WP0.7 privacy finding: merges that GitHub creates use the account's primary email, so the repository was recreated before publication and the account setting became a prerequisite (ADR-0006, R18, R19). |

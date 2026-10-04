@@ -7,7 +7,7 @@ project:
   name: "Secure Product Catalog Platform"
   repository: "RostomOhannessian/full-ci-cd-pipeline"
   plan: "docs/plans/implementation-plan.md"
-  plan-version: "2.0.1"
+  plan-version: "2.0.2"
 current:
   phase: 0
   work-package: "WP0.7"

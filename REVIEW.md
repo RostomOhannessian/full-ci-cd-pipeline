@@ -73,7 +73,7 @@ Use this checklist for AI and human review. Mark a finding as **blocking** when 
 
 ## Privacy
 
-- [ ] The change keeps the noreply commit-identity policy and does not introduce personal email addresses.
+- [ ] The change keeps the noreply commit-identity policy and does not introduce personal email addresses, including in merge and squash commits that GitHub creates.
 - [ ] The change does not reveal workstation-specific absolute paths, session-state paths, or local environment details that do not belong in the repository.
 - [ ] The change keeps logs, screenshots, traces, and examples free of personal data and live secrets.
 - [ ] The change does not suggest or normalize mirror-pushes, history rewriting, or settings changes outside the approved ADRs.

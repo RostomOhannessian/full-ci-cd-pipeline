@@ -89,6 +89,7 @@ Follow [ADR-0006](docs/adr/0006-commit-identity-and-privacy.md).
 
 - Use the repository noreply identity for commits: `260491873+RostomOhannessian@users.noreply.github.com`.
 - Never write personal email addresses into commit metadata, docs, fixtures, screenshots, or logs.
+- GitHub creates merge, squash, and web-edit commits with the account's email unless "Keep my email addresses private" is on. After every merge, list the author and committer emails of the merged range (`git log --format='%ae%n%ce' <range>`) and confirm they are all the noreply address.
 - Never paste workstation-specific absolute paths into repository files.
 - Never mirror-push this repository.
 - Keep `refs/copilot/**` local.

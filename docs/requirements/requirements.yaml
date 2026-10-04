@@ -1605,12 +1605,13 @@ requirements:
   status: planned
 - id: REQ-GOV-007
   title: Repository governance covers branches reviews and publishable history
-  statement: The default branch is master, work flows through phase/<n>-<slug> integration branches and wp/<phase>.<nn>-<slug> work-package branches, master and phase/** are protected by rulesets, sensitive paths require CODEOWNERS review, the solo-maintainer bypass is limited to pull requests when self-review is the only unmet rule, release history stays publishable, and commits use the GitHub noreply identity.
+  statement: The default branch is master, work flows through phase/<n>-<slug> integration branches and wp/<phase>.<nn>-<slug> work-package branches, master and phase/** are protected by rulesets, sensitive paths require CODEOWNERS review, the solo-maintainer bypass is limited to pull requests when self-review is the only unmet rule, release history stays publishable, and every author and committer email in history, including merge and squash commits that GitHub creates, is the GitHub noreply address.
   source: review
   delivered-by:
   - WP0.1
   - WP0.3
   - WP0.7
+  - WP1.2
   verification:
   - manual
   - policy

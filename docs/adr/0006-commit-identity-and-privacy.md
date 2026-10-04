@@ -56,9 +56,11 @@ The original empty initial commit is recreated once under the noreply identity, 
 before public publication. The plan justifies this as safe because the history was empty and the remote had no other
 branches, issues, or pull requests at review time.
 
-This decision also records two user-account recommendations, not verified settings. Humans working on the repository
-should enable GitHub's "Keep my email addresses private" and "Block command line pushes that expose my email" options
-in their account settings.
+This decision also depends on two account settings. GitHub creates merge, squash, and web-edit commits itself, and it
+uses the account's primary email for them unless "Keep my email addresses private" is on, so that setting is a
+prerequisite for every merge. "Block command line pushes that expose my email" rejects a push whose commits carry a
+personal address, which protects against a mis-set local identity. WP0.7 verifies the first setting through the account
+email API before the first merge.
 
 The residual risk stays explicit. A replaced commit object can remain retrievable by its identifier on GitHub until
 garbage collection, and a force-push can appear in repository activity. The stronger alternative of deleting and
@@ -82,7 +84,8 @@ public.
 WP0.6 confirms the scanning posture through a full-history gitleaks run and the surrounding governance checks.
 
 WP0.7 confirms the publication checklist, including the review of commit metadata, logs, and other privacy-sensitive
-surfaces before final publication settings are turned on.
+surfaces before final publication settings are turned on. The metadata review covers the author and committer email of
+every commit on every remote ref, because GitHub creates merge and squash commits itself.
 
 Execution record (WP0.1, 2026-10-04): the owner confirmed the rewrite. The empty initial commit was recreated under the
 noreply identity and `master` was force-pushed once, using a lease on the exact commit being replaced. Afterward the
@@ -93,6 +96,17 @@ risk described above. While the repository is private, only people with access t
 WP0.7 asks the owner to confirm the visibility change with that check result in front of them. The alternatives in this
 ADR (accept the residual risk, delete and recreate the repository, or ask GitHub Support for a purge) stay available
 until the repository is made public.
+
+Execution record (WP0.7, 2026-10-04): the commit-metadata check ran against the remote refs after the Phase 0 pull
+request was merged through GitHub. It found a merge commit whose author email was the account's primary email, because
+"Keep my email addresses private" was off (verified through the account email API), and the workflow run for that push
+recorded the same author. Force-pushing a cleaned master could not have removed it, since GitHub keeps the pull
+request's merge commit and the run metadata. The repository was still private, so nothing had been exposed.
+
+The owner chose the third option above: delete and recreate the repository before publication. That also removed the
+replaced initial commit from GitHub, and it replaces the earlier judgment that recreation was disproportionate, because
+with one pull request and no Issues the cost was small. The work stayed in Git, so the same commits were pushed to the
+new repository and the Phase 0 pull request was reopened there, after the account setting was turned on and verified.
 
 ## Pros and cons of the options
 

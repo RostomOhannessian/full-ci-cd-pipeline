@@ -38,7 +38,12 @@ This is the live copy of the initial risk list in [section 16 of the implementat
 | R15 | Documentation drift | M | M | Tested includes; freshness metadata; inventory discovery | Audit failures | 1 | open |
 | R16 | GitHub policy and pricing changes (self-hosted runner fee; feature availability) | L | M | No self-hosted runners by default; capability detection | Changelog | 2 | open |
 | R17 | Third-party DNS (`localtest.me`) unavailable | L | L | Documented hosts-file fallback | Lab failures | 3 | open |
-| R18 | The replaced initial commit stays retrievable by its ID on GitHub after the force-push | H | M | A one-time rewrite before publication; the repository stays private until the publication checklist passes; the owner confirms the visibility change with the check result in front of them; deleting and recreating the repository or asking GitHub Support for a purge stay available until then ([ADR-0006](../adr/0006-commit-identity-and-privacy.md)) | Before every visibility change (WP0.7 and the launch gate) | 0, launch | open |
+| R18 | The replaced initial commit stays retrievable by its ID on GitHub after the force-push | H | M | A one-time rewrite before publication; the repository stays private until the publication checklist passes; the owner confirms the visibility change with the check result in front of them; deleting and recreating the repository or asking GitHub Support for a purge stay available until then ([ADR-0006](../adr/0006-commit-identity-and-privacy.md)) | Before every visibility change (WP0.7 and the launch gate) | 0, launch | closed |
+| R19 | GitHub-created commits (merge, squash, web edit) use the account's primary email instead of the repository's noreply identity | H | M | The account setting "Keep my email addresses private" stays on and is verified through the account email API before the first merge; "Block command line pushes that expose my email" stays on; every merged range is checked for non-noreply author and committer emails; the `governance security` auditor gets the same rule in WP1.2 ([ADR-0006](../adr/0006-commit-identity-and-privacy.md)) | A merge or squash commit with a personal email | 0, 1 | open |
+
+## Closed risks
+
+- **R18**, closed 2026-10-04: the repository was recreated before publication, so neither the replaced initial commit nor the merge commit that carried a personal email exists on GitHub ([ADR-0006](../adr/0006-commit-identity-and-privacy.md)).
 
 ## Adding, changing, and closing risks
 
@@ -52,3 +57,4 @@ This is the live copy of the initial risk list in [section 16 of the implementat
 | Date | Change |
 | --- | --- |
 | 2026-10-04 | Initial register from plan version 2.0.1 (R1 to R17), plus R18 recorded during WP0.1 when the replaced initial commit was found to be retrievable by its ID. |
+| 2026-10-04 | R18 closed when the repository was recreated before publication. R19 added after the commit-metadata check found that a merge created by GitHub used the account's primary email. |

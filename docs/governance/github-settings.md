@@ -17,12 +17,21 @@ Nothing on this page is applied yet. [WP0.7](../plans/phases/phase-0-foundation.
 
 Several settings are unavailable while the repository is private on the Free plan, including rulesets, code scanning, and artifact attestations ([plan section 4.1](../plans/implementation-plan.md)). That is why the repository becomes public at the end of Phase 0 and why the order below matters.
 
+## Account settings (owner)
+
+GitHub creates merge, squash, and web-edit commits itself, and it uses the account's primary email for them unless the account keeps its email private. These two settings are therefore prerequisites for every merge ([ADR-0006](../adr/0006-commit-identity-and-privacy.md)).
+
+| Setting | Target value | Why | State |
+| --- | --- | --- | --- |
+| Keep my email addresses private | On | GitHub-created commits then use the noreply address | planned (before the first merge in the recreated repository), verified through the account email API |
+| Block command line pushes that expose my email | On | A push whose commits carry a personal address is rejected | planned (owner, in account settings) |
+
 ## Publication gate
 
 | Step | Target | State |
-| --- | --- | --- |
-| Privacy scan | No personal email address, local path, or token in any tracked file, and no personal email address in any commit | planned (WP0.7) |
+| --- | --- | --- || Privacy scan | No personal email address, local path, or token in any tracked file, and no personal email address in any commit | planned (WP0.7) |
 | Secret scan | gitleaks finds nothing in the full history and in the working tree | planned (WP0.7) |
+| Commit metadata | The author and committer email of every commit on every remote ref is the noreply address, including merge and squash commits that GitHub created | planned (WP0.7), and after every merge |
 | Replaced initial commit | The owner reviews the recorded exposure in [ADR-0006](../adr/0006-commit-identity-and-privacy.md) and chooses to accept it or to use a stronger option | planned (WP0.7) |
 | Visibility | Public, with the work-in-progress banner in the README | planned (WP0.7), after explicit confirmation |
 

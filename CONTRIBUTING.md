@@ -53,7 +53,7 @@ Use [Conventional Commits](https://www.conventionalcommits.org/): `type(scope): 
 - Scopes (examples): `api`, `domain`, `application`, `infrastructure`, `contracts`, `client`, `tests`, `docs`, `adr`, `ci`, `infra`, `k8s`, `policies`, `governance`, `deps`.
 - Mark breaking changes with `!` and explain them in the body.
 - Commits use the repository's GitHub noreply identity. Do not put personal email addresses in commits
-  ([ADR-0006](docs/adr/0006-commit-identity-and-privacy.md)).
+  ([ADR-0006](docs/adr/0006-commit-identity-and-privacy.md)). GitHub uses your account's primary email for merges and squashes it creates, so turn on "Keep my email addresses private" in your account settings before you contribute.
 
 Release notes are generated from these messages, so a precise message is documentation.
 

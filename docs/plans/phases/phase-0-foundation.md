@@ -109,7 +109,7 @@ these run on `master`, and each destructive step needs explicit confirmation whe
 
 ### Publication and configuration steps (WP0.7)
 
-1. Run the publication checklist.
+1. Run the publication checklist, including the commit-metadata check on every remote ref.
 2. Get explicit confirmation, then make the repository public.
 3. Enable:
    - Secret scanning and push protection
@@ -137,7 +137,7 @@ Phase 0 is documentation and configuration, so its tests are checks on content, 
 | Secrets in the working tree | gitleaks over uncommitted files | Locally, before every commit | PR description |
 | Negative controls | A broken link, a broken anchor, and a seeded fake secret must each fail the check | Locally, once | Transcript in the PR |
 | YAML and JSON validity | Parse every YAML and JSON file | Locally | PR description |
-| Privacy scan | Search all files for email addresses, local paths, and the original commit ID | Locally, as part of the publication checklist | Checklist record |
+| Privacy scan | Search all files for email addresses, local paths, and the original commit ID, and list the author and committer email of every commit on every remote ref, including merge commits that GitHub creates | Locally, as part of the publication checklist and after every merge | Checklist record |
 | Publication checklist | Manual review against the list in the retrospective | Before the visibility change | [GitHub settings record](../../governance/github-settings.md) |
 | Ruleset smoke test | A direct push to `master` is rejected, and a pull request without passing checks cannot merge | After the rulesets exist | Settings record |
 | Fresh-clone resume test | Clone into a new directory and follow `AGENTS.md` and `STATUS.md` to the next action without session state | After publication | Retrospective |
@@ -154,7 +154,8 @@ Phase 0 is documentation and configuration, so its tests are checks on content, 
 | Risk | Mitigation |
 | --- | --- |
 | Accidental disclosure at publication (R13 and the privacy rules in [ADR-0006](../../adr/0006-commit-identity-and-privacy.md)) | Privacy scan, secret scans, and a confirmation before the one-way visibility change |
-| The replaced initial commit can still be retrieved by its ID | Recorded in ADR-0006; the repository is private until the checklist passes; stronger options remain available before publication |
+| The replaced initial commit can still be retrieved by its ID (R18) | Recorded in ADR-0006. The repository was recreated before publication, which removed it |
+| GitHub-created commits use the account's primary email (R19) | The account setting "Keep my email addresses private" is verified before the first merge, and the commit-metadata check runs after every merge |
 | Misconfigured rulesets lock the owner out | The owner keeps a pull-request-only bypass; settings are stored as JSON and can be re-applied |
 | Dependabot noise | Weekly schedule, seven-day cooldown, grouped minor and patch updates |
 
