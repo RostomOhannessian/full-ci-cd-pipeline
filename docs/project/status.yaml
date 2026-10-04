@@ -10,11 +10,11 @@ project:
   plan-version: "2.0.1"
 current:
   phase: 0
-  work-package: "WP0.6"
+  work-package: "WP0.7"
   branch: "phase/0-foundation"
 resume:
-  last-completed: "WP0.1 to WP0.5 are written and lint-clean, and the Phase 0 pull request is open. The docs-quality workflow is running on it for the first time."
-  next-action: "Confirm the three docs-quality checks pass on pull request 1, record the run as WP0.6 evidence, then merge it with a merge commit after the owner confirms. After the merge, start WP0.7: run the publication checklist and, with the owner's explicit confirmation, make the repository public and apply the settings in docs/governance/github-settings.md."
+  last-completed: "WP0.1 to WP0.6 are complete. The three docs-quality checks pass on pull request 1."
+  next-action: "Merge pull request 1 with a merge commit after the owner confirms. Then start WP0.7: run the publication checklist and, with the owner's explicit confirmation, make the repository public and apply the settings in docs/governance/github-settings.md."
   open-pull-requests:
     - number: 1
       title: "docs(phase-0): foundation and early publication"
@@ -38,9 +38,9 @@ phases:
         title: "Identity and hygiene"
         size: S
         state: completed
-        branch: null
+        branch: "phase/0-foundation"
         issue: null
-        pull-request: null
+        pull-request: 1
         depends-on: []
         evidence:
           - "docs/adr/0006-commit-identity-and-privacy.md"
@@ -52,9 +52,9 @@ phases:
         title: "Plans and tracking"
         size: M
         state: completed
-        branch: null
+        branch: "phase/0-foundation"
         issue: null
-        pull-request: null
+        pull-request: 1
         depends-on: ["WP0.1"]
         evidence:
           - "docs/plans/implementation-plan.md"
@@ -70,9 +70,9 @@ phases:
         title: "Governance and community files"
         size: S
         state: completed
-        branch: null
+        branch: "phase/0-foundation"
         issue: null
-        pull-request: null
+        pull-request: 1
         depends-on: ["WP0.1"]
         evidence:
           - "README.md"
@@ -92,9 +92,9 @@ phases:
         title: "Decisions and docs skeleton"
         size: M
         state: completed
-        branch: null
+        branch: "phase/0-foundation"
         issue: null
-        pull-request: null
+        pull-request: 1
         depends-on: ["WP0.1"]
         evidence:
           - "docs/adr/"
@@ -107,9 +107,9 @@ phases:
         title: "AI enablement"
         size: S
         state: completed
-        branch: null
+        branch: "phase/0-foundation"
         issue: null
-        pull-request: null
+        pull-request: 1
         depends-on: ["WP0.1"]
         evidence:
           - "AGENTS.md"
@@ -122,15 +122,16 @@ phases:
       - id: "WP0.6"
         title: "Documentation quality gate"
         size: S
-        state: in_progress
-        branch: null
+        state: completed
+        branch: "phase/0-foundation"
         issue: null
-        pull-request: null
+        pull-request: 1
         depends-on: ["WP0.1"]
         evidence:
           - ".github/workflows/docs-quality.yml"
           - "tools/lint/compose.yaml"
           - ".github/dependabot.yml"
+          - "https://github.com/RostomOhannessian/full-ci-cd-pipeline/actions/runs/37242882717"
         blockers: []
       - id: "WP0.7"
         title: "Publication and GitHub configuration"

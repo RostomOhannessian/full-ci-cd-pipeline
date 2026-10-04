@@ -16,10 +16,10 @@ This page is the readable view of [status.yaml](status.yaml), which is the sourc
 | Item | Value |
 | --- | --- |
 | Active phase | [Phase 0: Foundation and early publication](../plans/phases/phase-0-foundation.md) |
-| Active work package | WP0.6 (documentation quality gate), then WP0.7 (publication and GitHub configuration) |
+| Active work package | WP0.7 (publication and GitHub configuration), after the Phase 0 pull request merges |
 | Branch | `phase/0-foundation` |
-| Last completed | WP0.1 to WP0.5 are written and lint-clean, and the Phase 0 pull request is open. The docs-quality workflow is running on it for the first time. |
-| Next action | Confirm the three docs-quality checks pass on pull request 1, record the run as WP0.6 evidence, and merge it with a merge commit after the owner confirms. Then start WP0.7: run the publication checklist and, with the owner's explicit confirmation, make the repository public and apply the settings in [the GitHub settings record](../governance/github-settings.md). |
+| Last completed | WP0.1 to WP0.6 are complete. The three docs-quality checks pass on pull request 1. |
+| Next action | Merge pull request 1 with a merge commit after the owner confirms. Then start WP0.7: run the publication checklist and, with the owner's explicit confirmation, make the repository public and apply the settings in [the GitHub settings record](../governance/github-settings.md). |
 | Open pull requests | [#1](https://github.com/RostomOhannessian/full-ci-cd-pipeline/pull/1): `phase/0-foundation` to `master` |
 
 ### Resume on another machine
@@ -61,7 +61,7 @@ Work packages per phase: Phase 0 has 7, Phase 1 has 14, Phase 2 has 8, Phase 3 h
 | WP0.3 | Governance and community files | S | Completed | [README](../../README.md), [CONTRIBUTING](../../CONTRIBUTING.md), [SECURITY](../../SECURITY.md), [GOVERNANCE](../../GOVERNANCE.md), Issue forms |
 | WP0.4 | Decisions and docs skeleton | M | Completed | [ADR index](../adr/README.md), [templates](../templates/adr-template.md), [glossary](../glossary.md), [threat model](../security/threat-model.md) |
 | WP0.5 | AI enablement | S | Completed | [AGENTS.md](../../AGENTS.md), [REVIEW.md](../../REVIEW.md), [AI skills record](../governance/ai-skills.md) |
-| WP0.6 | Documentation quality gate | S | In progress | Verified by the checks on the Phase 0 pull request |
+| WP0.6 | Documentation quality gate | S | Completed | [docs-quality run on pull request 1](https://github.com/RostomOhannessian/full-ci-cd-pipeline/actions/runs/37242882717): Markdown style, Internal links, and Secret scan (full history) all pass |
 | WP0.7 | Publication and GitHub configuration | S | Planned | Starts after the Phase 0 pull request merges |
 
 ## What comes next
