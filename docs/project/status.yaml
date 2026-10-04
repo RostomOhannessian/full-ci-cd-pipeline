@@ -13,9 +13,12 @@ current:
   work-package: "WP0.6"
   branch: "phase/0-foundation"
 resume:
-  last-completed: "WP0.1 to WP0.5 are written and lint-clean on the phase/0-foundation branch. The docs-quality workflow has not run in CI yet."
-  next-action: "Open the Phase 0 pull request to master, confirm the three docs-quality checks pass, then merge it with a merge commit. After the merge, start WP0.7: run the publication checklist and, with the owner's explicit confirmation, make the repository public and apply the settings recorded under governance/github/."
-  open-pull-requests: []
+  last-completed: "WP0.1 to WP0.5 are written and lint-clean, and the Phase 0 pull request is open. The docs-quality workflow is running on it for the first time."
+  next-action: "Confirm the three docs-quality checks pass on pull request 1, record the run as WP0.6 evidence, then merge it with a merge commit after the owner confirms. After the merge, start WP0.7: run the publication checklist and, with the owner's explicit confirmation, make the repository public and apply the settings in docs/governance/github-settings.md."
+  open-pull-requests:
+    - number: 1
+      title: "docs(phase-0): foundation and early publication"
+      branch: "phase/0-foundation"
   environment-notes:
     - "Phase 0 needs only Git, Docker, and the GitHub CLI. Run the lint gate with the docker compose commands in AGENTS.md."
     - "Use the repository-local noreply Git identity described in ADR-0006 and never set a personal email in this repository."
@@ -29,7 +32,7 @@ phases:
     milestone: "Phase 0: Foundation"
     release: null
     issue: null
-    pull-request: null
+    pull-request: 1
     work-packages:
       - id: "WP0.1"
         title: "Identity and hygiene"

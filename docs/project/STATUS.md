@@ -18,9 +18,9 @@ This page is the readable view of [status.yaml](status.yaml), which is the sourc
 | Active phase | [Phase 0: Foundation and early publication](../plans/phases/phase-0-foundation.md) |
 | Active work package | WP0.6 (documentation quality gate), then WP0.7 (publication and GitHub configuration) |
 | Branch | `phase/0-foundation` |
-| Last completed | WP0.1 to WP0.5 are written and lint-clean. The docs-quality workflow has not run in CI yet. |
-| Next action | Open the Phase 0 pull request to `master`, confirm the three docs-quality checks pass, and merge it with a merge commit. Then start WP0.7: run the publication checklist and, with the owner's explicit confirmation, make the repository public and apply the settings recorded under `governance/github/`. |
-| Open pull requests | None yet |
+| Last completed | WP0.1 to WP0.5 are written and lint-clean, and the Phase 0 pull request is open. The docs-quality workflow is running on it for the first time. |
+| Next action | Confirm the three docs-quality checks pass on pull request 1, record the run as WP0.6 evidence, and merge it with a merge commit after the owner confirms. Then start WP0.7: run the publication checklist and, with the owner's explicit confirmation, make the repository public and apply the settings in [the GitHub settings record](../governance/github-settings.md). |
+| Open pull requests | [#1](https://github.com/RostomOhannessian/full-ci-cd-pipeline/pull/1): `phase/0-foundation` to `master` |
 
 ### Resume on another machine
 
