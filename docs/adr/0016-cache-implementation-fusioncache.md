@@ -11,6 +11,7 @@ tools: [fusioncache, hybridcache, valkey, testcontainers-dotnet, opentelemetry-d
 related-adrs: ["0012"]
 evidence:
   - docs/research/2026-10-04-dotnet-ecosystem-verification.md
+  - docs/research/spikes/1.b-fusioncache-valkey.md
 ---
 
 # ADR-0016: Implement caching with FusionCache behind ICatalogCache
@@ -57,6 +58,20 @@ Chosen option: **Use FusionCache with a Valkey-backed L2 and backplane behind `I
 - **WP4.4** checks cache hit ratio and staleness metrics during canary analysis, which validates the production-shaped behavior described in plan section 8.5.
 - The traceability mechanism in plan section 10.2 ties these tests back to the cache requirements.
 
+Execution record (WP1.0, 2026-10-06): [spike 1.b](../research/spikes/1.b-fusioncache-valkey.md) ran FusionCache 2.9.0 with the
+StackExchange.Redis backplane against Valkey 8.1.10 and 9.1.2 (digest-pinned images) with two hosts in one process. Both
+versions behaved the same. A set on one host was readable on the other through L2. An overwrite, a remove, a tag removal,
+and a clear reached the other host's L1 in about 15 ms or less (polling resolution on Windows), and a control host with no
+backplane stayed stale. With Valkey stopped, both hosts kept serving without an exception, and after the restart they
+converged without a new write, provided the circuit breaker durations were set. Those durations default to zero, which means
+the breaker never activates, and without them every call paid the timeouts. An ACL user restricted to a discovered command
+set, keys `~v2:<prefix>*`, and the backplane channel passed the same scenario with no denials. This resolves the Valkey
+compatibility inference named under Consequences for functional behavior. The decision stays proposed, and WP1.9 still
+accepts it. Three follow-ups carry into WP1.9: configure the circuit breakers, correct the ACL patterns in plan section 8.5
+(the spike observed a `v2:` key prefix and a `<prefix>.Backplane:v2` channel, which the plan's `catalog:{env}:*` patterns do not
+match), and assert a latency bound on the first call after an outage begins, because the spike saw a one to two second delay on
+one host that it did not explain.
+
 ## Pros and cons of the options
 
 ### Build a custom cache layer directly over `IMemoryCache` and `IDistributedCache`
@@ -97,3 +112,4 @@ Chosen option: **Use FusionCache with a Valkey-backed L2 and backplane behind `I
 - [`dotnet/extensions#5517`, "Cache Synchronization for Hybrid Caching in Multi-Node Environments"](https://github.com/dotnet/extensions/issues/5517) (checked 2026-10-04)
 - [`dotnet/runtime#125602`](https://github.com/dotnet/runtime/issues/125602) (checked 2026-10-04)
 - [FusionCache documentation, "MicrosoftHybridCache"](https://raw.githubusercontent.com/ZiggyCreatures/FusionCache/main/docs/MicrosoftHybridCache.md) (checked 2026-10-04)
+- [Spike 1.b: FusionCache backplane on Valkey 8.1 and 9.1](../research/spikes/1.b-fusioncache-valkey.md) (checked 2026-10-06)

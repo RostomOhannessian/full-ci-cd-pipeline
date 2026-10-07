@@ -11,6 +11,9 @@ tools: [xunit-v3, microsoft-testing-platform, ms-code-coverage, awesomeassertion
 related-adrs: ["0004", "0017"]
 evidence:
   - docs/research/2026-10-04-dotnet-ecosystem-verification.md
+  - docs/research/spikes/1.a-pactnet-kestrel.md
+  - docs/research/spikes/1.c-mtp-coverage-stryker.md
+  - docs/research/spikes/1.d-testcontainers-mssql.md
 ---
 
 # ADR-0018: Standardize on the Phase 1 test stack and quality gates
@@ -61,6 +64,23 @@ Chosen option: **Use Microsoft.Testing.Platform with Microsoft Code Coverage and
 - **WP1.2** adds `governance trace`, which enforces the requirement-ID mechanism.
 - Later work packages in plan section 10.1 validate the rest of the stack: contract conformance, Pact, Schemathesis, Chainsaw, k6, Pester, and rollback drills.
 
+Execution record (WP1.0, 2026-10-06): three spikes tested the riskiest parts of this stack on Windows x86-64.
+
+- [Spike 1.c](../research/spikes/1.c-mtp-coverage-stryker.md): xUnit v3 4.0.1 on Microsoft.Testing.Platform 2.4.1, switched on in
+  `global.json`, ran with Microsoft Code Coverage 18.11.2 and TRX reporting, and ReportGenerator 5.5.11 parsed the Cobertura output.
+  Stryker.NET 5.0.0's preview MTP runner produced a mutation score in a Linux container but could not start natively on a Windows host
+  that enforces Smart App Control, because 45 of its 104 DLLs are unsigned. That fits the choice to run mutation testing nightly on
+  Linux and to report the score without gating it. Coverage and TRX files embed local paths and host names, so they must not be
+  committed or pasted.
+- [Spike 1.a](../research/spikes/1.a-pactnet-kestrel.md): PactNet 5.0.1 verified a provider on a real Kestrel socket, as the consequences
+  section assumes. See ADR-0017 for the details.
+- [Spike 1.d](../research/spikes/1.d-testcontainers-mssql.md): Testcontainers 4.15.0 started a digest-pinned SQL Server 2022 image
+  in about 6 seconds from a shared xUnit v3 assembly fixture, and EF Core 10 `rowversion` worked with Microsoft.Data.SqlClient 7.1.1.
+  Linux CI evidence is deferred to WP1.1.
+
+No spike failed, and this ADR stays proposed. WP1.1 accepts it. WP1.1 should create the tool manifest in `.config/`, because SDK 10.0.401
+wrote it to the project root, and should run restore before Stryker.
+
 ## Pros and cons of the options
 
 ### Stay on VSTest and coverlet to keep the older .NET test defaults
@@ -94,3 +114,4 @@ Chosen option: **Use Microsoft.Testing.Platform with Microsoft Code Coverage and
 
 - [.NET ecosystem verification record](../research/2026-10-04-dotnet-ecosystem-verification.md) (checked 2026-10-04)
 - [Implementation plan, sections 10.2 to 10.5](../plans/implementation-plan.md) for the full traceability, determinism, threshold, and flakiness rules
+- WP1.0 spike reports: [PactNet on Kestrel](../research/spikes/1.a-pactnet-kestrel.md), [MTP, coverage, and Stryker](../research/spikes/1.c-mtp-coverage-stryker.md), and [Testcontainers SQL Server](../research/spikes/1.d-testcontainers-mssql.md) (checked 2026-10-06)

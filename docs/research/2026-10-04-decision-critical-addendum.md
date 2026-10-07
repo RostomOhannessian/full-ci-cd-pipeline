@@ -123,6 +123,11 @@ corrections live here.
   publishing the mapping ([ADR-0014](../adr/0014-iac-scanning-trivy-as-tfsec-successor.md)).
 - **Tempo and Kafka.** See section 6.
 - **OpenBao and SQL Server.** The Kubernetes record (item 8) listed the MSSQL plugin as unverified; section 2 settles it.
+- **Stryker.NET license.** The .NET record's tool table lists `dotnet-stryker` 5.0.0 as "not re-verified (commonly MIT)", and the tool inventory
+  carried MIT. Read on 2026-10-06 from the `LICENSE` file inside the 5.0.0 package (the package metadata points to that file), the license is
+  Apache-2.0. [Spike 1.c](./spikes/1.c-mtp-coverage-stryker.md) has the context, and the inventory entry is corrected. Apache-2.0 is on the
+  repository's linked-dependency allowlist ([ADR-0004](../adr/0004-licensing-and-dependency-license-policy.md)), and Stryker.NET is a build-time tool,
+  so the decision does not change.
 
 ## 9. How to extend this record
 

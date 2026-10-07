@@ -20,6 +20,7 @@ Each fact is recorded here with its source and the date it was read, so a reader
 | [Kubernetes platform verification](2026-10-04-kubernetes-platform-verification.md) | Ingress, Gateway API, Kyverno, Argo CD, Kargo, Vault and OpenBao, Keycloak, SQL Server containers, resource budgets | Research agent, compacted | Official docs and release data; gaps listed per item |
 | [.NET ecosystem verification](2026-10-04-dotnet-ecosystem-verification.md) | .NET 10, caching, testing, licensing, OpenAPI tooling, Pact, EF Core, OpenTelemetry, DocFX | Research agent | NuGet, GitHub, and Microsoft documentation; confidence stated per item |
 | [External AI skill review](2026-10-04-external-skill-review.md) | Security, license, and fit review of twelve candidate AI skills | Research agent | Skill directories read at pinned commits |
+| [Spike reports](spikes/README.md) | Time-boxed risk spikes: five for Phase 1 (WP1.0), each with pass criteria, results, and the decisions changed | Maintainer session | Built and run locally, with versions, image digests, and primary sources recorded |
 
 ## How to read a record
 
@@ -31,7 +32,7 @@ Each fact is recorded here with its source and the date it was read, so a reader
 ## When to add or refresh a record
 
 - A work package starts on a tool whose facts are older than 90 days: re-verify versions, licenses, and lifecycle status, and add a dated record.
-- A spike produces a result that changes a decision: write the spike report under `docs/research/spikes/` and update the ADR.
+- A spike produces a result that changes a decision: write the spike report under `docs/research/spikes/` and update the ADR. The [spike index](spikes/README.md) lists the reports.
 - A claim in a record turns out to be wrong: do not edit the record. Add a correction to the latest addendum and fix every document that relied on it.
 
 Never put secrets, tokens, or personal data in a record.

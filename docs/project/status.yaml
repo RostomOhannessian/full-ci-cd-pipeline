@@ -10,16 +10,17 @@ project:
   plan-version: "2.0.2"
 current:
   phase: 1
-  work-package: "WP1.0"
-  branch: "wp/1.0-risk-spikes"
+  work-package: null
+  branch: "phase/1-api-core"
 resume:
-  last-completed: "Phase 1 started. phase/1-api-core and wp/1.0-risk-spikes were created locally from master (not pushed yet). The commit-identity preflight passed: the local Git email is the noreply address and the account setting Keep my email addresses private is on."
-  next-action: "Run the five WP1.0 risk spikes (PactNet on Kestrel, MTP with coverage and Stryker, Testcontainers SQL Server, FusionCache on Valkey, rotated credentials) on local spike/1.x-* branches, then write the reports under docs/research/spikes/. Ask the owner before any push, pull request, or merge."
+  last-completed: "WP1.0 is complete: five risk spikes ran on 2026-10-06 and none failed (PactNet on Kestrel, the FusionCache backplane on Valkey 8.1 and 9.1, Microsoft.Testing.Platform with coverage and Stryker, Testcontainers SQL Server on Windows x86-64, and file-rotated database credentials). Their reports are in docs/research/spikes/ and the affected ADRs, tool inventory, and risk register carry dated evidence. The work landed through pull request 17 into phase/1-api-core."
+  next-action: "Start WP1.1, solution and build foundation (Issue 3): create wp/1.1-solution-and-build from phase/1-api-core. Take its settings from the spike reports, which means creating the .NET tool manifest under .config, running the first Linux CI job to supply the Linux Testcontainers evidence the spike left open, and deciding whether to move to Microsoft Code Coverage 18.12.0. Separately, the owner decides whether to correct the cache ACL patterns in plan section 8.5, as proposed in spike 1.b."
   open-pull-requests: []
   environment-notes:
-    - "Phase 0 needs only Git, Docker, and the GitHub CLI. Run the lint gate with the docker compose commands in AGENTS.md."
+    - "Until the Dev Container arrives in WP1.4, Phase 1 work needs Git, Docker (running), the GitHub CLI, and the .NET SDK 10.0.401. Run the lint gate with the docker compose commands in AGENTS.md."
     - "Use the repository-local noreply Git identity described in ADR-0006 and never set a personal email in this repository."
     - "Keep the GitHub account setting Keep my email addresses private turned on. After every merge, check the author and committer emails of the merged range (see AGENTS.md)."
+    - "The five spike branches (spike/1.a-pactnet-kestrel through spike/1.e-rotating-credentials) exist only on the machine that ran them and are never pushed. The spike reports carry the versions, image digests, commands, and key snippets needed to repeat them."
     - "Local clusters, Vault keys, and generated passwords belong to one machine and are never migrated. They do not exist yet."
 phases:
   - id: 0
@@ -159,12 +160,23 @@ phases:
       - id: "WP1.0"
         title: "Risk spikes"
         size: S
-        state: in_progress
+        state: completed
         branch: "wp/1.0-risk-spikes"
         issue: 2
-        pull-request: null
+        pull-request: 17
         depends-on: ["WP0.7"]
-        evidence: []
+        evidence:
+          - "docs/research/spikes/README.md"
+          - "docs/research/spikes/1.a-pactnet-kestrel.md"
+          - "docs/research/spikes/1.b-fusioncache-valkey.md"
+          - "docs/research/spikes/1.c-mtp-coverage-stryker.md"
+          - "docs/research/spikes/1.d-testcontainers-mssql.md"
+          - "docs/research/spikes/1.e-rotating-credentials.md"
+          - "docs/adr/0016-cache-implementation-fusioncache.md"
+          - "docs/adr/0017-contract-first-api-design.md"
+          - "docs/adr/0018-test-stack-and-quality-gates.md"
+          - "docs/adr/0019-resource-profiles-and-host-support.md"
+          - "docs/adr/0004-licensing-and-dependency-license-policy.md"
         blockers: []
       - id: "WP1.1"
         title: "Solution and build foundation"

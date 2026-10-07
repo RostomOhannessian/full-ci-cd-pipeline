@@ -11,6 +11,7 @@ tools: [openapi, oasdiff, kiota, nswag, microsoft-openapi, openapi-linter, aspne
 related-adrs: ["0018"]
 evidence:
   - docs/research/2026-10-04-dotnet-ecosystem-verification.md
+  - docs/research/spikes/1.a-pactnet-kestrel.md
 ---
 
 # ADR-0017: Design the API contract first and enforce conformance
@@ -56,6 +57,14 @@ Chosen option: **Author the contract first, hand-write versioned DTOs, and enfor
 - **WP4.1** adds the breaking-change gate against the last released contract and generates `Catalog.Client` with Kiota.
 - **WP4.1** (Schemathesis) and **WP4.2** (Pact) use the contract, which confirms that the authored file stays useful beyond documentation.
 
+Execution record (WP1.0, 2026-10-06): [spike 1.a](../research/spikes/1.a-pactnet-kestrel.md) showed that PactNet 5.0.1 on .NET 10 writes
+consumer pacts and verifies a provider hosted with `WebApplicationFactory<T>.UseKestrel(0)` over a real socket. A deliberately broken
+contract failed verification for the right reason, and the provider-state endpoint existed only in the test assembly, so it was absent
+from the production composition. This supports the Pact leg of the contract workflow that WP4.2 delivers. The spike also found that
+`UseKestrel()` without an argument binds the fixed port 5000, so tests should pass `0`, and that `ServerAddress` does not exist in
+`Microsoft.AspNetCore.Mvc.Testing` 10.0.12, so tests read the bound address from `IServerAddressesFeature`. PactNet is still dormant
+and has no `win-arm64` or musl native library, and only `win-x64` was exercised. The decision stays proposed, and WP1.5 still accepts it.
+
 ## Pros and cons of the options
 
 ### Generate the contract from code and treat that generated document as the source of truth
@@ -89,3 +98,4 @@ Chosen option: **Author the contract first, hand-write versioned DTOs, and enfor
 
 - [.NET ecosystem verification record](../research/2026-10-04-dotnet-ecosystem-verification.md) (checked 2026-10-04)
 - [Implementation plan](../plans/implementation-plan.md) (checked 2026-10-04)
+- [Spike 1.a: PactNet 5.0.1 on .NET 10 with a Kestrel-hosted provider](../research/spikes/1.a-pactnet-kestrel.md) (checked 2026-10-06)
