@@ -3,23 +3,23 @@ title: "Project status"
 description: "Where the project is now, how to resume work on another machine, and the state of every phase."
 type: status
 audience: [maintainers, contributors, learners]
-last-verified: 2026-10-04
+last-verified: 2026-10-06
 owner: "@RostomOhannessian"
 ---
 
 # Project status
 
-This page is the readable view of [status.yaml](status.yaml), which is the source of truth. It is hand-maintained until WP1.2, which generates it. Last updated 2026-10-04.
+This page is the readable view of [status.yaml](status.yaml), which is the source of truth. It is hand-maintained until WP1.2, which generates it. Last updated 2026-10-06.
 
 ## Resume here
 
 | Item | Value |
 | --- | --- |
-| Active phase | [Phase 1: API core](../plans/phases/phase-1-api-core.md), ready to start |
-| Active work package | None yet. WP1.0, the risk spikes, comes first ([Issue 2](https://github.com/RostomOhannessian/full-ci-cd-pipeline/issues/2)). |
-| Branch | `master`. Create `phase/1-api-core` from it when Phase 1 starts. |
-| Last completed | Phase 0 is complete. The repository is public with its protections applied, the Phase 1 Milestone and its 14 work-package Issues exist, and the plan, decisions, and tracking are on `master`. |
-| Next action | Wait for the owner to start Phase 1. Then create `phase/1-api-core` from `master` ([ADR-0003](../adr/0003-branch-and-work-package-protocol.md)) and begin WP1.0. |
+| Active phase | [Phase 1: API core](../plans/phases/phase-1-api-core.md), in progress |
+| Active work package | WP1.0, the risk spikes ([Issue 2](https://github.com/RostomOhannessian/full-ci-cd-pipeline/issues/2)), in progress |
+| Branch | `wp/1.0-risk-spikes`, created from `phase/1-api-core`. Both branches are local until the owner approves a push. |
+| Last completed | Phase 1 started. The two branches were created from `master`. The commit-identity preflight passed: the local Git email is the noreply address and "Keep my email addresses private" is on. |
+| Next action | Run the five WP1.0 risk spikes on local `spike/1.x-*` branches, then write the reports under `docs/research/spikes/`. Ask the owner before any push, pull request, or merge. |
 | Open pull requests | None |
 
 ### Resume on another machine
@@ -45,7 +45,7 @@ Local environments are disposable. Clusters, Vault keys, and generated passwords
 | Phase | Goal | State | Release | Plan | Milestone |
 | --- | --- | --- | --- | --- | --- |
 | 0 | Make the project portable and publicly verifiable before any code exists. | Complete (2026-10-04) | None | [Phase 0](../plans/phases/phase-0-foundation.md) | [Phase 0: Foundation](https://github.com/RostomOhannessian/full-ci-cd-pipeline/milestone/1) |
-| 1 | A production-quality Clean Architecture API that runs locally with one command, plus the governance, documentation, and testing machinery every later phase relies on. | Planned | `v0.1.0` | [Phase 1](../plans/phases/phase-1-api-core.md) | [Phase 1: API core](https://github.com/RostomOhannessian/full-ci-cd-pipeline/milestone/2) |
+| 1 | A production-quality Clean Architecture API that runs locally with one command, plus the governance, documentation, and testing machinery every later phase relies on. | In progress (started 2026-10-06) | `v0.1.0` | [Phase 1](../plans/phases/phase-1-api-core.md) | [Phase 1: API core](https://github.com/RostomOhannessian/full-ci-cd-pipeline/milestone/2) |
 | 2 | Every change is built once, then tested, analyzed, scanned, inventoried, signed, attested, and verifiable. | Planned | `v0.2.0` | [Phase 2](../plans/phases/phase-2-secure-ci.md) | [Phase 2: Secure CI](https://github.com/RostomOhannessian/full-ci-cd-pipeline/milestone/3) |
 | 3 | A reproducible local Kubernetes platform where every hop is authenticated, encrypted, authorized, segmented, observable, and policy-checked. | Planned | `v0.3.0` | [Phase 3](../plans/phases/phase-3-zero-trust-platform.md) | [Phase 3: Zero-trust platform](https://github.com/RostomOhannessian/full-ci-cd-pipeline/milestone/4) |
 | 4 | Versioned, consumer-verified contracts and fully declarative delivery, with rollback rehearsed. | Planned | `v0.4.0` | [Phase 4](../plans/phases/phase-4-contracts-gitops.md) | [Phase 4: Contracts and GitOps](https://github.com/RostomOhannessian/full-ci-cd-pipeline/milestone/5) |
@@ -69,7 +69,7 @@ All seven are complete. The [retrospective](../journal/phase-0-retrospective.md)
 
 ## What comes next
 
-Phase 1 starts with WP1.0, a set of one-day risk spikes (PactNet on .NET 10, the FusionCache backplane on Valkey, Microsoft Testing Platform with coverage, Testcontainers SQL Server on each host, and file-rotated database credentials). A failed spike amends the plan before dependent work begins.
+Phase 1 starts with WP1.0, a set of one-day risk spikes (PactNet on .NET 10, the FusionCache backplane on Valkey, Microsoft Testing Platform with coverage, Testcontainers SQL Server on each host, and file-rotated database credentials). WP1.0 is in progress. A failed spike amends the plan before dependent work begins.
 
 ## Decisions
 

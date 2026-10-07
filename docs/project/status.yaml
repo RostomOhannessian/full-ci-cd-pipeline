@@ -2,7 +2,7 @@
 # STATUS.md is the readable view of this file and is hand-maintained until WP1.2 generates it.
 # Update this file in the same commit as the change it records (see the end-of-session protocol in AGENTS.md).
 schema-version: 1
-updated: "2026-10-04"
+updated: "2026-10-06"
 project:
   name: "Secure Product Catalog Platform"
   repository: "RostomOhannessian/full-ci-cd-pipeline"
@@ -10,11 +10,11 @@ project:
   plan-version: "2.0.2"
 current:
   phase: 1
-  work-package: null
-  branch: "master"
+  work-package: "WP1.0"
+  branch: "wp/1.0-risk-spikes"
 resume:
-  last-completed: "Phase 0 is complete. The repository is public with its protections applied, the Phase 1 Milestone and its 14 work-package Issues exist, and the plan, decisions, and tracking are on master."
-  next-action: "Wait for the owner to start Phase 1. Then create phase/1-api-core from master (ADR-0003) and begin WP1.0, the risk spikes tracked in Issue 2."
+  last-completed: "Phase 1 started. phase/1-api-core and wp/1.0-risk-spikes were created locally from master (not pushed yet). The commit-identity preflight passed: the local Git email is the noreply address and the account setting Keep my email addresses private is on."
+  next-action: "Run the five WP1.0 risk spikes (PactNet on Kestrel, MTP with coverage and Stryker, Testcontainers SQL Server, FusionCache on Valkey, rotated credentials) on local spike/1.x-* branches, then write the reports under docs/research/spikes/. Ask the owner before any push, pull request, or merge."
   open-pull-requests: []
   environment-notes:
     - "Phase 0 needs only Git, Docker, and the GitHub CLI. Run the lint gate with the docker compose commands in AGENTS.md."
@@ -147,7 +147,7 @@ phases:
         blockers: []
   - id: 1
     name: "API core, data layer, and engineering foundation"
-    state: planned
+    state: in_progress
     branch: "phase/1-api-core"
     plan: "docs/plans/phases/phase-1-api-core.md"
     milestone: "Phase 1: API core"
@@ -159,8 +159,8 @@ phases:
       - id: "WP1.0"
         title: "Risk spikes"
         size: S
-        state: planned
-        branch: null
+        state: in_progress
+        branch: "wp/1.0-risk-spikes"
         issue: 2
         pull-request: null
         depends-on: ["WP0.7"]
