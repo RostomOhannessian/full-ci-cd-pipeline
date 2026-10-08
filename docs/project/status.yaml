@@ -2,7 +2,7 @@
 # STATUS.md is the readable view of this file and is hand-maintained until WP1.2 generates it.
 # Update this file in the same commit as the change it records (see the end-of-session protocol in AGENTS.md).
 schema-version: 1
-updated: "2026-10-04"
+updated: "2026-10-06"
 project:
   name: "Secure Product Catalog Platform"
   repository: "RostomOhannessian/full-ci-cd-pipeline"
@@ -11,15 +11,16 @@ project:
 current:
   phase: 1
   work-package: null
-  branch: "master"
+  branch: "phase/1-api-core"
 resume:
-  last-completed: "Phase 0 is complete. The repository is public with its protections applied, the Phase 1 Milestone and its 14 work-package Issues exist, and the plan, decisions, and tracking are on master."
-  next-action: "Wait for the owner to start Phase 1. Then create phase/1-api-core from master (ADR-0003) and begin WP1.0, the risk spikes tracked in Issue 2."
+  last-completed: "WP1.0 is complete: five risk spikes ran on 2026-10-06 and none failed (PactNet on Kestrel, the FusionCache backplane on Valkey 8.1 and 9.1, Microsoft.Testing.Platform with coverage and Stryker, Testcontainers SQL Server on Windows x86-64, and file-rotated database credentials). Their reports are in docs/research/spikes/ and the affected ADRs, tool inventory, and risk register carry dated evidence. The work landed through pull request 17 into phase/1-api-core."
+  next-action: "Start WP1.1, solution and build foundation (Issue 3): create wp/1.1-solution-and-build from phase/1-api-core. Take its settings from the spike reports, which means creating the .NET tool manifest under .config, running the first Linux CI job to supply the Linux Testcontainers evidence the spike left open, and deciding whether to move to Microsoft Code Coverage 18.12.0. Separately, the owner decides whether to correct the cache ACL patterns in plan section 8.5, as proposed in spike 1.b."
   open-pull-requests: []
   environment-notes:
-    - "Phase 0 needs only Git, Docker, and the GitHub CLI. Run the lint gate with the docker compose commands in AGENTS.md."
+    - "Until the Dev Container arrives in WP1.4, Phase 1 work needs Git, Docker (running), the GitHub CLI, and the .NET SDK 10.0.401. Run the lint gate with the docker compose commands in AGENTS.md."
     - "Use the repository-local noreply Git identity described in ADR-0006 and never set a personal email in this repository."
     - "Keep the GitHub account setting Keep my email addresses private turned on. After every merge, check the author and committer emails of the merged range (see AGENTS.md)."
+    - "The five spike branches (spike/1.a-pactnet-kestrel through spike/1.e-rotating-credentials) exist only on the machine that ran them and are never pushed. The spike reports carry the versions, image digests, commands, and key snippets needed to repeat them."
     - "Local clusters, Vault keys, and generated passwords belong to one machine and are never migrated. They do not exist yet."
 phases:
   - id: 0
@@ -147,7 +148,7 @@ phases:
         blockers: []
   - id: 1
     name: "API core, data layer, and engineering foundation"
-    state: planned
+    state: in_progress
     branch: "phase/1-api-core"
     plan: "docs/plans/phases/phase-1-api-core.md"
     milestone: "Phase 1: API core"
@@ -159,12 +160,23 @@ phases:
       - id: "WP1.0"
         title: "Risk spikes"
         size: S
-        state: planned
-        branch: null
+        state: completed
+        branch: "wp/1.0-risk-spikes"
         issue: 2
-        pull-request: null
+        pull-request: 17
         depends-on: ["WP0.7"]
-        evidence: []
+        evidence:
+          - "docs/research/spikes/README.md"
+          - "docs/research/spikes/1.a-pactnet-kestrel.md"
+          - "docs/research/spikes/1.b-fusioncache-valkey.md"
+          - "docs/research/spikes/1.c-mtp-coverage-stryker.md"
+          - "docs/research/spikes/1.d-testcontainers-mssql.md"
+          - "docs/research/spikes/1.e-rotating-credentials.md"
+          - "docs/adr/0016-cache-implementation-fusioncache.md"
+          - "docs/adr/0017-contract-first-api-design.md"
+          - "docs/adr/0018-test-stack-and-quality-gates.md"
+          - "docs/adr/0019-resource-profiles-and-host-support.md"
+          - "docs/adr/0004-licensing-and-dependency-license-policy.md"
         blockers: []
       - id: "WP1.1"
         title: "Solution and build foundation"

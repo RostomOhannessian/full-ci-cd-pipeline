@@ -227,7 +227,7 @@ entries:
       - https://learn.microsoft.com/en-us/sql/linux/containers/deploy
       - https://go.microsoft.com/fwlink/?linkid=866658
     adrs: ["0012", "0018", "0019"]
-    notes: The project uses SQL Server 2022 container images for teaching and testing and pins the exact digest at implementation time.
+    notes: The project uses SQL Server 2022 container images for teaching and testing and pins the exact digest at implementation time. Spike 1.d (2026-10-06) used the 2022-latest image at digest sha256:4402d880dd4c34bfa7d8705e56a86cd6c88da80a1f6bbbe741f999e76264a090 (server 16.0.4295.3, Developer Edition, amd64). Microsoft documents SQL Server container images as supported only on x86-64 Linux hosts, with Rosetta 2, Prism, and QEMU not tested or supported (checked 2026-10-06). Measure memory from the container cgroup, because SQL Server's own memory views overstate it inside a container.
   - id: valkey
     name: Valkey
     category: data-store
@@ -245,6 +245,7 @@ entries:
       - https://github.com/valkey-io/valkey/releases/tag/9.1.2
       - https://valkey.io/download/
     adrs: ["0016"]
+    notes: Spike 1.b (2026-10-06) ran the same two-host cache tests against the 8.1 and 9.1 lines (servers 8.1.10 and 9.1.2, amd64) with identical results, so either line works as the L2 and backplane. The Testcontainers .NET project has no Valkey module, so tests use its Redis builder with a pinned Valkey image.
 
   # Developer environment
   - id: aspire
@@ -533,7 +534,7 @@ entries:
       - https://www.nuget.org/packages/ZiggyCreatures.FusionCache
       - https://raw.githubusercontent.com/ZiggyCreatures/FusionCache/main/docs/MicrosoftHybridCache.md
     adrs: ["0016"]
-    notes: Trial because Valkey compatibility of the Redis backplane is an inference from the protocol, not a certified combination. WP1.0 proves it with a spike and WP1.9 with two-host tests.
+    notes: Trial until WP1.9 accepts ADR-0016. Valkey compatibility of the Redis backplane is not certified upstream, but spike 1.b (2026-10-06) proved it functionally against Valkey 8.1.10 and 9.1.2 with two hosts, tags, an ACL user, and a Valkey outage. Set the L2 and backplane circuit breaker durations, because they default to zero, and note that L2 keys carry a v2 prefix and the backplane channel is named from the cache name or BackplaneChannelPrefix.
   - id: hybridcache
     name: Microsoft HybridCache
     category: dotnet-library
@@ -616,6 +617,7 @@ entries:
       - https://www.nuget.org/packages/Microsoft.Data.SqlClient
       - https://aka.ms/sqlclientproject
     adrs: ["0018"]
+    notes: Spikes 1.d and 1.e (2026-10-06) ran 7.1.1 with EF Core 10.0.12 without warnings. A connection interceptor can set the connection string with a rotated credential before each open while pooling stays on, and SqlConnection.ClearPool on a connection built from the old credential's string clears the old pool. The pool key is the full connection string, so build the string with one shared helper. The loaded assembly reports version 7.0.0.0 for package 7.1.1.
 
   # .NET runtime
   - id: aspnet-core
@@ -1864,6 +1866,7 @@ entries:
       - https://www.nuget.org/packages/Microsoft.Testing.Platform
       - https://learn.microsoft.com/en-us/dotnet/core/testing/unit-testing-with-dotnet-test
     adrs: ["0018"]
+    notes: Spike 1.c (2026-10-06) switched MTP on with a global.json test runner setting under SDK 10.0.401, and xUnit v3 4.0.1 then ran through dotnet test with the project passed as --project. xunit.v3 4.0.1 depends on the MTP v2 runner package.
   - id: xunit-v3
     name: xUnit v3
     category: test-framework
@@ -2016,7 +2019,7 @@ entries:
       - https://www.nuget.org/packages/Microsoft.Testing.Extensions.CodeCoverage
       - https://github.com/microsoft/codecoverage
     adrs: ["0004", "0018"]
-    notes: This extension is closed-source but free to use and was chosen because coverlet does not support Microsoft.Testing.Platform v2.
+    notes: Accepted as a tool-only, non-OSI dependency under ADR-0004, because it is used at test time and is not linked into shipped binaries. The package ships its terms as License.txt (Microsoft Software License Terms for the Microsoft .NET Library) and the project describes it as closed source. It is free to use and was chosen because coverlet does not support Microsoft.Testing.Platform v2. Spike 1.c (2026-10-06) ran 18.11.2 with xUnit v3 and produced Cobertura output that ReportGenerator parsed. Version 18.12.0 also exists, and WP1.1 decides whether to move. Raw coverage files embed local paths, so never commit them.
   - id: netarchtest
     name: NetArchTest.eNhancedEdition
     category: test-tool
@@ -2099,7 +2102,7 @@ entries:
       - https://github.com/pact-foundation/pact-net
       - https://docs.pact.io/implementation_guides/net
     adrs: ["0017", "0018"]
-    notes: Trial because PactNet 5.0.1 is dormant, provider verification needs a real socket via UseKestrel, and it is not supported on Alpine or other musl-based images.
+    notes: Trial because PactNet 5.0.1 is dormant, provider verification needs a real socket via UseKestrel, and it is not supported on Alpine or other musl-based images. Spike 1.a (2026-10-06) verified a Kestrel-hosted provider on .NET 10 and Windows x64. The package ships native libraries for win-x64, linux-x64, linux-arm64, osx-x64, and osx-arm64 only, so there is no win-arm64 build. Use UseKestrel(0) for a dynamic port, because the no-argument overload binds port 5000.
   - id: pester
     name: Pester
     category: test-tool
@@ -2175,7 +2178,7 @@ entries:
     usage: planned
     introduced: phase-1
     purpose: Measures mutation resistance for the core domain and application logic.
-    license: MIT
+    license: Apache-2.0
     license-source: https://www.nuget.org/packages/dotnet-stryker/5.0.0/license
     version: "5.0.0"
     repo: https://github.com/stryker-mutator/stryker-net
@@ -2184,7 +2187,7 @@ entries:
       - https://github.com/stryker-mutator/stryker-net
       - https://stryker-mutator.io/docs/stryker-net/introduction/
     adrs: ["0018"]
-    notes: Trial because the Microsoft.Testing.Platform runner is still preview, so the plan reports mutation score but does not gate merges on it yet.
+    notes: Trial because the Microsoft.Testing.Platform runner is still preview, so the plan reports mutation score but does not gate merges on it yet. The license was corrected from MIT to Apache-2.0 after reading the package LICENSE file on 2026-10-06. Spike 1.c ran the MTP runner successfully in a Linux container (58 mutants, score 59.09 percent on a sample project), but the tool cannot start on a Windows host that enforces Smart App Control because many of its DLLs are unsigned. Run restore first, and use the JSON report for numbers.
   - id: testcontainers-dotnet
     name: Testcontainers for .NET
     category: test-tool
@@ -2202,6 +2205,7 @@ entries:
       - https://github.com/testcontainers/testcontainers-dotnet
       - https://dotnet.testcontainers.org/
     adrs: ["0018"]
+    notes: Spike 1.d (2026-10-06) started a digest-pinned SQL Server 2022 image in about 6 seconds from a shared xUnit v3 assembly fixture on Windows x86-64. Pin images by digest and always set a generated password, because the SQL Server builder's default password is a well-known constant and its parameterless constructor is obsolete. The builder sets ACCEPT_EULA to Y on the user's behalf. The reaper container (Ryuk) runs privileged with Docker socket access by default, and its default image is already digest-pinned, so list it in the threat model when CI first uses Testcontainers.
   - id: verify
     name: Verify
     category: test-tool

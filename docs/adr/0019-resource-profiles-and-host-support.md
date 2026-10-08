@@ -13,6 +13,9 @@ evidence:
   - docs/research/2026-10-04-kubernetes-platform-verification.md
   - docs/research/2026-10-04-dotnet-ecosystem-verification.md
   - docs/research/2026-10-04-github-supply-chain-verification.md
+  - docs/research/spikes/1.a-pactnet-kestrel.md
+  - docs/research/spikes/1.c-mtp-coverage-stryker.md
+  - docs/research/spikes/1.d-testcontainers-mssql.md
 ---
 
 # ADR-0019: Define resource profiles and an explicit host support matrix
@@ -67,6 +70,18 @@ Chosen option: **Define multiple profiles and an explicit host support matrix**,
 - **WP3.10** publishes teardown, host-difference notes, and the measured profile guidance.
 - Onboarding and devcontainer tests in plan section 10.1 keep the setup paths exercised from fresh environments.
 
+Execution record (WP1.0, 2026-10-06): [spike 1.d](../research/spikes/1.d-testcontainers-mssql.md) tested the SQL Server container path
+hands-on on one host only, Windows x86-64 with Docker Desktop, where it started in about 6 seconds and used about 0.7 to 1.0 GB at idle
+by the container's own memory counter. Linux x86-64 and macOS Intel were not verified hands-on, and Linux evidence is deferred to the
+first Linux CI run in WP1.1. For Apple Silicon and Windows on Arm, Microsoft's container documentation says SQL Server images are
+supported only on Linux hosts with Intel and AMD x86-64 CPUs and that Rosetta 2, Prism, and QEMU are not tested or supported
+(checked 2026-10-06), which matches the best-effort entries in plan section 4.3. Nothing in the spikes tested those hosts.
+Two further host limits surfaced. PactNet 5.0.1 ships no `win-arm64` native library
+([spike 1.a](../research/spikes/1.a-pactnet-kestrel.md)), and Stryker.NET could not start natively on a Windows host that enforces
+Smart App Control because of unsigned DLLs, so Windows contributors run mutation testing through Docker or the Dev Container
+([spike 1.c](../research/spikes/1.c-mtp-coverage-stryker.md)). WP1.4 should also size the `api` profile from the container's cgroup memory
+rather than from SQL Server's own memory views, which overstate it inside a container. This ADR stays proposed and WP3.0 still accepts it.
+
 ## Pros and cons of the options
 
 ### Offer only one full local stack and require every contributor to meet it
@@ -102,3 +117,4 @@ Chosen option: **Define multiple profiles and an explicit host support matrix**,
 - [GitHub-hosted runner specs and quotas](https://docs.github.com/en/actions/reference/runners/github-hosted-runners) (checked 2026-10-04)
 - [GitHub Codespaces billing](https://docs.github.com/en/billing/concepts/product-billing/github-codespaces) (checked 2026-10-04)
 - [.NET ecosystem verification record](../research/2026-10-04-dotnet-ecosystem-verification.md) (checked 2026-10-04)
+- [Spike 1.d: Testcontainers SQL Server 2022 on supported hosts](../research/spikes/1.d-testcontainers-mssql.md) (checked 2026-10-06)

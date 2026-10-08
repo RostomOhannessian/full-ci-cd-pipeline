@@ -11,6 +11,7 @@ related-adrs: ["0002", "0008", "0018"]
 evidence:
   - docs/research/2026-10-04-dotnet-ecosystem-verification.md
   - docs/research/2026-10-04-decision-critical-addendum.md
+  - docs/research/spikes/1.c-mtp-coverage-stryker.md
 ---
 
 # ADR-0004: Adopt Apache-2.0 and enforce an open-source dependency license policy
@@ -93,6 +94,15 @@ WP2.3 confirms it by running dependency review for pull requests and checking bo
 
 The v1.0 launch gate confirms it by generating SBOM-backed third-party notices for released artifacts and by reviewing
 the exception notes for tool-only licenses.
+
+Execution record (WP1.0, 2026-10-06): [spike 1.c](../research/spikes/1.c-mtp-coverage-stryker.md) read the license of
+`Microsoft.Testing.Extensions.CodeCoverage` 18.11.2 from the package itself. Its `License.txt` holds the Microsoft Software License
+Terms for the Microsoft .NET Library, the package metadata uses a license file instead of an SPDX expression, and the project page
+describes the component as closed source. It is a test-time tool and is not linked into any shipped binary, so it falls under the
+tool-only rule, and the `ms-code-coverage` inventory entry carries the required license note. The other packages the spikes used
+were MIT or Apache-2.0 by package metadata: Microsoft.Testing.Platform, the TRX extension, xunit.v3.mtp-v2, PactNet, and
+Stryker.NET. [Spike 1.d](../research/spikes/1.d-testcontainers-mssql.md) also found that the Testcontainers SQL Server builder accepts
+the SQL Server end-user license on the user's behalf. The decision does not change.
 
 ## Pros and cons of the options
 

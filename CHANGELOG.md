@@ -22,5 +22,10 @@ Conventional Commits and attached to each release together with its evidence bun
 - Dependabot configuration for GitHub Actions and the pinned lint tool images.
 - Publication: the repository is public with secret scanning, push protection, private vulnerability reporting, hardened Actions settings, two rulesets, labels, milestones, and the 14 Phase 1 work-package Issues. The settings are recorded in `docs/governance/github-settings.md` and `governance/github/`.
 - The Phase 0 retrospective.
+- WP1.0 risk spikes: five reports under `docs/research/spikes/` covering PactNet on Kestrel, the FusionCache backplane on Valkey, Microsoft.Testing.Platform with coverage and Stryker, Testcontainers SQL Server, and file-rotated database credentials, with dated evidence added to ADR-0004, ADR-0016, ADR-0017, ADR-0018, and ADR-0019 and updated tool inventory notes and risk entries.
+
+### Fixed
+
+- The tool inventory listed Stryker.NET as MIT. The package's own license file is Apache-2.0, and the correction is recorded in the decision-critical addendum.
 
 [Unreleased]: https://github.com/RostomOhannessian/full-ci-cd-pipeline/commits/master

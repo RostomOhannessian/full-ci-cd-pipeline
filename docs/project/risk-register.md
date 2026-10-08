@@ -3,7 +3,7 @@ title: "Risk register"
 description: "The live register of the project's delivery, security, and operational risks, with mitigations, revisit triggers, and the phases that address them."
 type: reference
 audience: [maintainers, contributors]
-last-verified: 2026-10-04
+last-verified: 2026-10-06
 owner: "@RostomOhannessian"
 ---
 
@@ -23,15 +23,15 @@ This is the live copy of the initial risk list in [section 16 of the implementat
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | R1 | Scope and complexity overload (20+ components) | H | H | Phases and work packages; profiles; spikes; stretch items labeled; strict Definition of Done | WP overruns of more than 2× its size | all | open |
 | R2 | Laptop resources insufficient | M | H | `api`/`lite` profiles; registry caches; measured budgets; Codespaces fallback | WP3.0 measurements | 3 | open |
-| R3 | Apple Silicon/ARM contributors blocked by x86-only SQL Server | H | M | Support matrix; Codespaces; best-effort API-only path | Support requests | 1, 3 | open |
+| R3 | Apple Silicon/ARM contributors blocked by x86-only SQL Server | H | M | Support matrix; Codespaces; best-effort API-only path. [Spike 1.d](../research/spikes/1.d-testcontainers-mssql.md) verified Windows x86-64 hands-on only (2026-10-06); Apple Silicon and Windows on Arm remain untested and unsupported per Microsoft's documentation | Support requests | 1, 3 | open |
 | R4 | Signature/attestation format incompatibility between producers and Kyverno | M | H | WP2.0 spike; Kyverno CLI contract test in CI; Cosign-native fallback | CLI test failure | 2 | open |
 | R5 | Tool churn and deprecation (as with ingress-nginx, tfsec, Bitnami) | M | M | Inventory lifecycle; nightly freshness report; ADR supersession | Upstream announcements | 2 | open |
 | R6 | Compromised third-party action or tool | M | H | SHA pinning enforced; zizmor; minimal third-party actions; verified CLIs; immutable releases | Advisories | 2 | open |
 | R7 | Vault unseal and trust-anchor custody on laptops | M | M | Operator-custody runbook; disposable environments; `dev platform unseal`; rotation drills | Lost keys | 3 | open |
 | R8 | False-positive or false-negative canary analysis | M | M | Synthetic traffic; minimum samples; inconclusive pauses; tests of the analysis templates | Drill results | 4 | open |
 | R9 | Schema changes break rollback | M | H | Expand/contract; destructive-op detection; N-1 job | Auditor flags | 4 | open |
-| R10 | PactNet dormancy or incompatibility | M | M | WP1.0 spike; pinned version; Pact Rust CLI fallback for verification | Spike failure | 1, 4 | open |
-| R11 | Cross-replica cache staleness | L | M | FusionCache backplane; staleness metrics; two-host tests | Metric alerts | 1 | open |
+| R10 | PactNet dormancy or incompatibility | M | M | WP1.0 spike, which passed on 2026-10-06 ([spike 1.a](../research/spikes/1.a-pactnet-kestrel.md)); pinned version; Pact Rust CLI fallback for verification. Dormancy and the missing `win-arm64` and musl builds remain | Spike failure | 1, 4 | open |
+| R11 | Cross-replica cache staleness | L | M | FusionCache backplane, proven against Valkey 8.1.10 and 9.1.2 on 2026-10-06 ([spike 1.b](../research/spikes/1.b-fusioncache-valkey.md)); staleness metrics; two-host tests in WP1.9 | Metric alerts | 1 | open |
 | R12 | Kubernetes version skew across components | M | M | Compatibility matrix; pinned node image; scheduled check | Upgrade PRs | 3, 4 | open |
 | R13 | Single maintainer: review blind spots and bus factor | H | M | Auditors; AI review; checklists; ADRs; retrospectives; portable status | Bypass frequency | 0 | open |
 | R14 | License contamination through dependencies | M | H | Allowlist gate from WP1.1; dependency review | Gate failures | 1 | open |
@@ -58,3 +58,4 @@ This is the live copy of the initial risk list in [section 16 of the implementat
 | --- | --- |
 | 2026-10-04 | Initial register from plan version 2.0.1 (R1 to R17), plus R18 recorded during WP0.1 when the replaced initial commit was found to be retrievable by its ID. |
 | 2026-10-04 | R18 closed when the repository was recreated before publication. R19 added after the commit-metadata check found that a merge created by GitHub used the account's primary email. |
+| 2026-10-06 | WP1.0 spikes completed with no failure. R3, R10, and R11 mitigations updated with the spike evidence. Statuses stay open: R3 and R10 because their causes remain, R11 until WP1.9's two-host tests. |
