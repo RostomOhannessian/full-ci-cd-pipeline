@@ -1,0 +1,20 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path="NuGet.config" />
+    <File Path="global.json" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/Catalog.Domain/Catalog.Domain.csproj" />
+    <Project Path="src/Catalog.Application/Catalog.Application.csproj" />
+    <Project Path="src/Catalog.Contracts/Catalog.Contracts.csproj" />
+    <Project Path="src/Catalog.Infrastructure/Catalog.Infrastructure.csproj" />
+    <Project Path="src/Catalog.CrossCutting/Catalog.CrossCutting.csproj" />
+    <Project Path="src/Catalog.Api/Catalog.Api.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Catalog.Architecture.Tests/Catalog.Architecture.Tests.csproj" />
+  </Folder>
+</Solution>

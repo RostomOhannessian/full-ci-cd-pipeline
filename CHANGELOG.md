@@ -23,6 +23,19 @@ Conventional Commits and attached to each release together with its evidence bun
 - Publication: the repository is public with secret scanning, push protection, private vulnerability reporting, hardened Actions settings, two rulesets, labels, milestones, and the 14 Phase 1 work-package Issues. The settings are recorded in `docs/governance/github-settings.md` and `governance/github/`.
 - The Phase 0 retrospective.
 - WP1.0 risk spikes: five reports under `docs/research/spikes/` covering PactNet on Kestrel, the FusionCache backplane on Valkey, Microsoft.Testing.Platform with coverage and Stryker, Testcontainers SQL Server, and file-rotated database credentials, with dated evidence added to ADR-0004, ADR-0016, ADR-0017, ADR-0018, and ADR-0019 and updated tool inventory notes and risk entries.
+- WP1.1 solution and build foundation: `ProductCatalog.slnx` with six server projects under Clean Architecture boundaries and `Catalog.Architecture.Tests`, a `global.json` that pins SDK 10.0.401 and selects Microsoft.Testing.Platform, shared build settings with warnings as errors and analyzers at `latest-recommended`, central package versions with transitive pinning and committed lock files, and a `NuGet.config` with source mapping and required nuget.org repository signatures.
+- 58 architecture, reference, and dependency tests. Each architecture rule runs against conforming and violating fixtures, so every rule is shown to be able to fail, and planted violations in production code were caught.
+- The `ci` workflow: locked restore, Release build, unit and architecture tests with coverage and TRX, a coverage threshold gate with Pester tests, script analysis, a format check, a license gate, and a Conventional Commit pull-request title check. Every action is pinned by commit SHA.
+- Policy files in `governance/policies/`: the license allow-list and its single tool-only exception, the forbidden-package list from ADR-0004, and the coverage thresholds from plan section 10.4.
+- Dependabot ecosystems for NuGet, Docker, Dev Containers, and Docker Compose.
+- ADR-0020 on dependency intake controls, and ADR-0018 accepted.
+
+### Changed
+
+- The threat model is version 1: dependency intake, trusted signers, and pull-request code on CI runners are delivered controls, and the Testcontainers reaper is a planned one.
+- Twelve tools in the inventory are marked `in-use`, with notes from this work package.
+- AGENTS.md, CONTRIBUTING.md, and the testing strategy list the .NET commands that run today.
+- The Linux evidence for Testcontainers moves from WP1.1 to WP1.8, because WP1.1 has no container tests.
 
 ### Fixed
 

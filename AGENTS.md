@@ -30,7 +30,7 @@ These steps come from plan section 6.
 4. Run `dev doctor`.
 5. Continue with the next action.
 
-The Dev Container and `dev doctor` arrive with WP1.4. Until then, install Git, Docker, and the GitHub CLI, skip step 1, and replace step 4 with the quality-gate commands under [Commands that run today](#commands-that-run-today).
+The Dev Container and `dev doctor` arrive with WP1.4. Until then, install Git, Docker, the GitHub CLI, the .NET SDK 10.0.401 (`global.json` pins it), and PowerShell 7 with Pester 5 for the script tests, skip step 1, and replace step 4 with the quality-gate commands under [Commands that run today](#commands-that-run-today).
 
 ## End-of-session protocol
 
@@ -56,11 +56,15 @@ These steps come from plan section 6.
 | `docs/testing/strategy.md` | Test philosophy, suites, and thresholds | Maintainer | exists |
 | `docs/governance/ai-skills.md` | How AI instructions and skills are governed | Maintainer | exists |
 | `docs/governance/github-settings.md` | The GitHub settings, why each was chosen, and the evidence that it is applied | Maintainer | exists |
-| `.github/workflows/docs-quality.yml` | The current CI gate for docs, links, and secret scans | Maintainer | exists |
+| `.github/workflows/docs-quality.yml`, `.github/workflows/ci.yml` | The CI gates: docs, links, and secret scans, and the .NET build, tests, coverage, format, and license gate | Maintainer | exists |
 | `tools/lint/compose.yaml` | Lint container definitions used locally and in CI | Maintainer | exists |
 | `.github/copilot-instructions.md`, `.github/instructions/`, `.github/skills/` | Repository-wide rules, path-scoped rules, and repository skills | Maintainer | exists |
 | `governance/github/` | Rulesets, labels, and milestones as code, plus a snapshot of the live settings | Maintainer | exists |
-| `.config/dotnet-tools.json`, `src/`, `tests/` | Local .NET tools, application source under Clean Architecture boundaries, and tests | Maintainer | planned in WP1.1 |
+| `governance/policies/` | The license allow-list and its exception, the forbidden-package list, and the coverage thresholds | Maintainer | exists (WP1.1) |
+| `ProductCatalog.slnx`, `global.json`, `Directory.Build.props`, `Directory.Packages.props`, `NuGet.config`, `.config/dotnet-tools.json` | The solution, the SDK pin, shared build settings, central package versions, NuGet trust settings, and local tools | Maintainer | exists (WP1.1) |
+| `src/` | Six server projects under Clean Architecture boundaries. They hold almost no code yet: the domain, application, and API layers arrive in WP1.6, WP1.7, and WP1.10 | Maintainer | exists (WP1.1) |
+| `tests/Catalog.Architecture.Tests/` | The architecture, reference, and dependency rules, with fixtures that prove each rule can fail | Maintainer | exists (WP1.1) |
+| `tools/ci/` | The coverage threshold gate and its Pester tests | Maintainer | exists (WP1.1) |
 | `tools/Governance.Auditor/` | The deterministic governance CLI | Maintainer | planned in WP1.2 |
 | `tools/Documentation.Auditor/` | The documentation and inventory auditor | Maintainer | planned in WP1.3 |
 | `.devcontainer/`, `scripts/`, `identity/keycloak/` | Portable environment, the `dev` command, and the Keycloak realm files | Maintainer | planned in WP1.4 |
@@ -100,7 +104,9 @@ Follow [ADR-0006](docs/adr/0006-commit-identity-and-privacy.md).
 
 ### Commands that run today
 
-Run these from the repository root.
+Run these from the repository root. The first block is the documentation gate, which needs only Docker. The second block is the .NET
+gate that the `ci` workflow runs. Local builds and CI use the same commands, and CI turns on a locked restore through the `CI` environment
+variable, which you can set to reproduce it.
 
 ```text
 docker compose -f tools/lint/compose.yaml run --rm markdownlint
@@ -108,6 +114,28 @@ docker compose -f tools/lint/compose.yaml run --rm links
 docker compose -f tools/lint/compose.yaml run --rm secrets
 docker compose -f tools/lint/compose.yaml run --rm secrets-worktree
 ```
+
+```text
+dotnet tool restore
+dotnet restore ProductCatalog.slnx
+dotnet build ProductCatalog.slnx --configuration Release --no-restore
+dotnet test --solution ProductCatalog.slnx --configuration Release --no-build --coverage --coverage-output-format cobertura --report-trx --results-directory TestResults
+pwsh -NoProfile -File tools/ci/Test-CoverageThresholds.ps1 -CoverageFile 'TestResults/*.cobertura.xml'
+dotnet format ProductCatalog.slnx --verify-no-changes --no-restore
+dotnet nuget-license -i ProductCatalog.slnx -t -a governance/policies/license-policy.json -override governance/policies/license-overrides.json -err
+```
+
+After you add or change a package, run `dotnet restore ProductCatalog.slnx` without the locked mode and commit every changed
+`packages.lock.json`. A Dependabot pull request that fails the locked restore needs `dotnet restore --force-evaluate`
+([ADR-0020](docs/adr/0020-dependency-intake-controls.md)). The script tests need PowerShell 7 and Pester 5:
+
+```text
+pwsh -NoProfile -Command "Invoke-Pester -Path tools/ci -CI"
+```
+
+On a Windows host that enforces Smart App Control, a locally built unsigned assembly can fail to load. The architecture tests read
+assemblies from disk and never load them, so they are not affected, and a test that must load a production assembly should run in a
+container.
 
 ### Planned commands
 
@@ -140,6 +168,8 @@ Apply [plan section 5.4](docs/plans/implementation-plan.md) and [CONTRIBUTING.md
 ## Architecture rules to apply once code exists
 
 These rules begin in Phase 1 and come from plan section 8.1 and [ADR-0004](docs/adr/0004-licensing-and-dependency-license-policy.md).
+`tests/Catalog.Architecture.Tests` enforces them in CI: the project reference table and package rules read the project files, and the
+type-level rules run against the built assemblies. The fixtures in that project prove that each rule can fail.
 
 - `Domain` depends on the BCL only.
 - `Application` may depend only on `Domain` and defines ports such as repositories, `IUnitOfWork`, caching, identity, ID generation, outbox dispatch, and telemetry abstractions.

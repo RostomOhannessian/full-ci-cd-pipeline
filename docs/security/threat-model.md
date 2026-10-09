@@ -2,15 +2,15 @@
 title: "Threat model"
 description: "The design-time threat model: assets, actors, trust boundaries, and the planned controls, updated as each phase builds them."
 audience: [maintainers, learners]
-last-verified: 2026-10-04
+last-verified: 2026-10-08
 owner: "@RostomOhannessian"
 ---
 
 # Threat model
 
-**Status: version 0, written in Phase 0.** This model describes the *planned* system. Nothing it lists is implemented yet, and every control names the phase
-that delivers it. Each phase updates it, and Phase 4 finalizes it. A work package that changes a trust boundary, a data flow, or a credential must update
-this page (Definition of Done item 7 in [CONTRIBUTING.md](../../CONTRIBUTING.md)).
+**Status: version 1, written in Phase 0 and updated in WP1.1.** This model describes the *planned* system. A control is delivered only when the
+Delivered column says so, and every other control names the phase that delivers it. Each phase updates it, and Phase 4 finalizes it. A work package
+that changes a trust boundary, a data flow, or a credential must update this page (Definition of Done item 7 in [CONTRIBUTING.md](../../CONTRIBUTING.md)).
 
 The method is STRIDE per trust boundary: Spoofing, Tampering, Repudiation, Information disclosure, Denial of service, and Elevation of privilege.
 Start a new boundary from [the entry template](../templates/threat-model-entry-template.md).
@@ -100,7 +100,7 @@ flowchart LR
 
 ## Trust boundaries and initial threats
 
-Controls are marked with the phase and work package that deliver them. All are *planned*.
+Controls are marked with the phase and work package that deliver them. Only the controls whose Delivered column says *delivered* exist today. The rest are *planned*.
 
 ### TB1: Developer workstation to GitHub
 
@@ -117,7 +117,10 @@ Controls are marked with the phase and work package that deliver them. All are *
 | A third-party action or tool is compromised, as with tj-actions in 2025 and trivy-action in 2026 | Tampering | SHA pinning enforced by policy, immutable releases, minimal third-party actions, zizmor, least-privilege tokens | Phase 0 settings, enforced in Phase 2 (WP2.2) |
 | A fork pull request exfiltrates a token or tampers with publishing | Information disclosure, Tampering | Approval for outside contributors, read-only default token, no `pull_request_target` that runs pull request code, publish only from `master` and tags through protected environments | Phase 0 settings, Phase 2 (WP2.2) |
 | An artifact is swapped between jobs or in the registry | Tampering | One build per commit identified by digest, attestations bound to the digest, a verification job, admission verification | Phase 2 (WP2.4, WP2.5), Phase 3 (WP3.6) |
-| A vulnerable or non-compliant dependency enters | Tampering, Elevation of privilege | Lock files, package source mapping, repository signatures, license gate, dependency review, Dependabot with a cooldown | Phase 0 (Dependabot), Phase 1 (WP1.1), Phase 2 (WP2.3) |
+| A vulnerable or non-compliant dependency enters | Tampering, Elevation of privilege | Central package versions with transitive pinning, lock files with a locked restore in CI, package source mapping, required nuget.org repository signatures, NuGet audit with warnings as errors, a license allow-list gate, a forbidden-package list, and Dependabot with a cooldown. Dependency review follows in Phase 2 ([ADR-0020](../adr/0020-dependency-intake-controls.md)) | Phase 0 (Dependabot); WP1.1 delivered the rest of the intake controls on 2026-10-08; Phase 2 (WP2.3) adds dependency review |
+| A trusted signing certificate expires, or a trusted signer is wrongly added | Spoofing, Tampering | The three nuget.org repository certificates are copied from the service's own endpoint, the newest expires on 2027-05-18 and `NuGet.config` says to re-read the endpoint before then, and a wrong fingerprint was shown to fail the restore (`NU3034`) | WP1.1 delivered 2026-10-08 |
+| Pull request code runs on a CI runner during restore, build, and tests | Elevation of privilege, Information disclosure | The `ci` workflow uses `permissions: {}` with `contents: read` per job, `persist-credentials: false`, no secrets, no publishing, and a pull-request title that reaches scripts only through an environment variable. Outside-contributor approval is a repository setting | WP1.1 delivered 2026-10-08; Phase 2 (WP2.2) hardens it further |
+| Testcontainers gives a test dependency control of the Docker daemon on a runner or workstation | Elevation of privilege | The reaper runs privileged with the Docker socket by default ([spike 1.d](../research/spikes/1.d-testcontainers-mssql.md)), so the first CI job that starts containers must run on an ephemeral hosted runner and use the digest-pinned reaper image | Planned, WP1.8 |
 | Nobody can show who built what | Repudiation | Provenance, signatures, and public transparency-log entries per release | Phase 2 (WP2.5) |
 
 ### TB3: Public Sigstore

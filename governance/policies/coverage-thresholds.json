@@ -1,0 +1,26 @@
+{
+  "schema-version": 1,
+  "description": "Initial coverage thresholds from plan section 10.4 and ADR-0018. Change a number only through an ADR.",
+  "solution": {
+    "line": 80,
+    "includePackages": "^Catalog\\.",
+    "excludePackages": "\\.(Tests|IntegrationTests|PactTests|ContractTests|PactVerification)$"
+  },
+  "excludePaths": [
+    "/Migrations/",
+    "\\.g\\.cs$",
+    "\\.Designer\\.cs$",
+    "/obj/"
+  ],
+  "assemblies": [
+    { "name": "Catalog.Domain", "line": 90, "branch": 80 },
+    { "name": "Catalog.Application", "line": 85, "branch": 80 }
+  ],
+  "exemptions": [
+    {
+      "assembly": "Catalog.Api",
+      "reason": "Composition root with no business logic. The architecture tests analyze it without loading it, so it has no coverage data.",
+      "endsIn": "WP1.10, when the API integration tests cover it"
+    }
+  ]
+}

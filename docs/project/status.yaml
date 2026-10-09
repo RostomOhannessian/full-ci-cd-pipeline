@@ -2,7 +2,7 @@
 # STATUS.md is the readable view of this file and is hand-maintained until WP1.2 generates it.
 # Update this file in the same commit as the change it records (see the end-of-session protocol in AGENTS.md).
 schema-version: 1
-updated: "2026-10-06"
+updated: "2026-10-08"
 project:
   name: "Secure Product Catalog Platform"
   repository: "RostomOhannessian/full-ci-cd-pipeline"
@@ -13,11 +13,11 @@ current:
   work-package: null
   branch: "phase/1-api-core"
 resume:
-  last-completed: "WP1.0 is complete: five risk spikes ran on 2026-10-06 and none failed (PactNet on Kestrel, the FusionCache backplane on Valkey 8.1 and 9.1, Microsoft.Testing.Platform with coverage and Stryker, Testcontainers SQL Server on Windows x86-64, and file-rotated database credentials). Their reports are in docs/research/spikes/ and the affected ADRs, tool inventory, and risk register carry dated evidence. The work landed through pull request 17 into phase/1-api-core."
-  next-action: "Start WP1.1, solution and build foundation (Issue 3): create wp/1.1-solution-and-build from phase/1-api-core. Take its settings from the spike reports, which means creating the .NET tool manifest under .config, running the first Linux CI job to supply the Linux Testcontainers evidence the spike left open, and deciding whether to move to Microsoft Code Coverage 18.12.0. Separately, the owner decides whether to correct the cache ACL patterns in plan section 8.5, as proposed in spike 1.b."
+  last-completed: "WP1.1 is complete: the solution (six server projects and the architecture tests), the build and dependency-intake controls, and the ci workflow. 58 tests pass on Windows and in a Linux x86-64 container, the build has zero warnings, and the format, license, and coverage-threshold gates pass. The architecture rules, the license gate, the forbidden-package list, and the trusted-signer setting were each shown to fail on purpose. ADR-0018 is accepted and ADR-0020 is new. The work landed through pull request 18 into phase/1-api-core. WP1.0 (the risk spikes) landed earlier through pull request 17."
+  next-action: "Start WP1.2, Governance core (Issue 4): create wp/1.2-governance-core from phase/1-api-core. The owner has three decisions waiting. First, whether to add the ci jobs (Build and test, Script tests, Format verification, License gate, Conventional Commit title) as required checks in the master and phase rulesets, which is a settings change that needs the owner's approval. Second, whether to correct the cache ACL patterns in plan section 8.5, as proposed in spike 1.b. Third, the Testcontainers evidence for Linux is now expected from WP1.8, because WP1.1 has no container tests."
   open-pull-requests: []
   environment-notes:
-    - "Until the Dev Container arrives in WP1.4, Phase 1 work needs Git, Docker (running), the GitHub CLI, and the .NET SDK 10.0.401. Run the lint gate with the docker compose commands in AGENTS.md."
+    - "Until the Dev Container arrives in WP1.4, Phase 1 work needs Git, Docker (running), the GitHub CLI, the .NET SDK 10.0.401, and PowerShell 7 with Pester 5 for the script tests. Run the documentation gate with the docker compose commands and the .NET gate with the dotnet commands in AGENTS.md."
     - "Use the repository-local noreply Git identity described in ADR-0006 and never set a personal email in this repository."
     - "Keep the GitHub account setting Keep my email addresses private turned on. After every merge, check the author and committer emails of the merged range (see AGENTS.md)."
     - "The five spike branches (spike/1.a-pactnet-kestrel through spike/1.e-rotating-credentials) exist only on the machine that ran them and are never pushed. The spike reports carry the versions, image digests, commands, and key snippets needed to repeat them."
@@ -181,12 +181,23 @@ phases:
       - id: "WP1.1"
         title: "Solution and build foundation"
         size: M
-        state: planned
-        branch: null
+        state: completed
+        branch: "wp/1.1-solution-and-build"
         issue: 3
-        pull-request: null
+        pull-request: 18
         depends-on: ["WP0.7"]
-        evidence: []
+        evidence:
+          - "ProductCatalog.slnx"
+          - "global.json"
+          - "Directory.Build.props"
+          - "Directory.Packages.props"
+          - "NuGet.config"
+          - ".github/workflows/ci.yml"
+          - "tests/Catalog.Architecture.Tests/"
+          - "governance/policies/"
+          - "tools/ci/"
+          - "docs/adr/0018-test-stack-and-quality-gates.md"
+          - "docs/adr/0020-dependency-intake-controls.md"
         blockers: []
       - id: "WP1.2"
         title: "Governance core"

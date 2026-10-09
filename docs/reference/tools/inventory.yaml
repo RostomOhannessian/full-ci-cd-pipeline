@@ -163,7 +163,7 @@ entries:
     category: ci-service
     tier: A
     lifecycle: adopt
-    usage: planned
+    usage: in-use
     introduced: phase-1
     purpose: Runs the repository's build, test, scan, release, and verification workflows.
     license: service
@@ -642,7 +642,7 @@ entries:
     category: dotnet-runtime
     tier: A
     lifecycle: adopt
-    usage: planned
+    usage: in-use
     introduced: phase-1
     purpose: Supplies the compiler, test runner integration, package restore, and CLI used throughout the repo.
     license: MIT
@@ -652,7 +652,8 @@ entries:
       - https://raw.githubusercontent.com/dotnet/core/main/release-notes/10.0/releases.json
       - https://learn.microsoft.com/en-us/dotnet/core/tools/global-json
       - https://dotnet.microsoft.com/en-us/platform/support/policy/dotnet-core
-    adrs: ["0018"]
+    adrs: ["0018", "0020"]
+    notes: global.json pins 10.0.401 with latestPatch and selects the Microsoft.Testing.Platform runner. The SDK also supplies dotnet format, the Roslyn analyzers (AnalysisLevel latest-recommended), and the NuGet client that enforces Central Package Management, lock files, package source mapping, and required repository signatures. The ubuntu-24.04 runner image 20260927.320.1 carries SDK 10.0.401 (checked 2026-10-08), and CI also runs actions/setup-dotnet against global.json. Spike 1.c found that a Windows host with Smart App Control can refuse to load small unsigned assemblies built locally, so the architecture tests read assemblies from disk and never load them.
   # GitHub services
   - id: ghcr
     name: GitHub Container Registry
@@ -1566,7 +1567,7 @@ entries:
     category: standard
     tier: B
     lifecycle: adopt
-    usage: planned
+    usage: in-use
     introduced: phase-0
     purpose: Standardizes PR titles and changelog-relevant commit messages across the repository.
     license: MIT
@@ -1576,7 +1577,8 @@ entries:
     sources:
       - https://www.conventionalcommits.org/en/v1.0.0/
       - https://github.com/conventional-commits/conventionalcommits.org
-    adrs: []
+    adrs: ["0003"]
+    notes: The ci workflow checks every pull request title against the ten types in CONTRIBUTING.md and a limit of 72 characters, with a short script instead of a third-party action (WP1.1).
   - id: cyclonedx
     name: CycloneDX
     category: standard
@@ -1722,7 +1724,7 @@ entries:
     category: supply-chain
     tier: B
     lifecycle: adopt
-    usage: planned
+    usage: in-use
     introduced: phase-1
     purpose: Opens update pull requests for supported ecosystems from a first-party GitHub service.
     license: service
@@ -1731,7 +1733,8 @@ entries:
     sources:
       - https://docs.github.com/en/code-security/how-tos/secure-your-supply-chain/secure-your-dependencies/configure-version-updates
       - https://docs.github.com/en/code-security/dependabot
-    adrs: ["0013"]
+    adrs: ["0013", "0020"]
+    notes: WP1.1 adds the nuget ecosystem and the docker, devcontainers, and docker-compose ecosystems for manifests that arrive in WP1.4 and Phase 2. Dependabot reads its configuration from the default branch, so the new entries take effect when Phase 1 merges. Open upstream issue dependabot-core 13950 (read 2026-10-08) says Dependabot can leave a downstream packages.lock.json stale when Central Package Management and project references combine, which fails locked restore with NU1004 until "dotnet restore --force-evaluate" regenerates the lock files.
   - id: dependency-review
     name: Dependency review
     category: supply-chain
@@ -1752,7 +1755,7 @@ entries:
     category: supply-chain
     tier: B
     lifecycle: adopt
-    usage: planned
+    usage: in-use
     introduced: phase-1
     purpose: Enforces the repository's linked-dependency license allowlist in CI.
     license: Apache-2.0
@@ -1762,7 +1765,8 @@ entries:
     sources:
       - https://github.com/sensslen/nuget-license
       - https://www.nuget.org/packages/nuget-license
-    adrs: ["0004"]
+    adrs: ["0004", "0020"]
+    notes: Installed as a local tool from .config/dotnet-tools.json. It reads the restore output, so it runs after the restore, and it has no forbidden-package option, so the forbidden list in governance/policies/forbidden-packages.json is checked by the architecture tests from the lock files. The allow-list is governance/policies/license-policy.json, and the one tool-only exception (Microsoft.Testing.Extensions.CodeCoverage 18.11.2) is an exact-version override in governance/policies/license-overrides.json. Checked 2026-10-08, the gate covers 28 direct and transitive packages and needs exactly that one override.
   - id: renovate
     name: Renovate
     category: supply-chain
@@ -1856,7 +1860,7 @@ entries:
     category: test-framework
     tier: A
     lifecycle: adopt
-    usage: planned
+    usage: in-use
     introduced: phase-1
     purpose: Provides the repo's native .NET 10 test runner and reporting integration.
     license: MIT
@@ -1872,7 +1876,7 @@ entries:
     category: test-framework
     tier: A
     lifecycle: adopt
-    usage: planned
+    usage: in-use
     introduced: phase-1
     purpose: Runs the unit and integration test suites for the application and its auditors.
     license: Apache-2.0
@@ -1884,6 +1888,7 @@ entries:
       - https://github.com/xunit/xunit
       - https://xunit.net/docs/getting-started/v3/getting-started
     adrs: ["0018"]
+    notes: In 4.0.1 the concrete ParallelizationAttribute is not shipped and the CollectionBehavior properties for parallelism are errors, so each test project declares parallelism in xunit.runner.json (WP1.1, checked 2026-10-08), and a test fails when a test project lacks the file.
 
   # Test tools
   - id: archunitnet
@@ -1891,7 +1896,7 @@ entries:
     category: test-tool
     tier: B
     lifecycle: adopt
-    usage: planned
+    usage: in-use
     introduced: phase-1
     purpose: Enforces Clean Architecture boundaries as executable architecture rules.
     license: Apache-2.0
@@ -1902,6 +1907,7 @@ entries:
       - https://www.nuget.org/packages/TngTech.ArchUnitNET.xUnitV3
       - https://github.com/TNG/ArchUnitNET
     adrs: ["0018"]
+    notes: WP1.1 (2026-10-08, version 0.13.4) found four behaviors that shape how rules are written. A condition followed by "or" starts a new rule instead of widening the predicate, so a set of allowed dependencies is built as a set of types. Types outside the loaded assemblies, such as the BCL, are never in that set, so "only depend on" rules match the namespace of the dependency instead. Results are cached by rule description, which made two negative controls pass in Release and fail in Debug, so the cache is switched off. A rule that matches no type fails unless WithoutRequiringPositiveResults is used, so each rule runs strictly against conforming fixtures and leniently against empty production layers.
   - id: awesomeassertions
     name: AwesomeAssertions
     category: test-tool
@@ -2008,7 +2014,7 @@ entries:
     category: test-tool
     tier: B
     lifecycle: adopt
-    usage: planned
+    usage: in-use
     introduced: phase-1
     purpose: Produces coverage data in the native Microsoft.Testing.Platform test path.
     license: Microsoft .NET Library License
@@ -2019,7 +2025,7 @@ entries:
       - https://www.nuget.org/packages/Microsoft.Testing.Extensions.CodeCoverage
       - https://github.com/microsoft/codecoverage
     adrs: ["0004", "0018"]
-    notes: Accepted as a tool-only, non-OSI dependency under ADR-0004, because it is used at test time and is not linked into shipped binaries. The package ships its terms as License.txt (Microsoft Software License Terms for the Microsoft .NET Library) and the project describes it as closed source. It is free to use and was chosen because coverlet does not support Microsoft.Testing.Platform v2. Spike 1.c (2026-10-06) ran 18.11.2 with xUnit v3 and produced Cobertura output that ReportGenerator parsed. Version 18.12.0 also exists, and WP1.1 decides whether to move. Raw coverage files embed local paths, so never commit them.
+    notes: Accepted as a tool-only, non-OSI dependency under ADR-0004, because it is used at test time and is not linked into shipped binaries. The package ships its terms as License.txt (Microsoft Software License Terms for the Microsoft .NET Library) and the project describes it as closed source. It is free to use and was chosen because coverlet does not support Microsoft.Testing.Platform v2. Spike 1.c (2026-10-06) ran 18.11.2 with xUnit v3 and produced Cobertura output that ReportGenerator parsed. Version 18.12.0 also exists, and WP1.1 stays on 18.11.2, which spike 1.c exercised, and leaves 18.12.0 to a Dependabot pull request. The license gate pins the exception to this exact version, so a bump fails the gate until the new terms are read. The extension measures only assemblies that a test loads, and the architecture tests never load production assemblies, so the Cobertura file is empty until WP1.6 adds unit tests. Raw coverage files embed local paths, so never commit them.
   - id: netarchtest
     name: NetArchTest.eNhancedEdition
     category: test-tool
@@ -2108,7 +2114,7 @@ entries:
     category: test-tool
     tier: B
     lifecycle: adopt
-    usage: planned
+    usage: in-use
     introduced: phase-1
     purpose: Tests the repository's PowerShell setup and developer scripts.
     license: Apache-2.0
@@ -2120,12 +2126,13 @@ entries:
       - https://github.com/pester/Pester/releases/tag/6.2.0
       - https://pester.dev/
     adrs: ["0018"]
+    notes: The version above is the plan baseline. WP1.1 runs the coverage-gate tests on Pester 5.9.0, which is preinstalled on the ubuntu-24.04 runner image 20260927.320.1 (checked 2026-10-08), and written against the Pester 5 syntax. WP1.4 pins the version in tools/versions.yaml and decides whether to move to the plan baseline.
   - id: psscriptanalyzer
     name: PSScriptAnalyzer
     category: test-tool
     tier: B
     lifecycle: adopt
-    usage: planned
+    usage: in-use
     introduced: phase-1
     purpose: Lints PowerShell scripts and keeps the developer tooling path consistent across hosts.
     license: MIT
@@ -2137,12 +2144,13 @@ entries:
       - https://github.com/PowerShell/PSScriptAnalyzer/releases/tag/1.25.0
       - https://learn.microsoft.com/en-us/powershell/utility-modules/psscriptanalyzer/overview
     adrs: ["0018"]
+    notes: WP1.1 runs version 1.25.0, which is preinstalled on the ubuntu-24.04 runner image 20260927.320.1 (checked 2026-10-08), over tools/ci with warnings and errors blocking.
   - id: reportgenerator
     name: ReportGenerator
     category: test-tool
     tier: B
     lifecycle: adopt
-    usage: planned
+    usage: in-use
     introduced: phase-1
     purpose: Renders coverage reports from the native test artifacts into readable CI and docs outputs.
     license: Apache-2.0
@@ -2153,6 +2161,7 @@ entries:
       - https://www.nuget.org/packages/dotnet-reportgenerator-globaltool
       - https://github.com/danielpalme/ReportGenerator
     adrs: ["0018"]
+    notes: Installed as a local tool from .config/dotnet-tools.json. CI turns the Cobertura file into a Markdown job summary. The coverage thresholds are checked separately by tools/ci/Test-CoverageThresholds.ps1, because ReportGenerator reports coverage and does not gate on it.
   - id: schemathesis
     name: Schemathesis
     category: test-tool

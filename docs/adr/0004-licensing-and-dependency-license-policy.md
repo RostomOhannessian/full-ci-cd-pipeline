@@ -95,6 +95,14 @@ WP2.3 confirms it by running dependency review for pull requests and checking bo
 The v1.0 launch gate confirms it by generating SBOM-backed third-party notices for released artifacts and by reviewing
 the exception notes for tool-only licenses.
 
+Execution record (WP1.1, 2026-10-08): the license gate and the forbidden list exist and were shown to fail on purpose. CI runs
+`nuget-license` over the solution with transitive packages (28 packages at the time) against `governance/policies/license-policy.json`.
+Removing the one exception, or removing Apache-2.0 from the allow-list, made the gate exit with 1. The forbidden list from this ADR
+(FluentAssertions 8 and later, MediatR 13 and later, AutoMapper 15 and later, MassTransit 9 and later, and QuestPDF) is in
+`governance/policies/forbidden-packages.json` and is checked from the lock files by the architecture tests, because `nuget-license` has no
+forbidden-list option. [ADR-0020](0020-dependency-intake-controls.md) records the design. The tool-only rule is enforced for the one
+exception: the coverage extension's override names the exact version 18.11.2, and a test fails if it appears in a production project.
+
 Execution record (WP1.0, 2026-10-06): [spike 1.c](../research/spikes/1.c-mtp-coverage-stryker.md) read the license of
 `Microsoft.Testing.Extensions.CodeCoverage` 18.11.2 from the package itself. Its `License.txt` holds the Microsoft Software License
 Terms for the Microsoft .NET Library, the package metadata uses a license file instead of an SPDX expression, and the project page

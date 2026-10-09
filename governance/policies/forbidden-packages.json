@@ -1,0 +1,30 @@
+{
+  "schema-version": 1,
+  "description": "Packages that must never be linked, from ADR-0004. A package is forbidden from minVersion on, or in every version when minVersion is absent. The architecture tests check every resolved package in every lock file against this list.",
+  "forbidden": [
+    {
+      "id": "FluentAssertions",
+      "minVersion": "8.0.0",
+      "reason": "Commercial license terms from version 8. Use AwesomeAssertions."
+    },
+    {
+      "id": "MediatR",
+      "minVersion": "13.0.0",
+      "reason": "Commercial license terms from version 13, and the repository teaches explicit CQRS wiring instead."
+    },
+    {
+      "id": "AutoMapper",
+      "minVersion": "15.0.0",
+      "reason": "Commercial license terms from version 15. Use explicit mapping."
+    },
+    {
+      "id": "MassTransit",
+      "minVersion": "9.0.0",
+      "reason": "Commercial license terms from version 9, and the plan does not need a broker abstraction."
+    },
+    {
+      "id": "QuestPDF",
+      "reason": "Community license that is not OSI approved."
+    }
+  ]
+}

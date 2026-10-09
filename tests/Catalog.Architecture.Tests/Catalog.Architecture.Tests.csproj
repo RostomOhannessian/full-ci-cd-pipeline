@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Architecture tests load the production assemblies and read the project files, so they reference every layer. -->
+
+  <ItemGroup>
+    <PackageReference Include="TngTech.ArchUnitNET.xUnitV3" />
+  </ItemGroup>
+
+  <!-- Parallelism is declared per assembly in this file (plan section 10.3). -->
+  <ItemGroup>
+    <Content Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Catalog.Domain\Catalog.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Catalog.Application\Catalog.Application.csproj" />
+    <ProjectReference Include="..\..\src\Catalog.Contracts\Catalog.Contracts.csproj" />
+    <ProjectReference Include="..\..\src\Catalog.Infrastructure\Catalog.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Catalog.CrossCutting\Catalog.CrossCutting.csproj" />
+    <ProjectReference Include="..\..\src\Catalog.Api\Catalog.Api.csproj" />
+  </ItemGroup>
+
+</Project>

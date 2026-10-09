@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <!-- Api is the composition root. It owns all dependency registration and contains no business logic (plan section 8.1). -->
+
+  <ItemGroup>
+    <ProjectReference Include="..\Catalog.Application\Catalog.Application.csproj" />
+    <ProjectReference Include="..\Catalog.Infrastructure\Catalog.Infrastructure.csproj" />
+    <ProjectReference Include="..\Catalog.CrossCutting\Catalog.CrossCutting.csproj" />
+    <ProjectReference Include="..\Catalog.Contracts\Catalog.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>

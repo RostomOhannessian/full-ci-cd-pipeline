@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Application depends on Domain only and defines the ports that outer layers implement (plan section 8.1). -->
+
+  <ItemGroup>
+    <ProjectReference Include="..\Catalog.Domain\Catalog.Domain.csproj" />
+  </ItemGroup>
+
+</Project>
