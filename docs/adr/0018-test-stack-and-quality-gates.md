@@ -108,6 +108,15 @@ in [ADR-0020](0020-dependency-intake-controls.md) and the `ci` workflow.
 - **Versions.** Microsoft Code Coverage stays on 18.11.2, which spike 1.c exercised. The tool manifest is `.config/dotnet-tools.json`,
   and Stryker.NET joins it in WP1.6, when the first mutation baseline runs.
 
+Execution record (WP1.2, 2026-10-08): `governance trace` enforces the requirement-ID mechanism, as the confirmation above says
+([ADR-0022](0022-generated-status-and-traceability.md)). It reads the `[Trait("Requirement", ...)]` attribute of every .NET test, and
+the `# requirements:` comment of a Pester, Chainsaw, Kyverno, Terraform, or k6 file, and it fails when a requirement that is due has no
+test and no evidence. The auditor's own tests (`tests/Governance.Auditor.Tests`) follow the conventions of this ADR: xUnit v3 on
+Microsoft.Testing.Platform, the invariant culture, a declared parallelism, and a requirement tag on every test. They use plain xUnit
+assertions and hand-written fakes, so no new test package was added. They create temporary repositories and never touch the real one,
+except for the self-check tests that run the commands over this repository on purpose. The coverage thresholds apply to `src/`, so the
+tool is not gated, and its coverage is reported with the rest.
+
 ## Pros and cons of the options
 
 ### Stay on VSTest and coverlet to keep the older .NET test defaults

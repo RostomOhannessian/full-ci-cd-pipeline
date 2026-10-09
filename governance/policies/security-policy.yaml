@@ -1,0 +1,65 @@
+# Policy for `governance security`. The rules live in tools/Governance.Auditor, and this file holds what they enforce, so a change
+# to a pattern, an allow-list, or an exception is a reviewed change to this file (CODEOWNERS covers governance/).
+# Every exception names the workflow, the job, and the reason. Do not weaken an entry to get a build through.
+schema-version: 1
+description: Settings for the security auditor, from plan section 9, ADR-0004, ADR-0006, and ADR-0020.
+
+# Text that has the shape of a credential. A match is reported by rule, file, and line, and the value is never printed.
+# These complement gitleaks (history scan) and GitHub push protection. They are deliberately precise, so a finding is worth acting on.
+secret-patterns:
+  - id: github-token
+    description: a GitHub personal access, OAuth, app, or fine-grained token
+    pattern: '\b(?:gh[pousr]_[A-Za-z0-9]{36,255}|github_pat_[A-Za-z0-9_]{22,255})\b'
+  - id: aws-access-key-id
+    description: an AWS access key ID
+    pattern: '\b(?:AKIA|ASIA|AGPA|AIDA|AROA)[0-9A-Z]{16}\b'
+  - id: private-key-block
+    description: the start of a private key
+    pattern: '-----BEGIN (?:[A-Z0-9]+ )*PRIVATE KEY(?: BLOCK)?-----'
+  - id: slack-token
+    description: a Slack token
+    pattern: '\bxox[abposr]-[A-Za-z0-9-]{10,}'
+  - id: nuget-api-key
+    description: a NuGet API key
+    pattern: '\boy2[a-z2-7]{43}\b'
+  - id: json-web-token
+    description: a signed JSON Web Token
+    pattern: '\beyJ[A-Za-z0-9_-]{10,}\.eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}'
+  - id: url-credentials
+    description: a user name and password inside a URL
+    pattern: '\b(?:https?|ftps?|ssh|git|postgres(?:ql)?|mysql|mariadb|mongodb(?:\+srv)?|rediss?|amqps?|mssql|sqlserver)://[^/\s:@$<{]+:[^/\s:@$<{]+@[^/\s]+'
+
+# Files that the secret-pattern rule skips. Keep this list empty unless a file must hold example credentials, and say why in a comment.
+secret-scan:
+  exclude-paths: []
+
+workflows:
+  # The only secret a workflow may read. Cloud and broker access comes from OIDC (plan section 8.8).
+  allowed-secrets:
+    - GITHUB_TOKEN
+  # A write scope belongs to one job. Each entry needs { workflow, job, permission, reason }. None exist yet.
+  allowed-write-permissions: []
+  # A workflow that uses pull_request_target must never run pull request code. Each entry needs { workflow, reason }. None exist yet.
+  allowed-pull-request-target: []
+
+licenses:
+  # An allow-list entry that starts with one of these is rejected (ADR-0004: linked dependencies are permissive or weak copyleft).
+  denied-license-prefixes:
+    - GPL
+    - AGPL
+    - SSPL
+    - BUSL
+    - Elastic
+    - OSMFEULA
+    - Commons-Clause
+    - CC-BY-NC
+    - PolyForm
+  # License references that the allow-list may name. The one entry is the tool-only Microsoft license in license-overrides.json.
+  allowed-license-references:
+    - LicenseRef-Microsoft-DotNet-Library-ToolOnly
+
+commit-identity:
+  # Author, committer, and co-author emails must match one of these (ADR-0006): a GitHub noreply address, a bot, or the web interface.
+  allowed-email-patterns:
+    - '^(?:[0-9]+\+)?[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?(?:\[bot\])?@users\.noreply\.github\.com$'
+    - '^noreply@github\.com$'

@@ -45,6 +45,8 @@ The rules for writing them are in [ADR-0001](0001-record-architecture-decisions.
 | [0018](0018-test-stack-and-quality-gates.md) | Standardize on the Phase 1 test stack and quality gates | accepted | Accepted 2026-10-08 in WP1.1 |
 | [0019](0019-resource-profiles-and-host-support.md) | Define resource profiles and an explicit host support matrix | proposed | WP3.0 |
 | [0020](0020-dependency-intake-controls.md) | Control dependency intake with central versions, lock files, signatures, and a license gate | accepted | Accepted 2026-10-08 in WP1.1 |
+| [0021](0021-governance-auditor-cli.md) | Build the governance auditors as one deterministic .NET command line | accepted | Accepted 2026-10-08 in WP1.2 |
+| [0022](0022-generated-status-and-traceability.md) | Generate the status page and the traceability report, and prove requirements with tests or an evidence register | accepted | Accepted 2026-10-08 in WP1.2 |
 
 The evidence behind these decisions is in the [research records](../research/README.md). The plan that ties them together is
 [the implementation plan](../plans/implementation-plan.md).

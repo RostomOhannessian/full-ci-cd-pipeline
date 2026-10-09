@@ -108,6 +108,14 @@ replaced initial commit from GitHub, and it replaces the earlier judgment that r
 with one pull request and no Issues the cost was small. The work stayed in Git, so the same commits were pushed to the
 new repository and the Phase 0 pull request was reopened there, after the account setting was turned on and verified.
 
+Execution record (WP1.2, 2026-10-08): the metadata check that WP0.7 ran by hand is now the `commit-identity` rule of
+`governance security`, and the `governance` workflow runs it on every pull request with the commit range of the pull request. It
+checks the author, the committer, and every `Co-authored-by` email against the patterns in
+`governance/policies/security-policy.yaml` (a GitHub noreply address, a bot, or `noreply@github.com`), and it shows only the domain
+of a failing address. It checks the commits of the pull request. The merge or squash commit that GitHub creates exists only after the
+merge, so the check after every merge stays in [AGENTS.md](../../AGENTS.md). Tests build commits with real Git and show that a
+personal author, committer, and co-author each fail.
+
 ## Pros and cons of the options
 
 ### Recreate the empty initial commit once under the noreply identity and force-push before publication

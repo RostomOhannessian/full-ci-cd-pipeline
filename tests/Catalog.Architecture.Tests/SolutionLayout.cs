@@ -5,7 +5,7 @@ internal static class SolutionLayout
 {
     private const string SolutionFileName = "ProductCatalog.slnx";
 
-    public static IReadOnlyList<string> ProjectRoots { get; } = ["src", "tests"];
+    public static IReadOnlyList<string> ProjectRoots { get; } = ["src", "tests", "tools"];
 
     public static string Root { get; } = FindRoot();
 

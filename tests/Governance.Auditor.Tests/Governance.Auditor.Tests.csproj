@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Tests for the governance CLI. Each test is tagged with the requirement it proves, and `governance trace` reads the tags. -->
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\tools\Governance.Auditor\Governance.Auditor.csproj" />
+  </ItemGroup>
+
+  <!-- Parallelism is declared per assembly in this file (plan section 10.3). -->
+  <ItemGroup>
+    <Content Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

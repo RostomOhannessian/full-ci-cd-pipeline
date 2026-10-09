@@ -16,4 +16,10 @@
     <PackageVersion Include="TngTech.ArchUnitNET.xUnitV3" Version="0.13.4" />
   </ItemGroup>
 
+  <!-- Governance.Auditor (ADR-0021). Both packages are MIT licensed with no dependencies on net10.0. Versions were checked on 2026-10-08. -->
+  <ItemGroup>
+    <PackageVersion Include="System.CommandLine" Version="2.0.12" />
+    <PackageVersion Include="YamlDotNet" Version="18.1.0" />
+  </ItemGroup>
+
 </Project>

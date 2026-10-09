@@ -1,6 +1,6 @@
 # Source of truth for phase and work-package progress. The schema is status.schema.json.
-# STATUS.md is the readable view of this file and is hand-maintained until WP1.2 generates it.
-# Update this file in the same commit as the change it records (see the end-of-session protocol in AGENTS.md).
+# STATUS.md is generated from this file by `governance status render` (WP1.2). Never edit it by hand.
+# Update this file in the same commit as the change it records, then validate and render (see the end-of-session protocol in AGENTS.md).
 schema-version: 1
 updated: "2026-10-08"
 project:
@@ -13,11 +13,12 @@ current:
   work-package: null
   branch: "phase/1-api-core"
 resume:
-  last-completed: "WP1.1 is complete: the solution (six server projects and the architecture tests), the build and dependency-intake controls, and the ci workflow. 58 tests pass on Windows and in a Linux x86-64 container, the build has zero warnings, and the format, license, and coverage-threshold gates pass. The architecture rules, the license gate, the forbidden-package list, and the trusted-signer setting were each shown to fail on purpose. ADR-0018 is accepted and ADR-0020 is new. The work landed through pull request 18 into phase/1-api-core. WP1.0 (the risk spikes) landed earlier through pull request 17."
-  next-action: "Start WP1.2, Governance core (Issue 4): create wp/1.2-governance-core from phase/1-api-core. The owner has three decisions waiting. First, whether to add the ci jobs (Build and test, Script tests, Format verification, License gate, Conventional Commit title) as required checks in the master and phase rulesets, which is a settings change that needs the owner's approval. Second, whether to correct the cache ACL patterns in plan section 8.5, as proposed in spike 1.b. Third, the Testcontainers evidence for Linux is now expected from WP1.8, because WP1.1 has no container tests."
+  last-completed: "WP1.2 is complete: the governance command line in tools/Governance.Auditor (status validate and render, trace, test-summary, github-sync, security, and blast-radius), its security and blast-radius policy files, the governance workflow, and the advanced-security-auditor and blast-radius-evaluator skills. STATUS.md and the traceability report are now generated from data, with drift checks, and every requirement that is due has a test or an evidence entry. 422 tests pass on Windows and in a Linux x86-64 container, the build has zero warnings, and the format, license, and coverage-threshold gates pass. Each security rule was shown to fail against a violating fixture. ADR-0021 and ADR-0022 are new. The work landed through pull request 19 into phase/1-api-core. WP1.0 and WP1.1 landed earlier through pull requests 17 and 18."
+  next-action: "Start WP1.3, Documentation toolchain (Issue 5): create wp/1.3-documentation-toolchain from phase/1-api-core. First close Issues 2, 3, and 4, which github-sync shows as the only drift (run it as a dry run, and pass --apply only with the maintainer's approval). The owner has four decisions waiting. First, whether to add the ci jobs (Build and test, Script tests, Format verification, License gate, Conventional Commit title) and the Governance auditors job as required checks in the master and phase rulesets, which is a settings change that needs the owner's approval, and which the plan expects from WP1.2 on. Second, whether to add tools/Governance.Auditor/ to CODEOWNERS, because the auditor is built from the pull request it audits (risk R20). Third, whether to correct the cache ACL patterns in plan section 8.5, as proposed in spike 1.b. Fourth, the Testcontainers evidence for Linux is now expected from WP1.8, because no work package before it has container tests."
   open-pull-requests: []
   environment-notes:
-    - "Until the Dev Container arrives in WP1.4, Phase 1 work needs Git, Docker (running), the GitHub CLI, the .NET SDK 10.0.401, and PowerShell 7 with Pester 5 for the script tests. Run the documentation gate with the docker compose commands and the .NET gate with the dotnet commands in AGENTS.md."
+    - "Until the Dev Container arrives in WP1.4, Phase 1 work needs Git, Docker (running), the GitHub CLI, the .NET SDK 10.0.401, and PowerShell 7 with Pester 5 for the script tests. Run the documentation gate with the docker compose commands, the .NET gate with the dotnet commands in AGENTS.md, and the governance checks with `dotnet run --project tools/Governance.Auditor -- <command>`."
+    - "`STATUS.md` and `docs/testing/traceability.md` are generated. After you change `status.yaml`, run `status validate` and `status render`, and after you change tests or evidence, run `trace`. Never edit the pages by hand."
     - "Use the repository-local noreply Git identity described in ADR-0006 and never set a personal email in this repository."
     - "Keep the GitHub account setting Keep my email addresses private turned on. After every merge, check the author and committer emails of the merged range (see AGENTS.md)."
     - "The five spike branches (spike/1.a-pactnet-kestrel through spike/1.e-rotating-credentials) exist only on the machine that ran them and are never pushed. The spike reports carry the versions, image digests, commands, and key snippets needed to repeat them."
@@ -202,12 +203,23 @@ phases:
       - id: "WP1.2"
         title: "Governance core"
         size: M
-        state: planned
-        branch: null
+        state: completed
+        branch: "wp/1.2-governance-core"
         issue: 4
-        pull-request: null
+        pull-request: 19
         depends-on: ["WP1.1"]
-        evidence: []
+        evidence:
+          - "tools/Governance.Auditor/"
+          - "tests/Governance.Auditor.Tests/"
+          - "governance/policies/security-policy.yaml"
+          - "governance/policies/blast-radius-map.yaml"
+          - ".github/workflows/governance.yml"
+          - ".github/skills/advanced-security-auditor/SKILL.md"
+          - ".github/skills/blast-radius-evaluator/SKILL.md"
+          - "docs/testing/evidence.yaml"
+          - "docs/testing/traceability.md"
+          - "docs/adr/0021-governance-auditor-cli.md"
+          - "docs/adr/0022-generated-status-and-traceability.md"
         blockers: []
       - id: "WP1.3"
         title: "Documentation toolchain"

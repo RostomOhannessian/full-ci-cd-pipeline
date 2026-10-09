@@ -1,0 +1,96 @@
+name: governance
+
+# Runs the governance auditors on every change: the status files, requirements traceability, the security auditor, and the blast-radius
+# evaluator. They are the same commands a person runs locally (see AGENTS.md, "Commands that run today"), and ADR-0021 records the design.
+#
+# The job also publishes the blast-radius result as job outputs. Nothing consumes them yet: ci.yml and docs-quality.yml still run every job.
+# Job selection driven by these outputs arrives with the workflow architecture in WP2.2.
+
+on:
+  pull_request:
+    branches: [master, "phase/**"]
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+# No permissions by default. Each job asks only for what it needs.
+permissions: {}
+
+concurrency:
+  group: governance-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_NOLOGO: "1"
+  DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+  GOVERNANCE: tools/Governance.Auditor/bin/Release/net10.0/governance.dll
+
+jobs:
+  governance:
+    name: Governance auditors
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    outputs:
+      layers: ${{ steps.blast-radius.outputs.layers }}
+      areas: ${{ steps.blast-radius.outputs.areas }}
+      jobs: ${{ steps.blast-radius.outputs.jobs }}
+      docs: ${{ steps.blast-radius.outputs.docs }}
+      reviews: ${{ steps.blast-radius.outputs.reviews }}
+      flags: ${{ steps.blast-radius.outputs.flags }}
+      unclassified-count: ${{ steps.blast-radius.outputs.unclassified-count }}
+      run-build-test: ${{ steps.blast-radius.outputs.run-build-test }}
+      run-script-tests: ${{ steps.blast-radius.outputs.run-script-tests }}
+      run-format: ${{ steps.blast-radius.outputs.run-format }}
+      run-license: ${{ steps.blast-radius.outputs.run-license }}
+      run-pr-title: ${{ steps.blast-radius.outputs.run-pr-title }}
+      run-markdown: ${{ steps.blast-radius.outputs.run-markdown }}
+      run-links: ${{ steps.blast-radius.outputs.run-links }}
+      run-secrets: ${{ steps.blast-radius.outputs.run-secrets }}
+    steps:
+      # The auditors read the Git history of the pull request, so the checkout needs all of it.
+      - name: Check out with full history
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Set up the .NET SDK from global.json
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: global.json
+      - name: Restore the auditor from its lock file
+        run: dotnet restore tools/Governance.Auditor/Governance.Auditor.csproj --locked-mode
+      - name: Build the auditor
+        run: dotnet build tools/Governance.Auditor/Governance.Auditor.csproj --configuration Release --no-restore
+      - name: Check the status files
+        run: dotnet "$GOVERNANCE" status validate --summary "$GITHUB_STEP_SUMMARY"
+      - name: Check that STATUS.md is generated from status.yaml
+        run: dotnet "$GOVERNANCE" status render --check --summary "$GITHUB_STEP_SUMMARY"
+      - name: Check requirements traceability
+        run: dotnet "$GOVERNANCE" trace --check --summary "$GITHUB_STEP_SUMMARY"
+      # The commit range and the title-like values reach the script only through environment variables. The base is empty or all zeros
+      # when GitHub has no previous commit, as on a new branch or a manual run, and then no commit range is checked.
+      - name: Run the security auditor
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          args=(--summary "$GITHUB_STEP_SUMMARY")
+          if [[ -n "${BASE_SHA:-}" && ! "$BASE_SHA" =~ ^0+$ ]]; then
+            args+=(--base "$BASE_SHA" --head "$HEAD_SHA")
+          fi
+          dotnet "$GOVERNANCE" security "${args[@]}"
+      - name: Run the blast-radius evaluator
+        id: blast-radius
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          args=(--summary "$GITHUB_STEP_SUMMARY" --github-output "$GITHUB_OUTPUT")
+          if [[ -n "${BASE_SHA:-}" && ! "$BASE_SHA" =~ ^0+$ ]]; then
+            args+=(--base "$BASE_SHA" --head "$HEAD_SHA")
+          else
+            args+=(--all-files)
+          fi
+          dotnet "$GOVERNANCE" blast-radius "${args[@]}"

@@ -1,0 +1,9 @@
+blast-radius: 7 changed paths
+  layers:  Build, Domain, Infrastructure, Tests
+  areas:   build-configuration, ci-workflows, database-migration, documentation, github-configuration, production-code, tests, unclassified
+  jobs:    build-test, format, license, links, markdown, pr-title, script-tests, secrets
+  docs:    adr, changelog, migration-notes, runbook, status, tests, threat-model, tool-inventory
+  reviews: codeowners, maintainer, security-review
+  flags:   dependency-change, migration, workflow-change
+warning [blast-radius-unclassified] tools/mystery/unknown.bin: No blast-radius rule covers this path, so the strict fallback applies. Add a rule to the map.
+blast-radius: passed (1 warnings).

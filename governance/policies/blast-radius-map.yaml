@@ -1,0 +1,233 @@
+# The blast-radius map for `governance blast-radius`: which paths belong to which layer and area, and what a change there requires.
+# A path may match several rules, and the results are combined. A path that matches no rule gets the strict fallback, so a new kind of
+# path cannot skip a check unnoticed. Change a rule in the same pull request that changes the paths, jobs, or review scope it describes.
+# The code owner entries below must stay in step with .github/CODEOWNERS, and a test checks that they do.
+schema-version: 1
+description: Maps repository paths to layers, areas, required jobs, documentation, and reviews (plan sections 5.3, 5.4, and 10.5).
+
+# Jobs that selection can turn on or off, by job ID, with the workflow that defines them. `all` in a rule means every job in this list.
+jobs:
+  build-test: { workflow: ci.yml, name: Build and test }
+  script-tests: { workflow: ci.yml, name: Script tests }
+  format: { workflow: ci.yml, name: Format verification }
+  license: { workflow: ci.yml, name: License gate }
+  pr-title: { workflow: ci.yml, name: Conventional Commit title }
+  markdown: { workflow: docs-quality.yml, name: Markdown style }
+  links: { workflow: docs-quality.yml, name: Internal links }
+  secrets: { workflow: docs-quality.yml, name: Secret scan (full history) }
+
+# Jobs that run for every change, because they are required checks.
+always: [pr-title, markdown, links, secrets]
+
+docs-catalog:
+  changelog: Add an entry under Unreleased in CHANGELOG.md.
+  status: Update docs/project/status.yaml, then run 'governance status render'.
+  adr: Write or update an ADR for every decision the change makes.
+  threat-model: Update docs/security/threat-model.md if a trust boundary, data flow, or credential changed.
+  tests: Add or update tests, tagged with requirement IDs.
+  tool-inventory: Update docs/reference/tools/inventory.yaml when a tool or package is added, changed, or removed.
+  runbook: Add or update a runbook that has a rollback step.
+  contract-docs: Update the API contract documentation and the error catalog.
+  migration-notes: Record the expand or contract phase and a rollback note (plan section 8.10).
+
+reviews-catalog:
+  codeowners: The master ruleset requires code owner review for this path.
+  security-review: Run /advanced-security-auditor and resolve its findings before merge.
+  governance-tooling: This change edits the tooling that audits pull requests, so a maintainer must read it closely, because the auditor cannot vouch for a change to itself.
+  contract-review: Check the change against the authored OpenAPI contract and its compatibility rules.
+  maintainer: A maintainer must classify these paths and extend the blast-radius map.
+
+rules:
+  # Production layers (plan section 8.1).
+  - id: domain
+    description: The domain model, which depends on the BCL only.
+    paths: ['src/Catalog.Domain/**']
+    layer: Domain
+    area: production-code
+    jobs: [build-test, format, license]
+    docs: [tests, changelog, status]
+  - id: application
+    description: Use cases, ports, and the decorator pipeline.
+    paths: ['src/Catalog.Application/**']
+    layer: Application
+    area: production-code
+    jobs: [build-test, format, license]
+    docs: [tests, changelog, status]
+  - id: contracts-code
+    description: Versioned transport records.
+    paths: ['src/Catalog.Contracts/**']
+    layer: Contracts
+    area: production-code
+    jobs: [build-test, format, license]
+    reviews: [contract-review]
+    flags: [contract-change]
+    docs: [tests, contract-docs, changelog, status]
+  - id: infrastructure
+    description: Adapters for persistence, caching, identity, and the outbox.
+    paths: ['src/Catalog.Infrastructure/**']
+    layer: Infrastructure
+    area: production-code
+    jobs: [build-test, format, license]
+    docs: [tests, threat-model, changelog, status]
+  - id: cross-cutting
+    description: Decorators, observability plumbing, and cross-cutting adapters.
+    paths: ['src/Catalog.CrossCutting/**']
+    layer: CrossCutting
+    area: production-code
+    jobs: [build-test, format, license]
+    docs: [tests, changelog, status]
+  - id: api
+    description: The composition root and HTTP transport.
+    paths: ['src/Catalog.Api/**']
+    layer: Api
+    area: production-code
+    jobs: [build-test, format, license]
+    reviews: [security-review]
+    docs: [tests, threat-model, changelog, status]
+  - id: client
+    description: The generated client and the consumer workload, which stay independent of the server projects.
+    paths: ['src/Catalog.Client/**', 'src/Catalog.SyntheticShopper/**']
+    layer: Client
+    area: production-code
+    jobs: [build-test, format, license]
+    docs: [tests, changelog, status]
+  - id: migrations
+    description: EF Core migrations. A destructive change needs the contract phase of the expand and contract policy (plan section 8.10).
+    paths: ['src/**/Migrations/**']
+    layer: Infrastructure
+    area: database-migration
+    jobs: [build-test, format, license]
+    reviews: [codeowners]
+    flags: [migration]
+    docs: [migration-notes, runbook, adr]
+
+  # Tests, tooling, and build configuration.
+  - id: tests
+    description: Test projects.
+    paths: ['tests/**']
+    layer: Tests
+    area: tests
+    jobs: [build-test, format, license]
+    docs: [tests]
+  - id: governance-tooling
+    description: The governance and documentation auditors and their tests.
+    paths: ['tools/Governance.Auditor/**', 'tools/Documentation.Auditor/**']
+    layer: Tooling
+    area: governance-tooling
+    jobs: [build-test, format, license]
+    reviews: [governance-tooling]
+    flags: [auditor-change]
+    docs: [adr, tool-inventory, changelog, status]
+  - id: scripts
+    description: PowerShell scripts and their Pester tests.
+    paths: ['tools/ci/**', 'scripts/**']
+    layer: Tooling
+    area: scripts
+    jobs: [script-tests]
+    docs: [tests, changelog]
+  - id: lint-tooling
+    description: The documentation lint containers.
+    paths: ['tools/lint/**', 'tools/versions.yaml']
+    layer: Tooling
+    area: ci-configuration
+    jobs: [script-tests]
+    docs: [tool-inventory, changelog]
+  - id: build-configuration
+    description: The SDK pin, shared build settings, package versions, lock files, and project files.
+    paths:
+      - 'global.json'
+      - 'Directory.Build.props'
+      - 'Directory.Packages.props'
+      - 'NuGet.config'
+      - 'ProductCatalog.slnx'
+      - '.editorconfig'
+      - '.config/**'
+      - '**/*.csproj'
+      - '**/*.props'
+      - '**/packages.lock.json'
+    layer: Build
+    area: build-configuration
+    jobs: [build-test, format, license]
+    reviews: [security-review]
+    flags: [dependency-change]
+    docs: [adr, tool-inventory, changelog]
+  - id: repository-configuration
+    description: Line endings and ignore rules.
+    paths: ['.gitattributes', '.gitignore']
+    area: repository-configuration
+    jobs: [build-test, format]
+    docs: [changelog]
+
+  # Delivery and governance.
+  - id: workflows
+    description: GitHub Actions workflows, which run with the repository's token.
+    paths: ['.github/workflows/**']
+    area: ci-workflows
+    jobs: [all]
+    reviews: [codeowners, security-review]
+    flags: [workflow-change]
+    docs: [threat-model, adr, changelog]
+  - id: github-configuration
+    description: Code owners, Dependabot, templates, Copilot instructions, and skills.
+    paths: ['.github/**']
+    area: github-configuration
+    reviews: [codeowners]
+    docs: [changelog]
+  - id: governance
+    description: Policies, rulesets, labels, and milestones as code.
+    paths: ['governance/**']
+    area: governance-policy
+    jobs: [build-test, license]
+    reviews: [codeowners, security-review]
+    flags: [policy-change]
+    docs: [adr, threat-model, changelog]
+  - id: contracts
+    description: The authored OpenAPI contracts.
+    paths: ['contracts/**']
+    layer: Contracts
+    area: api-contract
+    jobs: [build-test]
+    reviews: [codeowners, contract-review]
+    flags: [contract-change]
+    docs: [contract-docs, adr, changelog]
+  - id: platform
+    description: Terraform, Kyverno policy, and the manifests that Argo CD owns.
+    paths: ['infra/**', 'policies/**', 'k8s/**']
+    area: platform
+    reviews: [codeowners, security-review]
+    flags: [infrastructure-change]
+    docs: [adr, threat-model, runbook, changelog]
+  - id: identity
+    description: Keycloak realm files.
+    paths: ['identity/**']
+    area: identity
+    jobs: [build-test]
+    reviews: [security-review]
+    flags: [identity-change]
+    docs: [threat-model, adr, changelog]
+  - id: developer-environment
+    description: The Dev Container, Compose files, and the container build.
+    paths: ['.devcontainer/**', 'compose.yaml', 'Dockerfile', '.dockerignore', '.env.example']
+    area: developer-environment
+    jobs: [script-tests]
+    reviews: [security-review]
+    flags: [container-change]
+    docs: [tool-inventory, runbook, changelog]
+
+  # Documentation.
+  - id: documentation
+    description: Pages, plans, decisions, and the generated reports under docs.
+    paths: ['docs/**', '*.md', 'lychee.toml', '.markdownlint-cli2.jsonc', 'docfx.json', 'cliff.toml']
+    area: documentation
+    docs: [changelog]
+  - id: legal
+    description: License and notice files.
+    paths: ['LICENSE', 'NOTICE']
+    area: documentation
+    reviews: [security-review]
+
+# A path that no rule covers runs everything and asks a maintainer to extend this map.
+fallback:
+  area: unclassified
+  jobs: [all]
+  reviews: [maintainer]

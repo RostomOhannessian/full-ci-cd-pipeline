@@ -2,7 +2,7 @@
 title: "Testing strategy"
 description: "How the project tests itself: the suites, what each proves, how requirements trace to evidence, and the rules that keep tests deterministic."
 audience: [maintainers, contributors, learners]
-last-verified: 2026-10-04
+last-verified: 2026-10-08
 owner: "@RostomOhannessian"
 ---
 
@@ -57,9 +57,14 @@ in-scope requirement has no test or evidence.
   public async Task Reusing_an_idempotency_key_with_a_different_payload_returns_422()
   ```
 
-- **Other tests** (Chainsaw, Kyverno, k6, Pester, Terraform) declare IDs in metadata that the auditor reads.
-- **Manual drills** record the IDs in their runbook evidence.
-- `governance trace` (WP1.2) generates `docs/testing/traceability.md`, mapping requirements to tests to evidence.
+- **Other tests** (Chainsaw, Kyverno, k6, Pester, Terraform) declare IDs in a comment line that the auditor reads, for example
+  `# requirements: REQ-QUA-004, REQ-QUA-005` (use `//` in a k6 file).
+- **Manual drills and documents** record their proof in a file, and an entry in [the evidence register](evidence.yaml) names the
+  requirements it proves.
+- `governance trace` generates [the traceability report](traceability.md), which maps requirements to tests to evidence. It fails when a
+  requirement that is in scope has neither, and `governance trace --check` fails when the committed report is out of date
+  ([ADR-0022](../adr/0022-generated-status-and-traceability.md)). A requirement is in scope once every work package that delivers it is
+  completed, or when its status is `verified`.
 
 The requirement list starts in [the brief traceability table](../requirements/brief-traceability.md).
 
@@ -102,11 +107,12 @@ each completed work package.
 | Where | What runs |
 | --- | --- |
 | Local, through the `dev` command (from WP1.4) | Any suite, with the same containers as CI. Until then, the commands in [AGENTS.md](../../AGENTS.md) |
-| Pull request CI | The `ci` workflow: restore from lock files, build with warnings as errors, the unit and architecture tests with coverage, the coverage thresholds, the script tests, the format check, the license gate, and the pull-request title check. Blast-radius selection of further suites arrives with WP1.2 |
+| Pull request CI | The `ci` workflow: restore from lock files, build with warnings as errors, the unit and architecture tests with coverage, the coverage thresholds, the script tests, the format check, the license gate, and the pull-request title check. The `governance` workflow: the status files, the generated pages, requirements traceability, the security auditor, and the blast-radius evaluator. Both workflows still run every job. The blast-radius outputs that select jobs are published by the `governance` workflow, and the selection arrives with WP2.2 |
 | `master` and nightly | The comprehensive suites, mutation, external link checks, image re-scans |
 | Release | Performance, onboarding, rollback drills, and every gate above |
 
 Phase 0 has no application code, so its tests are checks on content, history, and settings. They are listed in the
 [Phase 0 test plan](../plans/phases/phase-0-foundation.md). Phase 1 starts the code suites. WP1.1 delivers the architecture, reference, and
-dependency tests in `tests/Catalog.Architecture.Tests`. The unit, integration, snapshot, and API suites arrive with the work packages that
+dependency tests in `tests/Catalog.Architecture.Tests`, and WP1.2 delivers the tests of the governance tool in
+`tests/Governance.Auditor.Tests`. The unit, integration, snapshot, and API suites arrive with the work packages that
 build the code they test.
