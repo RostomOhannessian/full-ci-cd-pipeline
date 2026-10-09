@@ -3,28 +3,28 @@ title: "Project status"
 description: "Where the project is now, how to resume work on another machine, and the state of every phase."
 type: status
 audience: [maintainers, contributors, learners]
-last-verified: 2026-10-06
+last-verified: 2026-10-08
 owner: "@RostomOhannessian"
 ---
 
 # Project status
 
-This page is the readable view of [status.yaml](status.yaml), which is the source of truth. It is hand-maintained until WP1.2, which generates it. Last updated 2026-10-06.
+This page is the readable view of [status.yaml](status.yaml), which is the source of truth. It is hand-maintained until WP1.2, which generates it. Last updated 2026-10-08.
 
 ## Resume here
 
 | Item | Value |
 | --- | --- |
 | Active phase | [Phase 1: API core](../plans/phases/phase-1-api-core.md), in progress |
-| Active work package | None. WP1.0 is complete, and WP1.1 is next ([Issue 3](https://github.com/RostomOhannessian/full-ci-cd-pipeline/issues/3)). |
+| Active work package | None. WP1.0 and WP1.1 are complete, and WP1.2 is next ([Issue 4](https://github.com/RostomOhannessian/full-ci-cd-pipeline/issues/4)). |
 | Branch | `phase/1-api-core`. Create each work-package branch from it as `wp/1.NN-<slug>`. |
-| Last completed | WP1.0 is complete: five risk spikes ran on 2026-10-06 and none failed. Their reports are in [docs/research/spikes/](../research/spikes/README.md), and the affected ADRs, tool inventory, and risk register carry dated evidence. The work landed through pull request 17 into `phase/1-api-core`. |
-| Next action | Start WP1.1, solution and build foundation: create `wp/1.1-solution-and-build` from `phase/1-api-core`. Take its settings from the spike reports: create the .NET tool manifest under `.config`, run the first Linux CI job to supply the Linux Testcontainers evidence the spike left open, and decide whether to move to Microsoft Code Coverage 18.12.0. Separately, the owner decides whether to correct the cache ACL patterns in plan section 8.5, as [spike 1.b](../research/spikes/1.b-fusioncache-valkey.md) proposes. |
+| Last completed | WP1.1 is complete: the solution (six server projects and the architecture tests), the build and dependency-intake controls, and the `ci` workflow. 58 tests pass on Windows and in a Linux x86-64 container, the build has zero warnings, and the format, license, and coverage-threshold gates pass. The architecture rules, the license gate, the forbidden-package list, and the trusted-signer setting were each shown to fail on purpose. [ADR-0018](../adr/0018-test-stack-and-quality-gates.md) is accepted and [ADR-0020](../adr/0020-dependency-intake-controls.md) is new. The work landed through pull request 18 into `phase/1-api-core`. WP1.0 landed earlier through pull request 17. |
+| Next action | Start WP1.2, Governance core: create `wp/1.2-governance-core` from `phase/1-api-core`. The owner has three decisions waiting. First, whether to add the `ci` jobs (Build and test, Script tests, Format verification, License gate, Conventional Commit title) as required checks in the `master` and `phase/**` rulesets, which is a settings change that needs the owner's approval. Second, whether to correct the cache ACL patterns in plan section 8.5, as [spike 1.b](../research/spikes/1.b-fusioncache-valkey.md) proposes. Third, the Testcontainers evidence for Linux is now expected from WP1.8, because WP1.1 has no container tests. |
 | Open pull requests | None |
 
 ### Resume on another machine
 
-1. Install Git, Docker, the GitHub CLI, and the .NET SDK 10.0.401. The Dev Container (WP1.4) will replace this step.
+1. Install Git, Docker, the GitHub CLI, the .NET SDK 10.0.401, and PowerShell 7 with Pester 5 for the script tests. The Dev Container (WP1.4) will replace this step.
 2. Clone the repository, run `git fetch origin`, and check out the branch named in the table above.
 3. Set the repository-local noreply Git identity and turn on "Keep my email addresses private" in your GitHub account settings ([ADR-0006](../adr/0006-commit-identity-and-privacy.md)). Without the setting, GitHub uses your personal email for the merges it creates.
 4. Read this page, then [AGENTS.md](../../AGENTS.md).
@@ -69,12 +69,12 @@ All seven are complete. The [retrospective](../journal/phase-0-retrospective.md)
 
 ## Phase 1 work packages
 
-WP1.0 is complete. The other thirteen are planned, and their order and dependencies are in [status.yaml](status.yaml).
+WP1.0 and WP1.1 are complete. The other twelve are planned, and their order and dependencies are in [status.yaml](status.yaml).
 
 | WP | Title | Size | State | Issue or evidence |
 | --- | --- | --- | --- | --- |
 | WP1.0 | Risk spikes | S | Completed | [Spike reports](../research/spikes/README.md), [Issue 2](https://github.com/RostomOhannessian/full-ci-cd-pipeline/issues/2) |
-| WP1.1 | Solution and build foundation | M | Planned | [Issue 3](https://github.com/RostomOhannessian/full-ci-cd-pipeline/issues/3) |
+| WP1.1 | Solution and build foundation | M | Completed | [ADR-0018](../adr/0018-test-stack-and-quality-gates.md), [ADR-0020](../adr/0020-dependency-intake-controls.md), [ci workflow](../../.github/workflows/ci.yml), [architecture tests](../../tests/Catalog.Architecture.Tests), [Issue 3](https://github.com/RostomOhannessian/full-ci-cd-pipeline/issues/3) |
 | WP1.2 | Governance core | M | Planned | [Issue 4](https://github.com/RostomOhannessian/full-ci-cd-pipeline/issues/4) |
 | WP1.3 | Documentation toolchain | M | Planned | [Issue 5](https://github.com/RostomOhannessian/full-ci-cd-pipeline/issues/5) |
 | WP1.4 | Developer environment | L | Planned | [Issue 6](https://github.com/RostomOhannessian/full-ci-cd-pipeline/issues/6) |
@@ -90,11 +90,11 @@ WP1.0 is complete. The other thirteen are planned, and their order and dependenc
 
 ## What comes next
 
-WP1.0 found no failing spike, so no plan amendment is needed and WP1.1 can start. Three results carry forward. Linux and Codespaces evidence for Testcontainers SQL Server is still open and comes from the first Linux CI run in WP1.1. The cache ACL patterns in plan section 8.5 do not match what FusionCache writes to Valkey, and the owner decides whether to amend them. Stryker.NET cannot start natively on a Windows host that enforces Smart App Control, so mutation testing runs on Linux.
+WP1.1 found nothing that needs a plan amendment, and WP1.2 can start. Four results carry forward. The owner decides whether to make the new `ci` jobs required checks in the rulesets. The cache ACL patterns in plan section 8.5 do not match what FusionCache writes to Valkey, and the owner decides whether to amend them. The Linux Testcontainers evidence now comes from the first integration suite in WP1.8, because WP1.1 has no container tests. Coverage is empty until WP1.6 adds unit tests, and the coverage gate fails for any assembly that has code but no coverage data, apart from the composition root, which is exempt until WP1.10.
 
 ## Decisions
 
-Seven process decisions are accepted and twelve technology decisions are proposed, each accepted by the work package it names. See [the ADR index](../adr/README.md).
+Seven process decisions and two technology decisions are accepted, and eleven technology decisions are proposed, each accepted by the work package it names. See [the ADR index](../adr/README.md).
 
 ## Risks
 

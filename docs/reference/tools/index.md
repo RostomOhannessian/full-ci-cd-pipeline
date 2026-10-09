@@ -45,7 +45,7 @@ Start a page from [the tool page template](../../templates/tool-page-template.md
 | `hold` | Evaluated and not adopted, or to avoid for new work. Kept so the reasoning is not lost, for example OpenBao for SQL Server credentials, ingress-nginx, and tfsec. |
 | `retired` | Used once and removed. None yet. |
 
-The `usage` field says where a tool is in practice: `planned`, `in-use`, `evaluated-only`, or `removed`. Today every adopted tool is `planned`.
+The `usage` field says where a tool is in practice: `planned`, `in-use`, `evaluated-only`, or `removed`. A tool becomes `in-use` in the work package that first runs it, so the field shows what the repository does today and not what the plan intends.
 
 ## How the inventory is kept honest
 

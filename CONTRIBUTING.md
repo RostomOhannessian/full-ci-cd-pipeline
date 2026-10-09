@@ -71,7 +71,7 @@ Copy `docs/templates/adr-template.md`, follow [ADR-0001](docs/adr/0001-record-ar
 
 ## Check your work locally
 
-These are the same commands CI runs. They need only Docker:
+These are the same commands CI runs. The documentation checks need only Docker:
 
 ```text
 docker compose -f tools/lint/compose.yaml run --rm markdownlint
@@ -80,7 +80,9 @@ docker compose -f tools/lint/compose.yaml run --rm secrets-worktree
 ```
 
 The first checks Markdown style, the second checks relative links and heading anchors, and the third scans your working tree, including uncommitted files,
-for secrets. More checks arrive with the .NET solution in Phase 1, behind a single `dev` command.
+for secrets. A change to code, tests, packages, or `tools/ci` also needs the .NET SDK 10.0.401 and the commands under "Commands that run today" in
+[AGENTS.md](AGENTS.md): a locked restore, a Release build with warnings as errors, the tests with coverage, the coverage thresholds, the format check,
+and the license gate. The Dev Container and a single `dev` command arrive in WP1.4.
 
 ## Documentation standards
 

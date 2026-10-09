@@ -24,7 +24,7 @@ Spike code is throwaway. It lives on local `spike/<phase>.<x>-<slug>` branches t
 
 ## What the results leave open
 
-- **Host coverage.** Spike 1.d verified Windows x86-64 only. Linux evidence comes from the first Linux CI run in WP1.1. macOS Intel is not verified hands-on, and Apple Silicon and Windows on Arm are untested and documented by Microsoft as unsupported.
+- **Host coverage.** Spike 1.d verified Windows x86-64 only. WP1.1 has no container tests, so the Linux Testcontainers evidence moves to the first integration suite in WP1.8 (see the [spike 1.d follow-up](1.d-testcontainers-mssql.md)). macOS Intel is not verified hands-on, and Apple Silicon and Windows on Arm are untested and documented by Microsoft as unsupported.
 - **A proposed plan clarification.** Spike 1.b observed cache key and channel names that the ACL patterns in plan section 8.5 do not match. The plan is not edited until the maintainer approves the change.
 - **Unexplained delay.** Spike 1.b saw a one to two second delay on the first cache call after a Valkey outage began, on one host. WP1.9 must measure it.
 - **Not tested.** Vault itself (Phase 3), Linux file events for credential rotation, and PactNet and Testcontainers on Linux and macOS.

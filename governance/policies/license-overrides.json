@@ -1,0 +1,8 @@
+[
+  {
+    "Id": "Microsoft.Testing.Extensions.CodeCoverage",
+    "Version": "18.11.2",
+    "License": "LicenseRef-Microsoft-DotNet-Library-ToolOnly",
+    "LicenseUrl": "https://github.com/microsoft/codecoverage"
+  }
+]

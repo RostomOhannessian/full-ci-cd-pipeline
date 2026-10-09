@@ -8,9 +8,99 @@ trim_trailing_whitespace = true
 indent_style = space
 indent_size = 2
 
-# C# rules (analyzer severities, naming, using order) are added with the solution in WP1.1.
+# C# style and analyzer severities. Warnings are errors in the build (Directory.Build.props), so a "warning" here blocks a merge.
+# Do not lower a severity to get a build through. A suppression needs a comment that says why, next to the rule.
 [*.{cs,csx,vb}]
 indent_size = 4
+
+[*.cs]
+# Namespaces and usings.
+csharp_style_namespace_declarations = file_scoped:warning
+csharp_using_directive_placement = outside_namespace:warning
+dotnet_sort_system_directives_first = true
+dotnet_separate_import_directive_groups = false
+dotnet_diagnostic.IDE0005.severity = warning
+
+# Language preferences.
+dotnet_style_qualification_for_field = false:warning
+dotnet_style_qualification_for_property = false:warning
+dotnet_style_qualification_for_method = false:warning
+dotnet_style_qualification_for_event = false:warning
+dotnet_style_predefined_type_for_locals_parameters_members = true:warning
+dotnet_style_predefined_type_for_member_access = true:warning
+csharp_prefer_braces = true:warning
+csharp_style_var_for_built_in_types = false:suggestion
+csharp_style_var_when_type_is_apparent = true:suggestion
+csharp_style_var_elsewhere = false:suggestion
+csharp_style_expression_bodied_methods = when_on_single_line:suggestion
+csharp_style_expression_bodied_properties = true:suggestion
+csharp_style_prefer_primary_constructors = true:suggestion
+
+# Layout.
+csharp_new_line_before_open_brace = all
+csharp_new_line_before_else = true
+csharp_new_line_before_catch = true
+csharp_new_line_before_finally = true
+csharp_indent_case_contents = true
+csharp_indent_switch_labels = true
+
+# Naming: types and members in PascalCase, interfaces start with I, private fields start with an underscore.
+dotnet_naming_symbols.interfaces.applicable_kinds = interface
+dotnet_naming_symbols.interfaces.applicable_accessibilities = *
+dotnet_naming_style.begins_with_i.required_prefix = I
+dotnet_naming_style.begins_with_i.capitalization = pascal_case
+dotnet_naming_rule.interfaces_begin_with_i.symbols = interfaces
+dotnet_naming_rule.interfaces_begin_with_i.style = begins_with_i
+dotnet_naming_rule.interfaces_begin_with_i.severity = warning
+
+dotnet_naming_symbols.private_fields.applicable_kinds = field
+dotnet_naming_symbols.private_fields.applicable_accessibilities = private, private_protected
+dotnet_naming_style.underscore_camel.required_prefix = _
+dotnet_naming_style.underscore_camel.capitalization = camel_case
+dotnet_naming_rule.private_fields_underscore_camel.symbols = private_fields
+dotnet_naming_rule.private_fields_underscore_camel.style = underscore_camel
+dotnet_naming_rule.private_fields_underscore_camel.severity = warning
+
+# Constants and static fields are PascalCase. These rules are more specific than the private-field rule, so they win for static and const fields.
+dotnet_naming_symbols.constants.applicable_kinds = field
+dotnet_naming_symbols.constants.applicable_accessibilities = *
+dotnet_naming_symbols.constants.required_modifiers = const
+dotnet_naming_symbols.static_fields.applicable_kinds = field
+dotnet_naming_symbols.static_fields.applicable_accessibilities = *
+dotnet_naming_symbols.static_fields.required_modifiers = static
+dotnet_naming_style.pascal.capitalization = pascal_case
+dotnet_naming_rule.constants_pascal.symbols = constants
+dotnet_naming_rule.constants_pascal.style = pascal
+dotnet_naming_rule.constants_pascal.severity = warning
+dotnet_naming_rule.static_fields_pascal.symbols = static_fields
+dotnet_naming_rule.static_fields_pascal.style = pascal
+dotnet_naming_rule.static_fields_pascal.severity = warning
+
+# Tests name behavior in snake_case sentences, and xUnit needs public test classes in an executable project.
+[tests/**/*.cs]
+# CA1707: underscores in identifiers. Test names read as sentences (tests.instructions.md).
+dotnet_diagnostic.CA1707.severity = none
+# CA1515: public types in an executable. xUnit v3 test projects are executables and need public test classes.
+dotnet_diagnostic.CA1515.severity = none
+
+# Deliberately wrong code that proves each architecture rule can fail. It is never shipped or called by production code.
+[tests/Catalog.Architecture.Tests/Fixtures/*.cs]
+# CA1812, CA1852: internal types that are never instantiated or sealed. IDE0051, IDE0052, CA1823: unused members.
+dotnet_diagnostic.CA1812.severity = none
+dotnet_diagnostic.CA1852.severity = none
+dotnet_diagnostic.IDE0051.severity = none
+dotnet_diagnostic.IDE0052.severity = none
+dotnet_diagnostic.CA1823.severity = none
+# CA1822: members that could be static. The conforming fixtures use instance members on purpose.
+dotnet_diagnostic.CA1822.severity = none
+# CS0649: a field that is never assigned. The static-state fixtures only need the field to exist.
+dotnet_diagnostic.CS0649.severity = none
+# CA2211: non-constant visible static fields. The fixture needs one to show the static-state rule fails.
+dotnet_diagnostic.CA2211.severity = none
+# IDE0044, IDE0079: the fixture must stay mutable and may carry rule-specific suppressions.
+dotnet_diagnostic.IDE0044.severity = none
+# The fixtures need several namespaces in one file, which file-scoped namespaces do not allow.
+csharp_style_namespace_declarations = block_scoped:silent
 
 [*.{ps1,psm1,psd1}]
 indent_size = 4

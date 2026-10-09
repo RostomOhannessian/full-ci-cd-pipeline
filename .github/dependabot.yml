@@ -39,3 +39,83 @@ updates:
     labels:
       - dependencies
       - docker
+
+  # NuGet packages. Versions live in Directory.Packages.props. Dependabot may leave a downstream packages.lock.json stale when
+  # a package flows through a project reference (dependabot-core issue 13950), so a failed locked restore on a Dependabot pull
+  # request means: run "dotnet restore --force-evaluate" and commit the lock files (ADR-0020).
+  - package-ecosystem: nuget
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: America/New_York
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps)"
+    labels:
+      - dependencies
+      - nuget
+    groups:
+      test-stack:
+        patterns:
+          - "xunit*"
+          - "Microsoft.Testing.*"
+          - "TngTech.*"
+      nuget-minor-and-patch:
+        update-types:
+          - minor
+          - patch
+
+  # The three entries below name manifests that arrive later: compose.yaml and the Dev Container in WP1.4, and the Dockerfile in
+  # Phase 2. Dependabot reads this file from the default branch, so they take effect when the phase merges. Until a manifest
+  # exists, Dependabot reports that it found none for that ecosystem.
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: America/New_York
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps)"
+    labels:
+      - dependencies
+      - docker
+
+  - package-ecosystem: devcontainers
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: America/New_York
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps)"
+    labels:
+      - dependencies
+      - devcontainers
+
+  - package-ecosystem: docker-compose
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: America/New_York
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps)"
+    labels:
+      - dependencies
+      - docker

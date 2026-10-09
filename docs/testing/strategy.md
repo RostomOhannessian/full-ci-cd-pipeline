@@ -68,14 +68,23 @@ The requirement list starts in [the brief traceability table](../requirements/br
 - Time comes from `FakeTimeProvider` and identifiers from an injected generator, never from the system clock or `Guid.NewGuid()` in tests.
 - Tests run under the invariant culture. Property-test seeds are logged so a failure can be replayed.
 - Container images are pinned by digest. Containers are shared through assembly fixtures and started once per test assembly.
-- No test depends on the order of other tests. Parallelism is declared per assembly.
+- No test depends on the order of other tests. Parallelism is declared per assembly, in the `xunit.runner.json` of each test project.
 - Test data comes from builders and synthetic data, never from real people or production.
+
+Two checks keep these rules from eroding. A test fails when a test project lacks `xunit.runner.json`, and `tests/Directory.Build.props`
+sets the invariant culture for every test project. WP1.1 also found a rule-evaluation cache that made two tests depend on run order, so
+shared caches in a test tool are switched off, and each suite runs in both Debug and Release before it is trusted.
 
 ## Quality thresholds
 
 The initial values are in plan section 10.4 and in the ADR: line coverage of at least 90 percent for the domain and 85 percent for the application layer,
-branch coverage of at least 80 percent for both, a domain mutation score of at least 70 percent once the mutation runner is generally available,
-zero analyzer warnings, zero documentation warnings, and the k6 thresholds from the service-level objectives. Changing a threshold needs an ADR.
+80 percent across the solution, branch coverage of at least 80 percent for the domain and the application layer, a domain mutation score of at least
+70 percent once the mutation runner is generally available, zero analyzer warnings, zero documentation warnings, and the k6 thresholds from the
+service-level objectives. Changing a threshold needs an ADR.
+
+The numbers are enforced from `governance/policies/coverage-thresholds.json` by `tools/ci/Test-CoverageThresholds.ps1`, which CI runs after the tests.
+An assembly that contains code but has no coverage data fails the check, so "not measured" never reads as "covered". An exemption names its reason
+and the work package that ends it. The composition root is exempt until WP1.10.
 
 ## What a test case records
 
@@ -92,10 +101,12 @@ each completed work package.
 
 | Where | What runs |
 | --- | --- |
-| Local, through the `dev` command (from Phase 1) | Any suite, with the same containers as CI |
-| Pull request CI | Suites selected by the blast-radius analysis, plus the always-on checks |
+| Local, through the `dev` command (from WP1.4) | Any suite, with the same containers as CI. Until then, the commands in [AGENTS.md](../../AGENTS.md) |
+| Pull request CI | The `ci` workflow: restore from lock files, build with warnings as errors, the unit and architecture tests with coverage, the coverage thresholds, the script tests, the format check, the license gate, and the pull-request title check. Blast-radius selection of further suites arrives with WP1.2 |
 | `master` and nightly | The comprehensive suites, mutation, external link checks, image re-scans |
 | Release | Performance, onboarding, rollback drills, and every gate above |
 
 Phase 0 has no application code, so its tests are checks on content, history, and settings. They are listed in the
-[Phase 0 test plan](../plans/phases/phase-0-foundation.md).
+[Phase 0 test plan](../plans/phases/phase-0-foundation.md). Phase 1 starts the code suites. WP1.1 delivers the architecture, reference, and
+dependency tests in `tests/Catalog.Architecture.Tests`. The unit, integration, snapshot, and API suites arrive with the work packages that
+build the code they test.

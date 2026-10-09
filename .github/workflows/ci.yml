@@ -1,0 +1,157 @@
+name: ci
+
+# Builds and tests every change: restore, build, unit and architecture tests, coverage thresholds, format, and the license gate.
+# The same commands run locally. See AGENTS.md ("Commands that run today") and ADR-0018 and ADR-0020.
+
+on:
+  pull_request:
+    branches: [master, "phase/**"]
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+# No permissions by default. Each job asks only for what it needs.
+permissions: {}
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_NOLOGO: "1"
+  DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+
+jobs:
+  build-test:
+    name: Build and test
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up the .NET SDK from global.json
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: global.json
+      - name: Restore from the lock files
+        run: dotnet restore ProductCatalog.slnx --locked-mode
+      - name: Build with warnings as errors
+        run: dotnet build ProductCatalog.slnx --configuration Release --no-restore
+      - name: Run the unit and architecture tests with coverage
+        run: >
+          dotnet test --solution ProductCatalog.slnx --configuration Release --no-build
+          --coverage --coverage-output-format cobertura --report-trx --results-directory TestResults
+      - name: Check coverage against the thresholds
+        run: pwsh -NoProfile -File tools/ci/Test-CoverageThresholds.ps1 -CoverageFile 'TestResults/*.cobertura.xml'
+      - name: Summarize coverage
+        if: ${{ !cancelled() }}
+        run: |
+          dotnet tool restore
+          dotnet reportgenerator "-reports:TestResults/*.cobertura.xml" "-targetdir:TestResults/report" "-reporttypes:MarkdownSummaryGithub"
+          cat TestResults/report/SummaryGithub.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Keep the test results
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: test-results
+          path: |
+            TestResults/*.trx
+            TestResults/report/*.md
+          if-no-files-found: error
+          retention-days: 7
+
+  script-tests:
+    name: Script tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # Pester and PSScriptAnalyzer ship on the runner image. WP1.4 pins them in tools/versions.yaml.
+      - name: Analyze the scripts
+        shell: pwsh
+        run: |
+          $findings = Invoke-ScriptAnalyzer -Path tools/ci -Recurse -Severity Warning, Error
+          $findings | Format-Table RuleName, Severity, ScriptName, Line -AutoSize
+          if ($findings) { exit 1 }
+      - name: Run the script tests
+        shell: pwsh
+        run: |
+          $configuration = New-PesterConfiguration
+          $configuration.Run.Path = 'tools/ci'
+          $configuration.Run.Exit = $true
+          Invoke-Pester -Configuration $configuration
+
+  format:
+    name: Format verification
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up the .NET SDK from global.json
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: global.json
+      - name: Restore from the lock files
+        run: dotnet restore ProductCatalog.slnx --locked-mode
+      - name: Verify formatting and style
+        run: dotnet format ProductCatalog.slnx --verify-no-changes --no-restore
+
+  license:
+    name: License gate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up the .NET SDK from global.json
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: global.json
+      - name: Restore from the lock files
+        run: dotnet restore ProductCatalog.slnx --locked-mode
+      # nuget-license reads the restore output, so it must run after the restore. Forbidden packages are checked by the
+      # architecture tests, because nuget-license has no forbidden-list option.
+      - name: Check the license of every direct and transitive package
+        run: |
+          dotnet tool restore
+          dotnet nuget-license -i ProductCatalog.slnx -t -a governance/policies/license-policy.json -override governance/policies/license-overrides.json -err -o Markdown
+
+  pr-title:
+    name: Conventional Commit title
+    if: ${{ github.event_name == 'pull_request' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions: {}
+    steps:
+      # The title is untrusted input. It reaches the script only through an environment variable, and it is never echoed as part
+      # of a workflow command.
+      - name: Check the pull request title
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          pattern='^(feat|fix|docs|test|refactor|perf|build|ci|chore|revert)(\([a-z0-9][a-z0-9._-]*\))?!?: [^ ].*$'
+          if [[ ${#PR_TITLE} -gt 72 ]] || [[ ! "$PR_TITLE" =~ $pattern ]]; then
+            echo "The pull request title must be a Conventional Commit of 72 characters or fewer: type(scope): summary."
+            echo "Types: feat, fix, docs, test, refactor, perf, build, ci, chore, revert."
+            printf 'Title (%s characters): %s\n' "${#PR_TITLE}" "$PR_TITLE"
+            exit 1
+          fi
+          printf 'Title accepted: %s\n' "$PR_TITLE"

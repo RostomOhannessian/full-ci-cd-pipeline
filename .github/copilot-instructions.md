@@ -33,6 +33,10 @@ docker compose -f tools/lint/compose.yaml run --rm secrets
 docker compose -f tools/lint/compose.yaml run --rm secrets-worktree
 ```
 
+For a change to code, tests, packages, or `tools/ci`, also run the .NET gate under "Commands that run today" in AGENTS.md: a locked restore,
+a Release build with warnings as errors, the tests with coverage, `tools/ci/Test-CoverageThresholds.ps1`, `dotnet format --verify-no-changes`, and
+the `nuget-license` gate.
+
 ## Do not suggest
 
 - FluentAssertions 8+ - commercial terms violate the linked-dependency policy.

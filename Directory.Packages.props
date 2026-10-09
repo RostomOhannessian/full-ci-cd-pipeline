@@ -1,0 +1,19 @@
+<Project>
+
+  <!-- Central Package Management. Every version lives here, and a project names a package without a version. -->
+
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <!-- Pin transitive packages to the version chosen here, so a vulnerable transitive version cannot come back unnoticed. -->
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+  </PropertyGroup>
+
+  <!-- Test stack (ADR-0018). Versions were checked on 2026-10-08 and exercised in spike 1.c. -->
+  <ItemGroup>
+    <PackageVersion Include="xunit.v3" Version="4.0.1" />
+    <PackageVersion Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.11.2" />
+    <PackageVersion Include="Microsoft.Testing.Extensions.TrxReport" Version="2.4.1" />
+    <PackageVersion Include="TngTech.ArchUnitNET.xUnitV3" Version="0.13.4" />
+  </ItemGroup>
+
+</Project>

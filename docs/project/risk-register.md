@@ -3,7 +3,7 @@ title: "Risk register"
 description: "The live register of the project's delivery, security, and operational risks, with mitigations, revisit triggers, and the phases that address them."
 type: reference
 audience: [maintainers, contributors]
-last-verified: 2026-10-06
+last-verified: 2026-10-08
 owner: "@RostomOhannessian"
 ---
 
@@ -34,7 +34,7 @@ This is the live copy of the initial risk list in [section 16 of the implementat
 | R11 | Cross-replica cache staleness | L | M | FusionCache backplane, proven against Valkey 8.1.10 and 9.1.2 on 2026-10-06 ([spike 1.b](../research/spikes/1.b-fusioncache-valkey.md)); staleness metrics; two-host tests in WP1.9 | Metric alerts | 1 | open |
 | R12 | Kubernetes version skew across components | M | M | Compatibility matrix; pinned node image; scheduled check | Upgrade PRs | 3, 4 | open |
 | R13 | Single maintainer: review blind spots and bus factor | H | M | Auditors; AI review; checklists; ADRs; retrospectives; portable status | Bypass frequency | 0 | open |
-| R14 | License contamination through dependencies | M | H | Allowlist gate from WP1.1; dependency review | Gate failures | 1 | open |
+| R14 | License contamination through dependencies | M | H | Delivered in WP1.1 ([ADR-0020](../adr/0020-dependency-intake-controls.md)): a `nuget-license` allow-list gate over every direct and transitive package, a forbidden-package list checked from the lock files, locked restores, and required signatures. Dependency review follows in WP2.3. Known caveat: Dependabot can leave a downstream lock file stale, which fails the locked restore until `dotnet restore --force-evaluate` regenerates it | Gate failures; the first Dependabot NuGet pull request that fails with NU1004 | 1 | open |
 | R15 | Documentation drift | M | M | Tested includes; freshness metadata; inventory discovery | Audit failures | 1 | open |
 | R16 | GitHub policy and pricing changes (self-hosted runner fee; feature availability) | L | M | No self-hosted runners by default; capability detection | Changelog | 2 | open |
 | R17 | Third-party DNS (`localtest.me`) unavailable | L | L | Documented hosts-file fallback | Lab failures | 3 | open |
@@ -59,3 +59,4 @@ This is the live copy of the initial risk list in [section 16 of the implementat
 | 2026-10-04 | Initial register from plan version 2.0.1 (R1 to R17), plus R18 recorded during WP0.1 when the replaced initial commit was found to be retrievable by its ID. |
 | 2026-10-04 | R18 closed when the repository was recreated before publication. R19 added after the commit-metadata check found that a merge created by GitHub used the account's primary email. |
 | 2026-10-06 | WP1.0 spikes completed with no failure. R3, R10, and R11 mitigations updated with the spike evidence. Statuses stay open: R3 and R10 because their causes remain, R11 until WP1.9's two-host tests. |
+| 2026-10-08 | WP1.1 delivered the R14 mitigation and found the Dependabot lock-file caveat, which is recorded in R14. R14 stays open until dependency review (WP2.3) and the first Dependabot NuGet pull request. |

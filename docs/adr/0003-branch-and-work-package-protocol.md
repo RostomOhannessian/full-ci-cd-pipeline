@@ -81,6 +81,13 @@ workflow expectations for work-package, phase, hotfix, and promotion pull reques
 WP1.1 confirms the Conventional Commit title rule through a pull-request title check, and WP1.2 confirms governance
 through the branch and workflow auditors.
 
+Execution record (WP1.1, 2026-10-08): the `ci` workflow has a job named "Conventional Commit title" that runs on every pull request to
+`master` and `phase/**`. It accepts the ten types in `CONTRIBUTING.md`, an optional lower-case scope, an optional `!`, and a summary, up
+to 72 characters. The title reaches the script only through an environment variable and is never echoed as a workflow command, because
+a title is untrusted input. The pattern was run against valid and invalid titles in a container before it was committed, and it rejects
+an unknown type such as `style`, an upper-case scope, a missing space, an over-length title, and a title that starts with `::`. A squash
+merge appends the pull request number after the check, so merged titles can exceed 72 characters by the suffix.
+
 ## Pros and cons of the options
 
 ### Phase branches with work-package branches and structured merges

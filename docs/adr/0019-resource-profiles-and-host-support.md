@@ -72,8 +72,9 @@ Chosen option: **Define multiple profiles and an explicit host support matrix**,
 
 Execution record (WP1.0, 2026-10-06): [spike 1.d](../research/spikes/1.d-testcontainers-mssql.md) tested the SQL Server container path
 hands-on on one host only, Windows x86-64 with Docker Desktop, where it started in about 6 seconds and used about 0.7 to 1.0 GB at idle
-by the container's own memory counter. Linux x86-64 and macOS Intel were not verified hands-on, and Linux evidence is deferred to the
-first Linux CI run in WP1.1. For Apple Silicon and Windows on Arm, Microsoft's container documentation says SQL Server images are
+by the container's own memory counter. Linux x86-64 and macOS Intel were not verified hands-on. The Linux evidence was first expected from the
+first Linux CI run in WP1.1, and WP1.1 later corrected that: it has no container tests, so the first Linux Testcontainers run is in WP1.8
+([spike 1.d follow-up](../research/spikes/1.d-testcontainers-mssql.md)). For Apple Silicon and Windows on Arm, Microsoft's container documentation says SQL Server images are
 supported only on Linux hosts with Intel and AMD x86-64 CPUs and that Rosetta 2, Prism, and QEMU are not tested or supported
 (checked 2026-10-06), which matches the best-effort entries in plan section 4.3. Nothing in the spikes tested those hosts.
 Two further host limits surfaced. PactNet 5.0.1 ships no `win-arm64` native library
