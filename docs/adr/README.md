@@ -47,6 +47,7 @@ The rules for writing them are in [ADR-0001](0001-record-architecture-decisions.
 | [0020](0020-dependency-intake-controls.md) | Control dependency intake with central versions, lock files, signatures, and a license gate | accepted | Accepted 2026-10-08 in WP1.1 |
 | [0021](0021-governance-auditor-cli.md) | Build the governance auditors as one deterministic .NET command line | accepted | Accepted 2026-10-08 in WP1.2 |
 | [0022](0022-generated-status-and-traceability.md) | Generate the status page and the traceability report, and prove requirements with tests or an evidence register | accepted | Accepted 2026-10-08 in WP1.2 |
+| [0023](0023-documentation-auditor.md) | Audit the documentation with a deterministic .NET tool, and build the site with warnings as errors | accepted | Accepted 2026-10-08 in WP1.3 |
 
 The evidence behind these decisions is in the [research records](../research/README.md). The plan that ties them together is
 [the implementation plan](../plans/implementation-plan.md).

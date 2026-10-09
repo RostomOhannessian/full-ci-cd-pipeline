@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    The deterministic documentation auditor (ADR-0023). It checks the tool inventory against what the repository uses, the tool pages against
+    their tier, and every Markdown page for front matter, freshness, tested commands, resolvable includes, and accessible diagrams.
+
+    The files below are compiled from Governance.Auditor, so both tools read repository files, parse YAML, and validate schemas with the
+    same code, and no assembly depends on the other. Changing one of them changes both tools, which the build shows at once.
+  -->
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>documentation</AssemblyName>
+    <RootNamespace>Documentation.Auditor</RootNamespace>
+    <IsPackable>false</IsPackable>
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.CommandLine" />
+    <PackageReference Include="YamlDotNet" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Governance.Auditor\Common\Finding.cs" Link="Shared\Finding.cs" />
+    <Compile Include="..\Governance.Auditor\Common\Glob.cs" Link="Shared\Glob.cs" />
+    <Compile Include="..\Governance.Auditor\Common\GovernanceException.cs" Link="Shared\GovernanceException.cs" />
+    <Compile Include="..\Governance.Auditor\Common\MarkdownText.cs" Link="Shared\MarkdownText.cs" />
+    <Compile Include="..\Governance.Auditor\Common\RepositoryFiles.cs" Link="Shared\RepositoryFiles.cs" />
+    <Compile Include="..\Governance.Auditor\Documents\DocumentJson.cs" Link="Shared\DocumentJson.cs" />
+    <Compile Include="..\Governance.Auditor\Documents\JsonSchemaValidator.cs" Link="Shared\JsonSchemaValidator.cs" />
+    <Compile Include="..\Governance.Auditor\Documents\YamlDocument.cs" Link="Shared\YamlDocument.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Documentation.Auditor.Tests" />
+  </ItemGroup>
+
+</Project>

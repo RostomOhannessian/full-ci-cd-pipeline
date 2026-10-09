@@ -26,7 +26,7 @@ entries:
     category: ai-agent
     tier: B
     lifecycle: adopt
-    usage: planned
+    usage: in-use
     introduced: phase-0
     purpose: Carries repository-wide and path-specific instructions that keep AI help aligned with project rules.
     license: service
@@ -36,6 +36,8 @@ entries:
       - https://docs.github.com/en/copilot/concepts/prompting/response-customization
       - https://docs.github.com/en/copilot/tutorials/customization-library/prompt-files
     adrs: []
+    notes: The repository-wide file is .github/copilot-instructions.md, and the path-scoped files are under .github/instructions (WP0.5).
+    detect: ["file:.github/copilot-instructions.md"]
   - id: copilot-skills
     name: GitHub Copilot custom skills
     category: ai-agent
@@ -50,8 +52,9 @@ entries:
     sources:
       - https://docs.github.com/en/copilot/how-tos/copilot-sdk/features/skills
       - https://docs.github.com/en/copilot/tutorials/customization-library/prompt-files
-    adrs: ["0021"]
-    notes: Five repository skills exist under .github/skills. WP0.5 added adr-assistant, tool-doc-author, and session-handoff, and WP1.2 added advanced-security-auditor and blast-radius-evaluator, which wrap the governance CLI, hold no write scope, and have fixtures that the tests run. The documentation-auditor and test-plan-evaluator skills arrive in WP1.3 and WP1.12.
+    adrs: ["0021", "0023"]
+    notes: Six repository skills exist under .github/skills. WP0.5 added adr-assistant, tool-doc-author, and session-handoff, WP1.2 added advanced-security-auditor and blast-radius-evaluator, which wrap the governance CLI, and WP1.3 added documentation-auditor, which wraps the documentation CLI. The CLI-backed skills hold no write scope and have fixtures that the tests run. The test-plan-evaluator skill arrives in WP1.12.
+    detect: ["file:.github/skills/*/SKILL.md"]
 
   # API contracts
   - id: kiota
@@ -175,7 +178,8 @@ entries:
       - https://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/manage-environments
       - https://docs.github.com/en/get-started/learning-about-github/githubs-plans
     adrs: ["0013"]
-    notes: Three workflows run today, all on pull requests to master and phase branches with a read-only default token, SHA-pinned actions, and explicit timeouts. They are docs-quality (WP0.6), ci (WP1.1), and governance (WP1.2). The governance workflow runs the status, traceability, security, and blast-radius checks, and its outputs are not consumed yet. Job selection arrives with WP2.2.
+    notes: Four workflows run today, all on pull requests to master and phase branches with a read-only default token, SHA-pinned actions, and explicit timeouts. They are docs (WP0.6 as docs-quality, and WP1.3), ci (WP1.1), and governance (WP1.2), and docs also runs nightly for external links. The governance workflow runs the status, traceability, security, and blast-radius checks, and its outputs are not consumed yet. Job selection arrives with WP2.2. Every action in use is GitHub-owned, so one entry covers them, and the first third-party action needs its own entry.
+    detect: ["action:actions/*"]
   # Containers
   - id: docker-buildkit
     name: BuildKit
@@ -265,7 +269,7 @@ entries:
     sources:
       - https://github.com/dotnet/aspire
       - https://github.com/dotnet/aspire/releases/tag/v13.6.0
-      - https://learn.microsoft.com/en-us/dotnet/aspire/whats-new/dotnet-aspire-13
+      - https://learn.microsoft.com/en-us/dotnet/aspire/get-started/aspire-overview
     adrs: ["0019"]
     notes: Held because Docker Compose already covers the API-only path and the full platform path still needs Kubernetes, so Aspire adds overlap without solving the core teaching goal.
   - id: codespaces
@@ -299,14 +303,15 @@ entries:
       - https://github.com/devcontainers/spec
       - https://containers.dev/
     adrs: ["0019"]
+    notes: A specification, not software. Its license covers the specification text only.
   - id: docker-compose
     name: Docker Compose
     category: dev-environment
     tier: B
     lifecycle: adopt
-    usage: planned
-    introduced: phase-1
-    purpose: Starts the API-only stack for onboarding, local smoke tests, and identity bootstrap.
+    usage: in-use
+    introduced: phase-0
+    purpose: Runs the repository's pinned lint containers today, and starts the API-only stack for onboarding, local smoke tests, and identity bootstrap from WP1.4.
     license: Apache-2.0
     license-source: https://github.com/docker/compose
     version: "v5.6.0"
@@ -316,6 +321,8 @@ entries:
       - https://github.com/docker/compose/releases/tag/v5.6.0
       - https://docs.docker.com/compose/
     adrs: ["0019"]
+    notes: tools/lint/compose.yaml defines the documentation and secret-scan checks (WP0.6 and WP1.3). The API-only stack in compose.yaml arrives in WP1.4.
+    detect: ["file:**/compose*.y*ml"]
   - id: mise
     name: mise
     category: dev-environment
@@ -375,7 +382,7 @@ entries:
     category: docs-tool
     tier: B
     lifecycle: adopt
-    usage: planned
+    usage: in-use
     introduced: phase-1
     purpose: Catches spelling drift in docs, prompts, and configuration files before publication.
     license: MIT
@@ -387,12 +394,14 @@ entries:
       - https://github.com/streetsidesoftware/cspell/releases/tag/v10.3.6
       - https://cspell.org/
     adrs: ["0005"]
+    notes: Runs from the digest-pinned ghcr.io/streetsidesoftware/cspell image in tools/lint/compose.yaml (WP1.3). The configuration is cspell.json, and the project dictionary is .cspell/project-words.txt.
+    detect: ["image:ghcr.io/streetsidesoftware/cspell"]
   - id: docfx
     name: DocFX
     category: docs-tool
     tier: A
     lifecycle: adopt
-    usage: planned
+    usage: in-use
     introduced: phase-1
     purpose: Builds the public documentation site and API reference for the teaching repository.
     license: MIT
@@ -404,6 +413,25 @@ entries:
       - https://github.com/dotnet/docfx/releases/tag/v2.81.0
       - https://dotnet.github.io/docfx/
     adrs: ["0005"]
+    notes: Installed as a local tool from .config/dotnet-tools.json (WP1.3). docfx.json builds the site with the modern template and treats warnings as errors, and the API reference comes from the XML documentation of the projects under src. The GitHub Pages publishing arrives at the Phase 1 exit (WP1.13).
+    detect: ["dotnet-tool:docfx"]
+  - id: documentation-auditor
+    name: Documentation.Auditor
+    category: docs-tool
+    tier: B
+    lifecycle: adopt
+    usage: in-use
+    introduced: phase-1
+    purpose: Checks the tool inventory against the tools the repository uses, the tool pages against their tier, and every Markdown page for front matter, freshness, tested commands, includes, and diagrams.
+    license: Apache-2.0
+    license-source: https://github.com/RostomOhannessian/full-ci-cd-pipeline/blob/master/LICENSE
+    version: n/a
+    repo: https://github.com/RostomOhannessian/full-ci-cd-pipeline
+    sources:
+      - https://github.com/RostomOhannessian/full-ci-cd-pipeline/tree/master/tools
+    adrs: ["0004", "0005", "0023"]
+    notes: First-party code in tools/Documentation.Auditor, built as the documentation command from the repository's own source, so a pull request that changes it is audited by the changed tool. It compiles a few shared source files from tools/Governance.Auditor, so a change to one of them changes both tools. The policy it enforces is governance/policies/documentation-policy.yaml, and the inventory schema is docs/reference/tools/inventory.schema.json. The docs workflow runs it on every pull request, and the documentation-auditor skill wraps it.
+    detect: ["file:tools/Documentation.Auditor/Documentation.Auditor.csproj"]
   - id: git-cliff
     name: git-cliff
     category: docs-tool
@@ -426,8 +454,8 @@ entries:
     category: docs-tool
     tier: B
     lifecycle: adopt
-    usage: planned
-    introduced: phase-1
+    usage: in-use
+    introduced: phase-0
     purpose: Verifies internal and external links across the documentation set.
     license: Apache-2.0
     license-source: https://github.com/lycheeverse/lychee
@@ -438,13 +466,15 @@ entries:
       - https://github.com/lycheeverse/lychee/releases/tag/lychee-v0.24.2
       - https://lychee.cli.rs/
     adrs: ["0005"]
+    notes: Runs from the digest-pinned lycheeverse/lychee image in tools/lint/compose.yaml. lychee.toml checks internal links and anchors offline on every pull request (WP0.6), and lychee-external.toml checks external links in the nightly workflow (WP1.3).
+    detect: ["image:lycheeverse/lychee"]
   - id: markdownlint-cli2
     name: markdownlint-cli2
     category: docs-tool
     tier: B
     lifecycle: adopt
-    usage: planned
-    introduced: phase-1
+    usage: in-use
+    introduced: phase-0
     purpose: Enforces the repository's Markdown house style and heading structure.
     license: MIT
     license-source: https://github.com/DavidAnson/markdownlint-cli2
@@ -455,12 +485,14 @@ entries:
       - https://www.npmjs.com/package/markdownlint-cli2
       - https://github.com/DavidAnson/markdownlint-cli2/blob/main/README.md
     adrs: ["0005"]
+    notes: Runs from the digest-pinned davidanson/markdownlint-cli2 image in tools/lint/compose.yaml (WP0.6). The rules are in .markdownlint-cli2.jsonc.
+    detect: ["image:davidanson/markdownlint-cli2"]
   - id: mermaid-cli
     name: Mermaid CLI
     category: docs-tool
     tier: B
     lifecycle: adopt
-    usage: planned
+    usage: in-use
     introduced: phase-1
     purpose: Renders diagrams in CI so documentation pages and artifacts can embed checked visuals.
     license: MIT
@@ -472,6 +504,8 @@ entries:
       - https://github.com/mermaid-js/mermaid-cli/releases/tag/12.0.0
       - https://www.npmjs.com/package/@mermaid-js/mermaid-cli
     adrs: ["0005"]
+    notes: Runs from the digest-pinned ghcr.io/mermaid-js/mermaid-cli/mermaid-cli image through tools/lint/check-diagrams.sh (WP1.3). It renders every diagram and fails on a syntax error, and the Documentation.Auditor checks the accessible title and description that mermaid-cli does not require.
+    detect: ["image:ghcr.io/mermaid-js/mermaid-cli/mermaid-cli"]
   # .NET libraries
   - id: asp-versioning
     name: Asp.Versioning
@@ -653,7 +687,8 @@ entries:
       - https://www.nuget.org/packages/System.CommandLine/2.0.12
       - https://github.com/dotnet/command-line-api
     adrs: ["0021"]
-    notes: Checked 2026-10-08 on nuget.org. The package is a stable 2.0 release under the MIT license, and it has no dependencies on net8.0 and later. A 3.0 release candidate exists, and the pin stays on 2.0.x until the 3.0 line is stable. It is used by tools/Governance.Auditor only.
+    notes: Checked 2026-10-08 on nuget.org. The package is a stable 2.0 release under the MIT license, and it has no dependencies on net8.0 and later. A 3.0 release candidate exists, and the pin stays on 2.0.x until the 3.0 line is stable. It is used by tools/Governance.Auditor and tools/Documentation.Auditor.
+    detect: ["nuget:System.CommandLine"]
   - id: yamldotnet
     name: YamlDotNet
     category: dotnet-library
@@ -670,7 +705,8 @@ entries:
       - https://www.nuget.org/packages/YamlDotNet/18.1.0
       - https://github.com/aaubry/YamlDotNet
     adrs: ["0021"]
-    notes: Checked 2026-10-08 on nuget.org. The package is MIT licensed and has no dependencies on net10.0. The tool refuses YAML anchors and aliases, because the representation model resolves an alias to the node it names, which would let a nested alias multiply a file from a pull request. It is used by tools/Governance.Auditor only.
+    notes: Checked 2026-10-08 on nuget.org. The package is MIT licensed and has no dependencies on net10.0. The tool refuses YAML anchors and aliases, because the representation model resolves an alias to the node it names, which would let a nested alias multiply a file from a pull request. It is used by tools/Governance.Auditor and tools/Documentation.Auditor.
+    detect: ["nuget:YamlDotNet"]
 
   # .NET runtime
   - id: aspnet-core
@@ -707,6 +743,7 @@ entries:
       - https://dotnet.microsoft.com/en-us/platform/support/policy/dotnet-core
     adrs: ["0018", "0020"]
     notes: global.json pins 10.0.401 with latestPatch and selects the Microsoft.Testing.Platform runner. The SDK also supplies dotnet format, the Roslyn analyzers (AnalysisLevel latest-recommended), and the NuGet client that enforces Central Package Management, lock files, package source mapping, and required repository signatures. The ubuntu-24.04 runner image 20260927.320.1 carries SDK 10.0.401 (checked 2026-10-08), and CI also runs actions/setup-dotnet against global.json. Spike 1.c found that a Windows host with Smart App Control can refuse to load small unsigned assemblies built locally, so the architecture tests read assemblies from disk and never load them.
+    detect: ["file:global.json"]
   # GitHub services
   - id: ghcr
     name: GitHub Container Registry
@@ -1325,7 +1362,7 @@ entries:
     sources:
       - https://github.com/grafana/docker-otel-lgtm
       - https://github.com/grafana/docker-otel-lgtm/releases/tag/v0.35.0
-      - https://grafana.com/docs/opentelemetry/collector/opentelemetry-collector/quickstart/
+      - https://grafana.com/docs/opentelemetry/docker-lgtm/
     adrs: ["0004"]
     notes: The image bundles Grafana, Loki, Tempo, and Prometheus, so it includes AGPL-3.0 components. It is used for local development only and is not redistributed, so ADR-0004 treats it as tool-only.
   - id: prometheus
@@ -1531,8 +1568,8 @@ entries:
     category: security-tool
     tier: B
     lifecycle: adopt
-    usage: planned
-    introduced: phase-1
+    usage: in-use
+    introduced: phase-0
     purpose: Scans commits and working trees for leaked secrets before publication or release.
     license: MIT
     license-source: https://github.com/gitleaks/gitleaks
@@ -1543,6 +1580,8 @@ entries:
       - https://github.com/gitleaks/gitleaks/releases/tag/v8.30.1
       - https://gitleaks.io/
     adrs: ["0013"]
+    notes: Runs from the digest-pinned ghcr.io/gitleaks/gitleaks image in tools/lint/compose.yaml, over the full history and over the working tree (WP0.6). The repository's own secret patterns in the security auditor complement it.
+    detect: ["image:ghcr.io/gitleaks/gitleaks"]
   - id: governance-auditor
     name: Governance.Auditor
     category: security-tool
@@ -1559,6 +1598,7 @@ entries:
       - https://github.com/RostomOhannessian/full-ci-cd-pipeline/tree/master/tools
     adrs: ["0021", "0022"]
     notes: First-party code in tools/Governance.Auditor, built as the governance command from the repository's own source, so a pull request that changes it is audited by the changed tool. The blast-radius map flags such a change for a close human read, and the threat model records the residual risk. The policies it enforces are governance/policies/security-policy.yaml and governance/policies/blast-radius-map.yaml, and it reads the license, forbidden-package, and coverage policy files from WP1.1. The Dockerfile, infrastructure, and manifest rules arrive in WP1.12.
+    detect: ["file:tools/Governance.Auditor/Governance.Auditor.csproj"]
   - id: tfsec
     name: tfsec
     category: security-tool
@@ -1804,6 +1844,7 @@ entries:
       - https://docs.github.com/en/code-security/dependabot
     adrs: ["0013", "0020"]
     notes: WP1.1 adds the nuget ecosystem and the docker, devcontainers, and docker-compose ecosystems for manifests that arrive in WP1.4 and Phase 2. Dependabot reads its configuration from the default branch, so the new entries take effect when Phase 1 merges. Open upstream issue dependabot-core 13950 (read 2026-10-08) says Dependabot can leave a downstream packages.lock.json stale when Central Package Management and project references combine, which fails locked restore with NU1004 until "dotnet restore --force-evaluate" regenerates the lock files.
+    detect: ["file:.github/dependabot.yml"]
   - id: dependency-review
     name: Dependency review
     category: supply-chain
@@ -1836,6 +1877,7 @@ entries:
       - https://www.nuget.org/packages/nuget-license
     adrs: ["0004", "0020"]
     notes: Installed as a local tool from .config/dotnet-tools.json. It reads the restore output, so it runs after the restore, and it has no forbidden-package option, so the forbidden list in governance/policies/forbidden-packages.json is checked by the architecture tests from the lock files. The allow-list is governance/policies/license-policy.json, and the one tool-only exception (Microsoft.Testing.Extensions.CodeCoverage 18.11.2) is an exact-version override in governance/policies/license-overrides.json. Checked 2026-10-08, the gate covers 28 direct and transitive packages and needs exactly that one override.
+    detect: ["dotnet-tool:nuget-license"]
   - id: renovate
     name: Renovate
     category: supply-chain
@@ -1940,6 +1982,7 @@ entries:
       - https://learn.microsoft.com/en-us/dotnet/core/testing/unit-testing-with-dotnet-test
     adrs: ["0018"]
     notes: Spike 1.c (2026-10-06) switched MTP on with a global.json test runner setting under SDK 10.0.401, and xUnit v3 4.0.1 then ran through dotnet test with the project passed as --project. xunit.v3 4.0.1 depends on the MTP v2 runner package.
+    detect: ["nuget:Microsoft.Testing.Extensions.TrxReport"]
   - id: xunit-v3
     name: xUnit v3
     category: test-framework
@@ -1958,6 +2001,7 @@ entries:
       - https://xunit.net/docs/getting-started/v3/getting-started
     adrs: ["0018"]
     notes: In 4.0.1 the concrete ParallelizationAttribute is not shipped and the CollectionBehavior properties for parallelism are errors, so each test project declares parallelism in xunit.runner.json (WP1.1, checked 2026-10-08), and a test fails when a test project lacks the file.
+    detect: ["nuget:xunit.v3"]
 
   # Test tools
   - id: archunitnet
@@ -1977,6 +2021,7 @@ entries:
       - https://github.com/TNG/ArchUnitNET
     adrs: ["0018"]
     notes: WP1.1 (2026-10-08, version 0.13.4) found four behaviors that shape how rules are written. A condition followed by "or" starts a new rule instead of widening the predicate, so a set of allowed dependencies is built as a set of types. Types outside the loaded assemblies, such as the BCL, are never in that set, so "only depend on" rules match the namespace of the dependency instead. Results are cached by rule description, which made two negative controls pass in Release and fail in Debug, so the cache is switched off. A rule that matches no type fails unless WithoutRequiringPositiveResults is used, so each rule runs strictly against conforming fixtures and leniently against empty production layers.
+    detect: ["nuget:TngTech.ArchUnitNET.xUnitV3"]
   - id: awesomeassertions
     name: AwesomeAssertions
     category: test-tool
@@ -2095,6 +2140,7 @@ entries:
       - https://github.com/microsoft/codecoverage
     adrs: ["0004", "0018"]
     notes: Accepted as a tool-only, non-OSI dependency under ADR-0004, because it is used at test time and is not linked into shipped binaries. The package ships its terms as License.txt (Microsoft Software License Terms for the Microsoft .NET Library) and the project describes it as closed source. It is free to use and was chosen because coverlet does not support Microsoft.Testing.Platform v2. Spike 1.c (2026-10-06) ran 18.11.2 with xUnit v3 and produced Cobertura output that ReportGenerator parsed. Version 18.12.0 also exists, and WP1.1 stays on 18.11.2, which spike 1.c exercised, and leaves 18.12.0 to a Dependabot pull request. The license gate pins the exception to this exact version, so a bump fails the gate until the new terms are read. The extension measures only assemblies that a test loads, and the architecture tests never load production assemblies, so the Cobertura file is empty until WP1.6 adds unit tests. Raw coverage files embed local paths, so never commit them.
+    detect: ["nuget:Microsoft.Testing.Extensions.CodeCoverage"]
   - id: netarchtest
     name: NetArchTest.eNhancedEdition
     category: test-tool
@@ -2231,6 +2277,7 @@ entries:
       - https://github.com/danielpalme/ReportGenerator
     adrs: ["0018"]
     notes: Installed as a local tool from .config/dotnet-tools.json. CI turns the Cobertura file into a Markdown job summary. The coverage thresholds are checked separately by tools/ci/Test-CoverageThresholds.ps1, because ReportGenerator reports coverage and does not gate on it.
+    detect: ["dotnet-tool:dotnet-reportgenerator-globaltool"]
   - id: schemathesis
     name: Schemathesis
     category: test-tool

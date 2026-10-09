@@ -1,0 +1,40 @@
+{
+  "$schema": "https://raw.githubusercontent.com/dotnet/docfx/main/schemas/docfx.schema.json",
+  "metadata": [
+    {
+      "src": [{ "src": "src", "files": ["**/*.csproj"], "exclude": ["**/bin/**", "**/obj/**"] }],
+      "dest": ".docfx/api",
+      "properties": { "Configuration": "Release" },
+      "noRestore": true
+    }
+  ],
+  "build": {
+    "content": [
+      { "src": ".docfx/api", "files": ["**/*.yml"], "dest": "reference/api" },
+      { "src": "docs", "files": ["**/*.md", "**/toc.yml"], "exclude": ["templates/**"] },
+      { "src": ".", "files": ["*.md"], "dest": "repo" }
+    ],
+    "resource": [
+      {
+        "src": ".",
+        "files": ["**/*", ".*", ".github/**/*", ".config/**/*", ".cspell/**/*"],
+        "exclude": [
+          "/*.md",
+          "docs/**/*.md",
+          "docs/**/toc.yml",
+          "**/bin/**",
+          "**/obj/**",
+          ".git/**",
+          ".docfx/**",
+          "_site/**",
+          "TestResults/**",
+          "**/node_modules/**"
+        ],
+        "dest": "repo"
+      },
+      { "src": "docs", "files": ["templates/**"], "dest": "repo/docs" }
+    ],
+    "output": "_site",
+    "template": ["default", "modern"]
+  }
+}

@@ -88,7 +88,13 @@ than 180 days past `last-verified` are flagged for review.
 WP0.6 confirms the docs-as-code baseline by wiring the Markdown style, link and anchor, and secret checks into CI.
 
 WP1.3 confirms the publishing and audit model by adding DocFX, the spelling and diagram checks, the
-Documentation.Auditor, the inventory audit, and the Pages pipeline.
+Documentation.Auditor, the inventory audit, and the pull request preview. The Pages pipeline itself arrives at the Phase 1 exit (WP1.13).
+
+Execution record (WP1.3, 2026-10-08): the `docs` workflow now runs Markdown style, relative links, spelling, Mermaid rendering, the DocFX build with
+warnings as errors, the documentation auditor, and the full-history secret scan on every pull request, and an external link check every night. Each
+check was shown to fail on a planted defect, and the audit found and fixed inventory entries that said "planned" for tools already in use, one missing
+license note, and two dead source links. [ADR-0023](0023-documentation-auditor.md) records the auditor design. The decision does not change. The
+DocFX metadata step accepts one warning, "No .NET API detected", until WP1.6 adds the first public type.
 
 Later phases confirm the system continuously whenever tutorials, labs, runbooks, and tool pages are added under the
 same rules.

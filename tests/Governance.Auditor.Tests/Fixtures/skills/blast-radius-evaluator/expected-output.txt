@@ -1,7 +1,7 @@
 blast-radius: 7 changed paths
   layers:  Build, Domain, Infrastructure, Tests
   areas:   build-configuration, ci-workflows, database-migration, documentation, github-configuration, production-code, tests, unclassified
-  jobs:    build-test, format, license, links, markdown, pr-title, script-tests, secrets
+  jobs:    build-test, diagrams, docs-audit, docs-site, format, license, links, markdown, pr-title, script-tests, secrets, spelling
   docs:    adr, changelog, migration-notes, runbook, status, tests, threat-model, tool-inventory
   reviews: codeowners, maintainer, security-review
   flags:   dependency-change, migration, workflow-change

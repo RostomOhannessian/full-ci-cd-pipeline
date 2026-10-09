@@ -57,7 +57,7 @@ These steps come from plan section 6.
 | `docs/testing/strategy.md` | Test philosophy, suites, and thresholds | Maintainer | exists |
 | `docs/governance/ai-skills.md` | How AI instructions and skills are governed | Maintainer | exists |
 | `docs/governance/github-settings.md` | The GitHub settings, why each was chosen, and the evidence that it is applied | Maintainer | exists |
-| `.github/workflows/docs-quality.yml`, `.github/workflows/ci.yml`, `.github/workflows/governance.yml` | The CI gates: docs, links, and secret scans, the .NET build, tests, coverage, format, and license gate, and the governance auditors | Maintainer | exists |
+| `.github/workflows/docs.yml`, `.github/workflows/ci.yml`, `.github/workflows/governance.yml` | The CI gates: the documentation checks (Markdown, links, spelling, diagrams, the DocFX site, the documentation auditor, and secret scans), the .NET build, tests, coverage, format, and license gate, and the governance auditors | Maintainer | exists |
 | `tools/lint/compose.yaml` | Lint container definitions used locally and in CI | Maintainer | exists |
 | `.github/copilot-instructions.md`, `.github/instructions/`, `.github/skills/` | Repository-wide rules, path-scoped rules, and repository skills | Maintainer | exists |
 | `governance/github/` | Rulesets, labels, and milestones as code, plus a snapshot of the live settings | Maintainer | exists |
@@ -113,8 +113,20 @@ variable, which you can set to reproduce it.
 ```text
 docker compose -f tools/lint/compose.yaml run --rm markdownlint
 docker compose -f tools/lint/compose.yaml run --rm links
+docker compose -f tools/lint/compose.yaml run --rm spelling
+docker compose -f tools/lint/compose.yaml run --rm diagrams
 docker compose -f tools/lint/compose.yaml run --rm secrets
 docker compose -f tools/lint/compose.yaml run --rm secrets-worktree
+```
+
+The `external-links` service checks external URLs and runs nightly in CI, not on a pull request, so run it by hand only when you add a
+link to another site. The documentation auditor and the documentation site build need the .NET SDK
+([ADR-0023](docs/adr/0023-documentation-auditor.md)):
+
+```text
+dotnet run --project tools/Documentation.Auditor -- audit
+pwsh -NoProfile -File tools/ci/Invoke-DocFx.ps1 -Command metadata
+pwsh -NoProfile -File tools/ci/Invoke-DocFx.ps1 -Command build
 ```
 
 ```text

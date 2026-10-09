@@ -37,6 +37,10 @@ Conventional Commits and attached to each release together with its evidence bun
 - The evidence register, `docs/testing/evidence.yaml`, with its schema, for requirements that tests cannot prove, and the generated `docs/testing/traceability.md`.
 - ADR-0021 on the governance command line and ADR-0022 on generated status and traceability, both accepted.
 - Tool inventory entries for System.CommandLine, YamlDotNet, the governance auditor, and the GitHub CLI, and threat model rows for the auditor, the status generator, and `github-sync`.
+- WP1.3 documentation toolchain: DocFX with the modern template and warnings as errors, a pull request preview artifact, the `docs.yml` workflow (renamed from `docs-quality.yml`) with spelling, Mermaid rendering, the site build, and the documentation auditor on every pull request, and an external link check every night, with digest-pinned `spelling`, `diagrams`, and `external-links` lint services.
+- `Documentation.Auditor` in `tools/Documentation.Auditor`: a command line that discovers the tools that the repository uses and compares them with the tool inventory in both directions, requires a license note for a non-permissive tool, checks the front matter and the sections of each tool page by tier, warns about a stale `last-verified` date, requires tested or `illustrative` command blocks, verifies includes and diagram accessibility text, and lists the 18 tool pages that are owed until WP1.13. Its rules are data in `governance/policies/documentation-policy.yaml`, and it has 249 tests tagged with requirement IDs.
+- The `/documentation-auditor` skill, which wraps the audit with a read-only scope, and ADR-0023 on the auditor's design.
+- Six tool pages (DocFX, cspell, Mermaid CLI, lychee, markdownlint-cli2, and the documentation auditor), a catalog page for System.CommandLine and YamlDotNet, the tool inventory schema with a `detect` field, and `detect` rules for the tools in use.
 
 ### Changed
 
@@ -51,9 +55,11 @@ Conventional Commits and attached to each release together with its evidence bun
 - `.gitattributes` marks the two generated pages as generated, and `.gitignore` ignores the Pester result file.
 - The architecture tests treat `tools/` as a project root.
 - Requirements GOV-002 and GOV-004 are verified, and GOV-003 is in progress until `dev doctor` arrives in WP1.4.
+- The tool inventory marks markdownlint-cli2, lychee, gitleaks, Docker Compose, cspell, DocFX, Mermaid CLI, and the repository instruction files as `in-use`, and the documentation workflow is `docs.yml`. Requirement DOC-003 is verified, and CI-005, DOC-002, DOC-004, and DOC-005 are in progress until their later work packages.
 
 ### Fixed
 
+- Two dead source links in the tool inventory (the Aspire overview and the Grafana docker-lgtm page).
 - The tool inventory listed Stryker.NET as MIT. The package's own license file is Apache-2.0, and the correction is recorded in the decision-critical addendum.
 
 [Unreleased]: https://github.com/RostomOhannessian/full-ci-cd-pipeline/commits/master

@@ -29,8 +29,11 @@ Run the current repository checks when relevant:
 ```text
 docker compose -f tools/lint/compose.yaml run --rm markdownlint
 docker compose -f tools/lint/compose.yaml run --rm links
+docker compose -f tools/lint/compose.yaml run --rm spelling
+docker compose -f tools/lint/compose.yaml run --rm diagrams
 docker compose -f tools/lint/compose.yaml run --rm secrets
 docker compose -f tools/lint/compose.yaml run --rm secrets-worktree
+dotnet run --project tools/Documentation.Auditor -- audit
 ```
 
 For a change to code, tests, packages, or `tools/ci`, also run the .NET gate under "Commands that run today" in AGENTS.md: a locked restore,

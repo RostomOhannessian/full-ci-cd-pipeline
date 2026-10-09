@@ -1,0 +1,6 @@
+error [tool-undocumented] Directory.Packages.props:4: The nuget 'Mystery.Package' is used here and no inventory entry detects it. Add an entry to docs/reference/tools/inventory.yaml with the detect rule 'nuget:Mystery.Package', and write its page if its tier needs one.
+error [tool-page-section] docs/reference/tools/acme-lint.md: acme-lint: a Tier B page needs the section '## Further research'.
+error [diagram-accessibility] docs/explanation/flow.md:11: The diagram has no accessible title. Add a line 'accTitle: ...' under the diagram type.
+error [diagram-accessibility] docs/explanation/flow.md:11: The diagram has no accessible description. Add a line 'accDescr: ...' under the diagram type.
+error [command-block-untested] docs/tutorials/start.md:11: A hand-written command block must come from a tested file through an include, such as [!code-bash[...](~/scripts/example.sh#region)], or be marked 'illustrative' after the language, as in ```bash illustrative.
+documentation audit: failed (5 errors, 0 warnings, 0 notes).

@@ -16,9 +16,11 @@
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Catalog.Architecture.Tests/Catalog.Architecture.Tests.csproj" />
+    <Project Path="tests/Documentation.Auditor.Tests/Documentation.Auditor.Tests.csproj" />
     <Project Path="tests/Governance.Auditor.Tests/Governance.Auditor.Tests.csproj" />
   </Folder>
   <Folder Name="/tools/">
+    <Project Path="tools/Documentation.Auditor/Documentation.Auditor.csproj" />
     <Project Path="tools/Governance.Auditor/Governance.Auditor.csproj" />
   </Folder>
 </Solution>

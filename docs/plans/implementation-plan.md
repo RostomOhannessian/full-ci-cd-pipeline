@@ -423,6 +423,8 @@ A work package estimated above L must be split. Sizes guide sequencing only; the
 
 ```mermaid
 flowchart LR
+  accTitle: Allowed project references between layers
+  accDescr: The Catalog.Api composition root references Application, Infrastructure, CrossCutting, and Contracts. Infrastructure and CrossCutting reference Application, and Application references Domain. The client has no reference to Contracts, and the synthetic shopper references the client.
   Api[Catalog.Api<br/>composition root] --> Application
   Api --> Infrastructure
   Api --> CrossCutting
@@ -707,6 +709,8 @@ Kyverno never mutates Argo-managed resources. Digest resolution happens at Pod a
 
 ```mermaid
 flowchart LR
+  accTitle: Trusted build and verification flow for the container image
+  accDescr: A developer opens a pull request against the protected master branch and CI runs. A reusable trusted build workflow produces the image, SLSA provenance and SBOM attestations, and a keyless Cosign signature. The Kyverno image policy checks all three before it admits workloads to the cluster.
   Dev[Developer] -->|signed commit, PR| GH[GitHub ruleset-protected master]
   GH --> CI[CI: tests, CodeQL, dependency review, zizmor, auditors]
   CI --> TB[Reusable trusted build workflow\nrelease environment]
@@ -748,6 +752,8 @@ flowchart LR
 
 ```mermaid
 sequenceDiagram
+  accTitle: Promotion of one image digest through the environments
+  accDescr: CI publishes a signed, attested digest. Kargo discovers it, opens a pull request for dev, waits for the required checks, and has Argo CD run a canary with analysis. Staging follows the same flow automatically, and production needs an operator to promote and a code owner to approve the pull request.
   participant CI as GitHub Actions (master)
   participant R as GHCR
   participant K as Kargo (in-cluster)

@@ -27,6 +27,8 @@ publishes a test plan, and the thresholds are numbers, not intentions. The tool 
 
 ```mermaid
 flowchart TB
+  accTitle: Test layers from unit tests to platform end-to-end tests
+  accDescr: Four layers build on each other. Unit, property, architecture, and snapshot tests come first, then integration tests, then contract tests, and then platform end-to-end tests, drills, and performance smoke tests.
   E2E[Platform end-to-end, drills, performance smoke]
   CT[Contract: conformance, breaking change, Pact, Schemathesis]
   INT[Integration: infrastructure, API, identity, image]
@@ -107,12 +109,13 @@ each completed work package.
 | Where | What runs |
 | --- | --- |
 | Local, through the `dev` command (from WP1.4) | Any suite, with the same containers as CI. Until then, the commands in [AGENTS.md](../../AGENTS.md) |
-| Pull request CI | The `ci` workflow: restore from lock files, build with warnings as errors, the unit and architecture tests with coverage, the coverage thresholds, the script tests, the format check, the license gate, and the pull-request title check. The `governance` workflow: the status files, the generated pages, requirements traceability, the security auditor, and the blast-radius evaluator. Both workflows still run every job. The blast-radius outputs that select jobs are published by the `governance` workflow, and the selection arrives with WP2.2 |
-| `master` and nightly | The comprehensive suites, mutation, external link checks, image re-scans |
+| Pull request CI | The `ci` workflow: restore from lock files, build with warnings as errors, the unit and architecture tests with coverage, the coverage thresholds, the script tests, the format check, the license gate, and the pull-request title check. The `governance` workflow: the status files, the generated pages, requirements traceability, the security auditor, and the blast-radius evaluator. The `docs` workflow: Markdown style, relative links and anchors, spelling, Mermaid diagrams, the documentation site build with warnings as errors, the documentation auditor, and a full-history secret scan. All three workflows still run every job. The blast-radius outputs that select jobs are published by the `governance` workflow, and the selection arrives with WP2.2 |
+| `master` and nightly | The comprehensive suites, mutation, the external link check (the `docs` workflow runs it nightly), image re-scans |
 | Release | Performance, onboarding, rollback drills, and every gate above |
 
 Phase 0 has no application code, so its tests are checks on content, history, and settings. They are listed in the
 [Phase 0 test plan](../plans/phases/phase-0-foundation.md). Phase 1 starts the code suites. WP1.1 delivers the architecture, reference, and
-dependency tests in `tests/Catalog.Architecture.Tests`, and WP1.2 delivers the tests of the governance tool in
-`tests/Governance.Auditor.Tests`. The unit, integration, snapshot, and API suites arrive with the work packages that
+dependency tests in `tests/Catalog.Architecture.Tests`, WP1.2 delivers the tests of the governance tool in
+`tests/Governance.Auditor.Tests`, and WP1.3 delivers the tests of the documentation auditor in `tests/Documentation.Auditor.Tests`, with the
+Pester tests of the DocFX wrapper in `tools/ci`. The unit, integration, snapshot, and API suites arrive with the work packages that
 build the code they test.

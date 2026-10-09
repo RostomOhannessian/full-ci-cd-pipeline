@@ -77,13 +77,18 @@ These are the same commands CI runs. The documentation checks need only Docker:
 ```text
 docker compose -f tools/lint/compose.yaml run --rm markdownlint
 docker compose -f tools/lint/compose.yaml run --rm links
+docker compose -f tools/lint/compose.yaml run --rm spelling
+docker compose -f tools/lint/compose.yaml run --rm diagrams
 docker compose -f tools/lint/compose.yaml run --rm secrets-worktree
 ```
 
-The first checks Markdown style, the second checks relative links and heading anchors, and the third scans your working tree, including uncommitted files,
-for secrets. A change to code, tests, packages, or `tools/ci` also needs the .NET SDK 10.0.401 and the commands under "Commands that run today" in
+The first checks Markdown style, the second checks relative links and heading anchors, the third checks spelling against `cspell.json` and the
+project word list, the fourth renders every Mermaid diagram, and the fifth scans your working tree, including uncommitted files, for secrets. A
+page change also needs the documentation auditor, `dotnet run --project tools/Documentation.Auditor -- audit`, which checks the front matter,
+the sections of each tool page, the command blocks, and the tool inventory ([ADR-0023](docs/adr/0023-documentation-auditor.md)). A change to
+code, tests, packages, or `tools/ci` also needs the .NET SDK 10.0.401 and the commands under "Commands that run today" in
 [AGENTS.md](AGENTS.md): a locked restore, a Release build with warnings as errors, the tests with coverage, the coverage thresholds, the format check,
-and the license gate. The governance checks, which the `governance` workflow runs on every pull request, run through the same tool:
+and the license gate. The nightly `external-links` job checks links to other sites, so a pull request does not need it. The governance checks, which the `governance` workflow runs on every pull request, run through the same tool:
 
 ```text
 dotnet run --project tools/Governance.Auditor -- status validate

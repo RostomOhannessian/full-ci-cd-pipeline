@@ -1,0 +1,37 @@
+{
+  // Spelling for documentation, prompts, and configuration. The command runs from tools/lint/compose.yaml:
+  //   docker compose -f tools/lint/compose.yaml run --rm spelling
+  // Words that are correct in this repository but missing from the bundled dictionaries go in .cspell/project-words.txt, one per line.
+  // Fix a typo in the file instead of adding it to the list.
+  "$schema": "https://raw.githubusercontent.com/streetsidesoftware/cspell/main/cspell.schema.json",
+  "version": "0.2",
+  "language": "en-US",
+  "dictionaries": ["project-words"],
+  "dictionaryDefinitions": [
+    { "name": "project-words", "path": ".cspell/project-words.txt", "addWords": true }
+  ],
+  "files": [
+    "**/*.md",
+    "docs/**/*.{yaml,yml,json}",
+    "governance/**/*.{yaml,yml,json}",
+    ".github/**/*.{yml,yaml,md}"
+  ],
+  "useGitignore": true,
+  "ignorePaths": [
+    ".git/**",
+    "**/packages.lock.json",
+    "docs/research/*-verification.md",
+    "governance/github/snapshot.json"
+  ],
+  "ignoreRegExpList": [
+    "Urls",
+    "Email",
+    "/\\b[0-9a-f]{7,64}\\b/g",
+    "/sha256:[0-9a-f]+/g",
+    "/GHSA(?:-[a-z0-9]{4}){3}/gi",
+    "/\"color\":\\s*\"[0-9a-fA-F]{6}\"/g",
+    "/^\\s*pattern:.*$/gm",
+    "/\\b[A-Z][A-Z0-9_]{2,}\\b/g",
+    "/`[^`\\n]*`/g"
+  ]
+}
