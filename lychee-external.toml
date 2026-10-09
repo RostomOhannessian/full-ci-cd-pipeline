@@ -1,0 +1,34 @@
+# External link checking. The nightly workflow runs it and reports the result (.github/workflows/docs.yml), and it never runs on a pull request,
+# because a third-party site that is down must not block a change. Relative links, file references, and heading anchors are checked on every
+# pull request with lychee.toml, which makes no network requests.
+#
+#   docker compose -f tools/lint/compose.yaml run --rm external-links
+offline = false
+
+# The headings of other people's pages are not a stable contract, so only the page itself is checked.
+include_fragments = "none"
+
+no_progress = true
+# Also read Markdown under dot-directories such as .github/skills and .github/instructions.
+hidden = true
+
+# Be polite to the hosts that most links point to, and retry the failures that a busy host causes.
+max_retries = 3
+retry_wait_time = 10
+timeout = 30
+max_concurrency = 8
+host_concurrency = 2
+host_request_interval = "250ms"
+
+# A 429 means the host asked us to slow down, so the link works. The run reports the hosts that answer this way.
+accept = ["200..=299", "429"]
+
+# A link must never make the runner request a private, loopback, or link-local address. The cloud metadata service lives at a link-local address.
+exclude_all_private = true
+
+# The reserved example domains cannot be reached by design, and the hosts below name the local development setup. Templates contain {{placeholders}}.
+exclude = [
+  '\.localtest\.me',
+  '^https?://([a-z0-9-]+\.)*example\.(com|org|net|test)',
+]
+exclude_path = ['^docs/templates/', '^\.git/', '^_site/', '^\.docfx/']

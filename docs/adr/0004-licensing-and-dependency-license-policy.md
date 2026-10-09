@@ -103,6 +103,10 @@ Removing the one exception, or removing Apache-2.0 from the allow-list, made the
 forbidden-list option. [ADR-0020](0020-dependency-intake-controls.md) records the design. The tool-only rule is enforced for the one
 exception: the coverage extension's override names the exact version 18.11.2, and a test fails if it appears in a production project.
 
+Execution record (WP1.3, 2026-10-08): the documentation auditor enforces the tool-only rule on the tool inventory. An entry whose license is
+not on the permissive list in `governance/policies/documentation-policy.yaml` must carry a note, so the exception to this ADR cannot sit in the
+inventory without a reason ([ADR-0023](0023-documentation-auditor.md)). A test runs the rule against a conforming and a violating inventory,
+and the audit of the real inventory passes. The decision does not change.
 Execution record (WP1.0, 2026-10-06): [spike 1.c](../research/spikes/1.c-mtp-coverage-stryker.md) read the license of
 `Microsoft.Testing.Extensions.CodeCoverage` 18.11.2 from the package itself. Its `License.txt` holds the Microsoft Software License
 Terms for the Microsoft .NET Library, the package metadata uses a license file instead of an SPDX expression, and the project page

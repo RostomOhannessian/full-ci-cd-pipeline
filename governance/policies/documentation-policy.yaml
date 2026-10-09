@@ -1,0 +1,186 @@
+# Policy for `documentation audit`. The rules live in tools/Documentation.Auditor, and this file holds what they enforce, so a change to a
+# required section, an allow-list, or an exception is a reviewed change to this file (CODEOWNERS covers governance/).
+# Every exception names the work package that removes it. Do not weaken an entry to get a build through.
+schema-version: 1
+description: Settings for the documentation auditor, from plan sections 11.2 and 11.3, ADR-0004, ADR-0005, and ADR-0023.
+
+inventory:
+  path: docs/reference/tools/inventory.yaml
+  schema: docs/reference/tools/inventory.schema.json
+  adr-directory: docs/adr
+  # ADR-0004: a tool whose license is not on this list needs a `notes` value that says why it is acceptable here. The list is the
+  # permissive and weak-copyleft part of the license allow-list in license-policy.json, plus CC0-1.0 for specifications.
+  permissive-licenses:
+    - MIT
+    - Apache-2.0
+    - BSD-2-Clause
+    - BSD-3-Clause
+    - ISC
+    - 0BSD
+    - Zlib
+    - MS-PL
+    - MPL-2.0
+    - Unlicense
+    - CC0-1.0
+  # Values of the license field that are not a license, such as a hosted service that is used under its terms of service.
+  no-license-terms:
+    - service
+    - n/a
+
+freshness:
+  # Pages and the inventory more than this many days past their last-verified date are flagged for review (plan section 11.2).
+  warn-after-days: 180
+
+tool-pages:
+  directory: docs/reference/tools
+  # A Tier C library has an entry in this page, as a level-2 heading with the tool's name.
+  catalog: docs/reference/tools/dependency-catalog.md
+  # The level-2 headings that a page of each tier needs (plan section 11.2). Each must have content.
+  sections:
+    A:
+      - Overview
+      - Decision rationale
+      - Setup tutorial
+      - How this project uses it
+      - Validation and troubleshooting
+      - Security and operations
+      - Lab
+      - Further research
+    B:
+      - Overview
+      - Decision rationale
+      - Setup tutorial
+      - Further research
+  # Pages that a later work package writes. The tool is in use today and has no page, so the audit reports a note. When the work package
+  # that owes the page is completed in status.yaml, the missing page becomes an error, and a page that exists must leave this list.
+  owed:
+    - due: WP1.13
+      reason: WP1.13 writes the tool and concept pages for Phase 1, and the Phase 1 exit gate requires every new tool to pass the section audit. These tools came into use in WP0.5 to WP1.2, before the auditor existed.
+      tools:
+        - archunitnet
+        - conventional-commits
+        - copilot-instructions
+        - copilot-skills
+        - dependabot
+        - docker-compose
+        - dotnet-sdk
+        - github-actions
+        - github-cli
+        - gitleaks
+        - governance-auditor
+        - microsoft-testing-platform
+        - ms-code-coverage
+        - nuget-license
+        - pester
+        - psscriptanalyzer
+        - reportgenerator
+        - xunit-v3
+
+discovery:
+  # Build output and caches hold copies of repository files, not repository files.
+  exclude-paths:
+    - '_site/**'
+    - '.docfx/**'
+  # Files that hold tools the auditor cannot read yet. Each one fails the audit as soon as it exists, so the work package that adds the file
+  # also adds the scanner, and a tool cannot go undiscovered while the inventory looks complete.
+  unsupported-sources:
+    - pattern: '.devcontainer/**'
+      owner: WP1.4
+      description: Dev Container features and base image
+    - pattern: 'tools/versions.yaml'
+      owner: WP1.4
+      description: the tool version manifest
+    - pattern: '**/*.tf'
+      owner: WP3.1
+      description: Terraform providers and modules
+    - pattern: '**/.terraform.lock.hcl'
+      owner: WP3.1
+      description: Terraform provider locks
+    - pattern: '**/Chart.yaml'
+      owner: WP3.1
+      description: Helm charts and their dependencies
+    - pattern: 'k8s/**/*.y*ml'
+      owner: WP3.8
+      description: Kubernetes manifests and their images
+    - pattern: 'policies/kyverno/**/*.y*ml'
+      owner: WP3.6
+      description: Kyverno policies and their test images
+
+pages:
+  # Files that the page rules never read: templates hold {{placeholders}}, and the site holds copies.
+  exclude:
+    - 'docs/templates/**'
+    - '_site/**'
+    - '.docfx/**'
+  # The first rule that matches a page decides which front matter keys it needs. A page that matches no rule is not checked, so the
+  # last rule covers every page under docs/.
+  front-matter:
+    - id: adr
+      paths: ['docs/adr/*-*.md']
+      required: [title, description, status, date, decision-makers]
+      present: [supersedes, superseded-by, tools, related-adrs, evidence]
+    - id: research-record
+      paths: ['docs/research/20*.md']
+      required: [title, description, type, date, status]
+    - id: tool-page
+      paths: ['docs/reference/tools/*.md']
+      exclude: ['docs/reference/tools/index.md', 'docs/reference/tools/dependency-catalog.md']
+      required: [title, description, audience, tier, tools, introduced, prerequisites, estimated-time, last-verified, verified-against, owner]
+    - id: page
+      paths: ['docs/**/*.md']
+      required: [title, description, audience, last-verified, owner]
+  command-blocks:
+    # Tutorials, labs, how-to guides, reference pages, explanations, and runbooks show commands that a reader will copy. Records that quote
+    # commands as history, such as ADRs, plans, research, and the generated status page, are not listed.
+    paths:
+      - 'docs/tutorials/**'
+      - 'docs/labs/**'
+      - 'docs/explanation/**'
+      - 'docs/reference/**'
+      - 'docs/runbooks/**'
+    languages: [bash, sh, shell, zsh, console, powershell, pwsh, ps1, cmd, bat]
+    # A block in one of these languages, or with none, counts as a command when its first line starts with one of the commands below.
+    plain-languages: ['', text, txt, plain, plaintext]
+    commands:
+      - dotnet
+      - docker
+      - git
+      - gh
+      - pwsh
+      - powershell
+      - npm
+      - npx
+      - node
+      - kubectl
+      - helm
+      - kind
+      - terraform
+      - tofu
+      - curl
+      - wget
+      - make
+      - bash
+      - sh
+      - dev
+      - mise
+      - cosign
+      - trivy
+      - syft
+      - './'
+    marker: illustrative
+  includes:
+    # A code include reads only from files that CI builds, runs, or validates (plan section 11.3), so the snippet cannot drift unnoticed.
+    allowed-roots:
+      - scripts/
+      - docs/labs/scripts/
+      - src/
+      - tests/
+      - tools/
+      - .github/workflows/
+      - governance/
+      - contracts/
+      - infra/
+      - k8s/
+      - policies/
+      - identity/
+      - compose.yaml

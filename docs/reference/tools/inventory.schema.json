@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Tool inventory",
+  "description": "The shape of docs/reference/tools/inventory.yaml. The Documentation.Auditor validates the file against this schema, then applies the rules a schema cannot express (ADR-0023). The tool-doc-author skill adds entries to match it.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema-version", "last-verified", "entries"],
+  "properties": {
+    "schema-version": { "const": 1 },
+    "last-verified": {
+      "description": "When the versions, licenses, and sources of the entries were last checked against their primary sources.",
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+    },
+    "entries": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/entry" }
+    }
+  },
+  "$defs": {
+    "entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "category", "tier", "lifecycle", "usage", "introduced", "purpose", "license", "license-source", "version", "sources", "adrs"],
+      "properties": {
+        "id": {
+          "description": "The stable ID. A tool page is named after it, and the tools list in a page's front matter uses it.",
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]*$"
+        },
+        "name": { "type": "string", "minLength": 1 },
+        "category": {
+          "type": "string",
+          "enum": [
+            "ai-agent",
+            "api-contract",
+            "ci-service",
+            "container",
+            "data-store",
+            "dev-environment",
+            "docs-tool",
+            "dotnet-library",
+            "dotnet-runtime",
+            "github-service",
+            "gitops",
+            "iac",
+            "identity",
+            "kubernetes",
+            "observability",
+            "policy",
+            "secrets",
+            "security-tool",
+            "standard",
+            "supply-chain",
+            "test-framework",
+            "test-tool"
+          ]
+        },
+        "tier": {
+          "description": "How much documentation the tool needs (docs/reference/tools/index.md). A tool on hold has the tier n/a.",
+          "type": "string",
+          "enum": ["A", "B", "C", "n/a"]
+        },
+        "lifecycle": {
+          "type": "string",
+          "enum": ["adopt", "trial", "assess", "hold", "retired"]
+        },
+        "usage": {
+          "description": "Where the tool is in practice. A tool becomes in-use in the work package that first runs it.",
+          "type": "string",
+          "enum": ["planned", "in-use", "evaluated-only", "removed"]
+        },
+        "introduced": {
+          "description": "The phase that introduced the tool, or n/a for a tool that was only evaluated.",
+          "type": "string",
+          "enum": ["phase-0", "phase-1", "phase-2", "phase-3", "phase-4", "n/a"]
+        },
+        "purpose": { "type": "string", "minLength": 1 },
+        "license": { "type": "string", "minLength": 1 },
+        "license-source": { "type": "string", "pattern": "^https://\\S+$" },
+        "version": {
+          "description": "The version that was verified. A pin lives in Directory.Packages.props, .config/dotnet-tools.json, or the file that uses the tool, and the auditor compares them.",
+          "type": "string",
+          "minLength": 1
+        },
+        "repo": { "type": "string", "pattern": "^https://\\S+$" },
+        "sources": {
+          "description": "Primary sources for the version, the license, and the documentation.",
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^https://\\S+$" }
+        },
+        "adrs": {
+          "description": "The numbers of the ADRs that concern the tool.",
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^[0-9]{4}$" }
+        },
+        "notes": {
+          "description": "Why the license is acceptable when it is not permissive (ADR-0004), and any caveat that a reader needs.",
+          "type": "string",
+          "minLength": 1
+        },
+        "detect": {
+          "description": "How the auditor finds the tool in the repository, each as kind:pattern. The kinds are nuget (a package ID), dotnet-tool (a tool package ID), action (owner/repo), image (a repository without its tag), and file (a glob). A trailing * matches any ending.",
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^(?:nuget|dotnet-tool|action|image|file):\\S+$" }
+        }
+      }
+    }
+  }
+}

@@ -1,11 +1,17 @@
 # Repository hygiene checks for documentation and history.
 #
-# CI (.github/workflows/docs-quality.yml) and local development run exactly these commands from the repository root:
+# CI (.github/workflows/docs.yml) and local development run exactly these commands from the repository root:
 #
 #   docker compose -f tools/lint/compose.yaml run --rm markdownlint
 #   docker compose -f tools/lint/compose.yaml run --rm links
+#   docker compose -f tools/lint/compose.yaml run --rm spelling
+#   docker compose -f tools/lint/compose.yaml run --rm diagrams
 #   docker compose -f tools/lint/compose.yaml run --rm secrets
 #   docker compose -f tools/lint/compose.yaml run --rm secrets-worktree
+#
+# The nightly workflow also runs the external link check, which needs the network:
+#
+#   docker compose -f tools/lint/compose.yaml run --rm external-links
 #
 # Every image is pinned by tag and digest. Dependabot (docker-compose ecosystem) proposes updates to both.
 # Mounts are read-only: these checks never modify the repository.
@@ -27,6 +33,35 @@ services:
     volumes:
       - ../..:/workdir:ro
     command: ["--config", "lychee.toml", "**/*.md"]
+
+  # External link check, reported nightly and never run on a pull request. Settings live in lychee-external.toml. The inventory is a YAML
+  # file, so it is named explicitly: its authoritative sources are the links that matter most.
+  external-links:
+    image: lycheeverse/lychee:0.24.2@sha256:e2d19e57cf6ab037026f20b8e449a1f30d9d7f81eef4194763aab2eab20bd28d
+    working_dir: /workdir
+    volumes:
+      - ../..:/workdir:ro
+    command: ["--config", "lychee-external.toml", "**/*.md", "docs/reference/tools/inventory.yaml"]
+
+  # Spelling of the documentation, the prompts, and the configuration. Settings live in cspell.json, and the project dictionary lives in
+  # .cspell/project-words.txt. With no file arguments, cspell checks the "files" list in cspell.json.
+  spelling:
+    image: ghcr.io/streetsidesoftware/cspell:10.3.6@sha256:9e49763a057fa96730cdf491cb2af2b7f08b1788490251f8c6abd4f8f162ba1e
+    working_dir: /workdir
+    volumes:
+      - ../..:/workdir:ro
+    command: ["--no-progress", "--show-context"]
+
+  # Renders every Mermaid diagram, so a syntax error fails the check. The script is in this folder, and the container's own entry point
+  # is replaced to run it. The image runs as an unprivileged user and the mount is read-only, so the output goes to a temporary directory.
+  diagrams:
+    image: ghcr.io/mermaid-js/mermaid-cli/mermaid-cli:12.0.0@sha256:fa995339034aae7e5cd4f61482248b7f5c51be355b1a6f6eda11a2bbf8401f5f
+    working_dir: /data
+    volumes:
+      - ../..:/data:ro
+    tmpfs:
+      - /tmp:rw,mode=1777
+    entrypoint: ["/bin/sh", "/data/tools/lint/check-diagrams.sh"]
 
   # Secret scan over the complete Git history. Findings are redacted in the output.
   secrets: &gitleaks

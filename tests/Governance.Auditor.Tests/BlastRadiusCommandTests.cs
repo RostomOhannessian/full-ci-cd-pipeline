@@ -51,7 +51,7 @@ public sealed class BlastRadiusCommandTests
 
         Assert.Equal("[]", lines["layers"]);
         Assert.Equal("[\"documentation\"]", lines["areas"]);
-        Assert.Equal("[\"links\",\"markdown\",\"pr-title\",\"secrets\"]", lines["jobs"]);
+        Assert.Equal("[\"diagrams\",\"docs-audit\",\"docs-site\",\"links\",\"markdown\",\"pr-title\",\"secrets\",\"spelling\"]", lines["jobs"]);
         Assert.Equal("false", lines["run-build-test"]);
         Assert.Equal("true", lines["run-markdown"]);
         Assert.Equal("0", lines["unclassified-count"]);

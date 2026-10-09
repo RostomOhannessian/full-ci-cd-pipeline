@@ -18,10 +18,10 @@ A requirement is in scope once every work package that delivers it is completed,
 | Measure | Requirements |
 | --- | --- |
 | Requirements | 121 |
-| In scope and covered | 7 |
+| In scope and covered | 8 |
 | In scope and missing proof | 0 |
-| Covered before they are due | 13 |
-| Not yet due | 101 |
+| Covered before they are due | 17 |
+| Not yet due | 96 |
 | Deferred or withdrawn | 0 |
 
 ## AI: AI enablement
@@ -29,7 +29,7 @@ A requirement is in scope once every work package that delivers it is completed,
 | Requirement | Title | Delivered by | State | Tests | Evidence |
 | --- | --- | --- | --- | --- | --- |
 | `REQ-AI-001` | Repository instructions travel with the codebase | WP0.5 | Covered | None | docs: [copilot-instructions.md](../../.github/copilot-instructions.md), docs: `.github/instructions/`, docs: [AGENTS.md](../../AGENTS.md), docs: [REVIEW.md](../../REVIEW.md) |
-| `REQ-AI-002` | Repository skills wrap deterministic tooling with safe scopes | WP0.5, WP1.2, WP1.3, WP1.12 | Covered | [RepositoryPolicyTests.cs](../../tests/Governance.Auditor.Tests/RepositoryPolicyTests.cs) | None |
+| `REQ-AI-002` | Repository skills wrap deterministic tooling with safe scopes | WP0.5, WP1.2, WP1.3, WP1.12 | Covered | [SkillTests.cs](../../tests/Documentation.Auditor.Tests/SkillTests.cs), [RepositoryPolicyTests.cs](../../tests/Governance.Auditor.Tests/RepositoryPolicyTests.cs) | None |
 | `REQ-AI-003` | External skills require recorded review pinning and approval | WP0.5 | Covered | None | docs: [ai-skills.md](../governance/ai-skills.md), docs: [2026-10-04-external-skill-review.md](../research/2026-10-04-external-skill-review.md) |
 
 ## API: HTTP API and contract
@@ -82,7 +82,7 @@ A requirement is in scope once every work package that delivers it is completed,
 | `REQ-CI-002` | Every pull request runs the governance auditors | WP1.2, WP1.12 | Covered | [RepositoryPolicyTests.cs](../../tests/Governance.Auditor.Tests/RepositoryPolicyTests.cs), [RepositorySelfCheckTests.cs](../../tests/Governance.Auditor.Tests/RepositorySelfCheckTests.cs) | None |
 | `REQ-CI-003` | Reusable workflows build once and publish only from trusted refs | WP2.2, WP2.5 | Not yet due | None | None |
 | `REQ-CI-004` | Job selection caches timeouts and retention are explicit | WP1.2, WP2.2 | Covered | [BlastRadiusCommandTests.cs](../../tests/Governance.Auditor.Tests/BlastRadiusCommandTests.cs), [BlastRadiusTests.cs](../../tests/Governance.Auditor.Tests/BlastRadiusTests.cs), [RepositoryPolicyTests.cs](../../tests/Governance.Auditor.Tests/RepositoryPolicyTests.cs), and 2 more | None |
-| `REQ-CI-005` | Docs and onboarding checks run on the intended events | WP1.3, WP1.4, WP2.2, WP2.7 | Not yet due | None | None |
+| `REQ-CI-005` | Docs and onboarding checks run on the intended events | WP1.3, WP1.4, WP2.2, WP2.7 | Covered | [WorkflowTests.cs](../../tests/Documentation.Auditor.Tests/WorkflowTests.cs) | None |
 
 ## CON: Contracts and consumer testing
 
@@ -113,10 +113,10 @@ A requirement is in scope once every work package that delivers it is completed,
 | Requirement | Title | Delivered by | State | Tests | Evidence |
 | --- | --- | --- | --- | --- | --- |
 | `REQ-DOC-001` | Documentation follows the Diataxis structure | WP0.4, WP1.13, WP4.7 | Not yet due | None | None |
-| `REQ-DOC-002` | The tool inventory records every adopted and evaluated tool | WP0.2, WP1.3, WP4.7 | Not yet due | None | None |
-| `REQ-DOC-003` | The documentation auditor rejects undocumented tool usage | WP1.3 | Not yet due | None | None |
-| `REQ-DOC-004` | Tool pages include the required sections for their tier | WP1.3, WP1.13, WP2.7, WP3.10, WP4.7 | Not yet due | None | None |
-| `REQ-DOC-005` | Docs pages use tested includes freshness metadata and valid diagrams | WP0.4, WP1.3, WP1.13 | Not yet due | None | None |
+| `REQ-DOC-002` | The tool inventory records every adopted and evaluated tool | WP0.2, WP1.3, WP4.7 | Covered | [CliTests.cs](../../tests/Documentation.Auditor.Tests/CliTests.cs), [InventoryTests.cs](../../tests/Documentation.Auditor.Tests/InventoryTests.cs), [RepositorySelfCheckTests.cs](../../tests/Documentation.Auditor.Tests/RepositorySelfCheckTests.cs) | None |
+| `REQ-DOC-003` | The documentation auditor rejects undocumented tool usage | WP1.3 | Covered | [CliTests.cs](../../tests/Documentation.Auditor.Tests/CliTests.cs), [DiscoveryTests.cs](../../tests/Documentation.Auditor.Tests/DiscoveryTests.cs), [InventoryTests.cs](../../tests/Documentation.Auditor.Tests/InventoryTests.cs), and 2 more | None |
+| `REQ-DOC-004` | Tool pages include the required sections for their tier | WP1.3, WP1.13, WP2.7, WP3.10, WP4.7 | Covered | [PolicyTests.cs](../../tests/Documentation.Auditor.Tests/PolicyTests.cs), [RepositorySelfCheckTests.cs](../../tests/Documentation.Auditor.Tests/RepositorySelfCheckTests.cs), [ToolPageTests.cs](../../tests/Documentation.Auditor.Tests/ToolPageTests.cs) | None |
+| `REQ-DOC-005` | Docs pages use tested includes freshness metadata and valid diagrams | WP0.4, WP1.3, WP1.13 | Covered | [MarkdownPageTests.cs](../../tests/Documentation.Auditor.Tests/MarkdownPageTests.cs), [PageRuleTests.cs](../../tests/Documentation.Auditor.Tests/PageRuleTests.cs), [RepositorySelfCheckTests.cs](../../tests/Documentation.Auditor.Tests/RepositorySelfCheckTests.cs), and 2 more | None |
 | `REQ-DOC-006` | Labs and learning paths use the standard teaching structure | WP0.4, WP1.13, WP2.7, WP3.10, WP4.7, WP4.8 | Not yet due | None | None |
 | `REQ-DOC-007` | The public docs experience includes README Pages and portfolio assets | WP0.3, WP1.13, WP4.7, LAUNCH | Not yet due | None | None |
 
@@ -236,7 +236,7 @@ A requirement is in scope once every work package that delivers it is completed,
 | `REQ-SEC-004` | Every trust anchor has custody and rotation guidance | WP3.3, WP4.7 | Not yet due | None | None |
 | `REQ-SEC-005` | Security incidents have rehearsed response runbooks | WP3.10, WP4.6, LAUNCH | Not yet due | None | None |
 | `REQ-SEC-006` | Logs and test data exclude personal and secret material | WP0.1, WP1.11, LAUNCH | Not yet due | None | None |
-| `REQ-SEC-007` | Access rights stay least privilege across delivery and runtime | WP1.2, WP2.2, WP3.2, WP3.3, WP3.4, WP4.5 | Covered | [RepositoryPolicyTests.cs](../../tests/Governance.Auditor.Tests/RepositoryPolicyTests.cs), [RepositorySelfCheckTests.cs](../../tests/Governance.Auditor.Tests/RepositorySelfCheckTests.cs), [WorkflowRuleTests.cs](../../tests/Governance.Auditor.Tests/WorkflowRuleTests.cs) | None |
+| `REQ-SEC-007` | Access rights stay least privilege across delivery and runtime | WP1.2, WP2.2, WP3.2, WP3.3, WP3.4, WP4.5 | Covered | [WorkflowTests.cs](../../tests/Documentation.Auditor.Tests/WorkflowTests.cs), [RepositoryPolicyTests.cs](../../tests/Governance.Auditor.Tests/RepositoryPolicyTests.cs), [RepositorySelfCheckTests.cs](../../tests/Governance.Auditor.Tests/RepositorySelfCheckTests.cs), and 1 more | None |
 
 ## SUP: Supply chain
 

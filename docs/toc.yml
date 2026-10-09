@@ -1,0 +1,27 @@
+# The top navigation of the site. Each entry opens the index page of one section, and the Diataxis sections come first (plan section 11.1).
+# The API reference is generated into reference/api by the metadata stage. Add its entry here when the first public type exists (WP1.6),
+# because DocFX rejects a navigation entry that points at a page that is not there.
+- name: Home
+  href: index.md
+- name: Tutorials
+  href: tutorials/index.md
+- name: Labs
+  href: labs/index.md
+- name: Tool reference
+  href: reference/tools/index.md
+- name: Explanation
+  href: explanation/index.md
+- name: Decisions
+  href: adr/README.md
+- name: Runbooks
+  href: runbooks/index.md
+- name: Plans
+  href: plans/implementation-plan.md
+- name: Status
+  href: project/STATUS.md
+- name: Testing
+  href: testing/strategy.md
+- name: Security
+  href: security/threat-model.md
+- name: Governance
+  href: governance/ai-skills.md

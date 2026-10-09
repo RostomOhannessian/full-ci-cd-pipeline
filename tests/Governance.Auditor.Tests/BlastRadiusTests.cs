@@ -60,7 +60,7 @@ public sealed class BlastRadiusTests
     {
         var result = BlastRadiusEvaluator.Evaluate(Map, ["docs/adr/0021-x.md", "README.md"]);
 
-        Assert.Equal(["links", "markdown", "pr-title", "secrets"], result.Jobs);
+        Assert.Equal(["diagrams", "docs-audit", "docs-site", "links", "markdown", "pr-title", "secrets", "spelling"], result.Jobs);
         Assert.False(result.Run["build-test"]);
         Assert.Empty(result.Layers);
         Assert.Equal(["documentation"], result.Areas);

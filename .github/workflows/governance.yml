@@ -3,7 +3,7 @@ name: governance
 # Runs the governance auditors on every change: the status files, requirements traceability, the security auditor, and the blast-radius
 # evaluator. They are the same commands a person runs locally (see AGENTS.md, "Commands that run today"), and ADR-0021 records the design.
 #
-# The job also publishes the blast-radius result as job outputs. Nothing consumes them yet: ci.yml and docs-quality.yml still run every job.
+# The job also publishes the blast-radius result as job outputs. Nothing consumes them yet: ci.yml and docs.yml still run every job.
 # Job selection driven by these outputs arrives with the workflow architecture in WP2.2.
 
 on:
@@ -48,6 +48,10 @@ jobs:
       run-markdown: ${{ steps.blast-radius.outputs.run-markdown }}
       run-links: ${{ steps.blast-radius.outputs.run-links }}
       run-secrets: ${{ steps.blast-radius.outputs.run-secrets }}
+      run-spelling: ${{ steps.blast-radius.outputs.run-spelling }}
+      run-diagrams: ${{ steps.blast-radius.outputs.run-diagrams }}
+      run-docs-site: ${{ steps.blast-radius.outputs.run-docs-site }}
+      run-docs-audit: ${{ steps.blast-radius.outputs.run-docs-audit }}
     steps:
       # The auditors read the Git history of the pull request, so the checkout needs all of it.
       - name: Check out with full history

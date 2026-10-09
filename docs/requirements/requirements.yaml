@@ -893,7 +893,7 @@ requirements:
   - ci
   - docs
   evidence: docs and devcontainer workflow runs
-  status: planned
+  status: in_progress
 - id: REQ-SUP-001
   title: The production image is built by a multi-stage Dockerfile
   statement: The production image is built through a multi-stage Dockerfile with digest-pinned SDK and runtime bases, deterministic publish settings, a chiseled non-root runtime, no shell or build tools, and a read-only-filesystem-compatible startup path.
@@ -1366,7 +1366,7 @@ requirements:
   - docs
   - ci
   evidence: inventory audit report
-  status: planned
+  status: in_progress
 - id: REQ-DOC-003
   title: The documentation auditor rejects undocumented tool usage
   statement: Documentation.Auditor fails the build when discovered tool usage lacks an inventory entry, lacks the required documentation page, or lacks the required license note for a non-permissive tool.
@@ -1379,7 +1379,7 @@ requirements:
   - docs
   - ci
   evidence: Documentation.Auditor output
-  status: planned
+  status: verified
 - id: REQ-DOC-004
   title: Tool pages include the required sections for their tier
   statement: Every Tier A or B tool page includes Overview, Decision rationale, Setup tutorial, and Further research, and Tier A pages also include How this project uses it, Validation and troubleshooting, Security and operations, and a linked lab.
@@ -1396,7 +1396,7 @@ requirements:
   - docs
   - ci
   evidence: tool-page section audit
-  status: planned
+  status: in_progress
 - id: REQ-DOC-005
   title: Docs pages use tested includes freshness metadata and valid diagrams
   statement: Docs pages use tested code or command includes unless a block is marked illustrative, declare the required front matter fields including last-verified, are flagged for review after 180 days, and use Mermaid diagrams with accessible titles and descriptions.
@@ -1411,7 +1411,7 @@ requirements:
   - docs
   - ci
   evidence: DocFX, Mermaid, and freshness reports
-  status: planned
+  status: in_progress
 - id: REQ-DOC-006
   title: Labs and learning paths use the standard teaching structure
   statement: Every lab includes objectives, prerequisites, setup, expected observations, a break-it exercise, cleanup, self-check questions with answers, and further reading, and the seven learning paths are completed by the phases that own them.

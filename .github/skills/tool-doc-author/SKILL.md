@@ -48,10 +48,10 @@ tracking, and license evidence in sync.
 3. Verify the tool's version and license from primary sources such as the
    vendor repository, an official release page, or the package registry page.
 4. Record the verification date explicitly.
-5. Keep the inventory entry schema aligned with existing entries. Required
-   fields in practice are `id`, `name`, `category`, `tier`, `lifecycle`,
-   `usage`, `introduced`, `purpose`, `license`, `license-source`, `version`,
-   `sources`, and `adrs`.
+5. Keep the inventory entry aligned with the schema, `docs/reference/tools/inventory.schema.json`, which the Documentation.Auditor enforces. Required
+   fields are `id`, `name`, `category`, `tier`, `lifecycle`, `usage`, `introduced`, `purpose`, `license`, `license-source`, `version`,
+   `sources`, and `adrs`. Add `detect` rules (`kind:pattern`, with the kinds `nuget`, `dotnet-tool`, `action`, `image`, and `file`) to a tool that the
+   repository uses, so the auditor can find it, and set `usage` to `in-use` in the work package that first runs the tool.
 6. Use `repo` when current entries use it, and add `notes` whenever the tool
    has a caveat, a non-permissive license, a hold rationale, or a deferred
    choice.
@@ -62,7 +62,8 @@ tracking, and license evidence in sync.
    `docs-tool`, `dotnet-library`, `github-service`, `iac`, `kubernetes`,
    `policy`, `security-tool`, `supply-chain`, `test-framework`, or
    `test-tool`.
-9. If the tool needs a page, start from `docs/templates/tool-page-template.md`.
+9. If the tool needs a page, start from `docs/templates/tool-page-template.md`, and name the page after the inventory ID: `docs/reference/tools/<id>.md`.
+   A Tier C library gets a level-2 section in `docs/reference/tools/dependency-catalog.md` instead.
 10. For Tier A pages, write Overview, Decision rationale, Setup tutorial, How
     this project uses it, Validation and troubleshooting, Security and
     operations, Lab, and Further research.
@@ -75,8 +76,9 @@ tracking, and license evidence in sync.
     `introduced`, `last-verified`, and `verified-against`.
 14. Add or update `notes` when the license is non-permissive, the lifecycle is
     `trial` or `hold`, or the plan carries a caveat that future readers need.
-15. Run markdownlint on the page you changed, and verify any new relative links
-    with `Test-Path`.
+15. Run markdownlint on the page you changed, verify any new relative links
+    with `Test-Path`, and run `dotnet run --project tools/Documentation.Auditor -- audit`, which fails when the
+    inventory, the files that use the tool, and the page disagree.
 
 ## Outputs
 

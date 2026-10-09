@@ -1,6 +1,6 @@
 # Secure Product Catalog Platform
 
-[![docs-quality](https://github.com/RostomOhannessian/full-ci-cd-pipeline/actions/workflows/docs-quality.yml/badge.svg)](https://github.com/RostomOhannessian/full-ci-cd-pipeline/actions/workflows/docs-quality.yml)
+[![docs](https://github.com/RostomOhannessian/full-ci-cd-pipeline/actions/workflows/docs.yml/badge.svg)](https://github.com/RostomOhannessian/full-ci-cd-pipeline/actions/workflows/docs.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
 > **Work in progress.** This repository is in Phase 0: the plan, the decisions, and the documentation foundation are here, and the application starts in Phase 1.
@@ -32,6 +32,8 @@ The full tool list, with versions, licenses, and the phase that introduces each 
 
 ```mermaid
 flowchart TB
+  accTitle: Platform architecture from pull request to running workload
+  accDescr: A pull request passes the CI gates, and one trusted workflow builds the image and signs and attests it. Kargo opens promotion pull requests, Argo CD applies what Git says to the local kind cluster, and Kyverno admits only verified images. Clients reach the API through Envoy Gateway, and the API uses SQL Server, Valkey, Keycloak tokens, and Vault credentials.
   subgraph SRC["Source and CI (GitHub)"]
     DEV[Developer] -->|pull request| MAIN["master, protected by rulesets"]
     MAIN --> CI["CI: tests with Testcontainers, CodeQL, dependency review, auditors"]
@@ -67,6 +69,8 @@ Read the diagram from the left. A pull request passes the CI gates, and one trus
 
 ```mermaid
 flowchart LR
+  accTitle: Clean Architecture project references
+  accDescr: The Catalog.Api composition root references Application, Infrastructure, CrossCutting, and Contracts. Infrastructure and CrossCutting each reference Application, and Application references only Domain.
   Api["Catalog.Api<br/>composition root"] --> Application
   Api --> Infrastructure
   Api --> CrossCutting

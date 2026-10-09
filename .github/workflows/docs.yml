@@ -1,0 +1,249 @@
+name: docs
+
+# Checks the documentation of every change: Markdown style, internal links, spelling, diagrams, the DocFX site, the tool inventory and pages,
+# and the Git history for secrets. A nightly run also checks external links and reports the result.
+# The lint commands are defined once in tools/lint/compose.yaml, so contributors run the same checks locally:
+#   docker compose -f tools/lint/compose.yaml run --rm markdownlint
+#   docker compose -f tools/lint/compose.yaml run --rm links
+#   docker compose -f tools/lint/compose.yaml run --rm spelling
+#   docker compose -f tools/lint/compose.yaml run --rm diagrams
+#   docker compose -f tools/lint/compose.yaml run --rm secrets
+# The site and the audit run through the .NET SDK, and ADR-0023 records the design. Tool pages include the commands below with DocFX code
+# includes, so a command on a page is a command that this workflow runs. The comments of the form "# <name>" mark those regions.
+#
+# The jobs "Markdown style", "Internal links", and "Secret scan (full history)" are required checks in the rulesets, so their names stay as they are.
+
+on:
+  pull_request:
+    branches: [master, "phase/**"]
+  push:
+    branches: [master]
+  # Nightly, off the hour. Scheduled workflows run only on the default branch.
+  schedule:
+    - cron: "23 3 * * *"
+  workflow_dispatch:
+
+# No permissions by default. Each job asks only for what it needs.
+permissions: {}
+
+concurrency:
+  group: docs-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_NOLOGO: "1"
+  DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+
+jobs:
+  markdown:
+    name: Markdown style
+    if: ${{ github.event_name != 'schedule' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Pull tool image
+        run: |
+          for attempt in 1 2 3; do
+            docker compose -f tools/lint/compose.yaml pull markdownlint && exit 0
+            sleep $((attempt * 10))
+          done
+          exit 1
+      # <markdown>
+      - name: Lint Markdown
+        run: docker compose -f tools/lint/compose.yaml run --rm markdownlint
+      # </markdown>
+
+  links:
+    name: Internal links
+    if: ${{ github.event_name != 'schedule' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Pull tool image
+        run: |
+          for attempt in 1 2 3; do
+            docker compose -f tools/lint/compose.yaml pull links && exit 0
+            sleep $((attempt * 10))
+          done
+          exit 1
+      # <links>
+      - name: Check relative links and anchors
+        run: docker compose -f tools/lint/compose.yaml run --rm links
+      # </links>
+
+  secrets:
+    name: Secret scan (full history)
+    if: ${{ github.event_name != 'schedule' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Check out with full history
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Pull tool image
+        run: |
+          for attempt in 1 2 3; do
+            docker compose -f tools/lint/compose.yaml pull secrets && exit 0
+            sleep $((attempt * 10))
+          done
+          exit 1
+      - name: Scan every commit for secrets
+        run: docker compose -f tools/lint/compose.yaml run --rm secrets
+
+  spelling:
+    name: Spelling
+    if: ${{ github.event_name != 'schedule' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Pull tool image
+        run: |
+          for attempt in 1 2 3; do
+            docker compose -f tools/lint/compose.yaml pull spelling && exit 0
+            sleep $((attempt * 10))
+          done
+          exit 1
+      # <spelling>
+      - name: Check spelling
+        run: docker compose -f tools/lint/compose.yaml run --rm spelling
+      # </spelling>
+
+  diagrams:
+    name: Diagrams
+    if: ${{ github.event_name != 'schedule' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Pull tool image
+        run: |
+          for attempt in 1 2 3; do
+            docker compose -f tools/lint/compose.yaml pull diagrams && exit 0
+            sleep $((attempt * 10))
+          done
+          exit 1
+      # <diagrams>
+      - name: Render every Mermaid diagram
+        run: docker compose -f tools/lint/compose.yaml run --rm diagrams
+      # </diagrams>
+
+  docs-site:
+    name: Documentation site
+    if: ${{ github.event_name != 'schedule' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up the .NET SDK from global.json
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: global.json
+      # The API reference comes from the projects under src, which DocFX builds, so they are restored first from the lock files.
+      - name: Restore the solution and the local tools
+        run: |
+          dotnet restore ProductCatalog.slnx --locked-mode
+          dotnet tool restore
+      # <docfx-metadata>
+      - name: Generate the API metadata
+        run: pwsh -NoProfile -File tools/ci/Invoke-DocFx.ps1 -Command metadata
+      # </docfx-metadata>
+      # <docfx-build>
+      - name: Build the site with warnings as errors
+        run: pwsh -NoProfile -File tools/ci/Invoke-DocFx.ps1 -Command build
+      # </docfx-build>
+      # The site is a preview of this change. It is kept for a week and is not published. Publishing to GitHub Pages arrives at the Phase 1 exit.
+      - name: Keep the site as a preview
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: docs-preview
+          path: _site
+          if-no-files-found: error
+          retention-days: 7
+
+  docs-audit:
+    name: Documentation auditor
+    if: ${{ github.event_name != 'schedule' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up the .NET SDK from global.json
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: global.json
+      - name: Restore the auditor from its lock file
+        run: dotnet restore tools/Documentation.Auditor/Documentation.Auditor.csproj --locked-mode
+      - name: Build the auditor
+        run: dotnet build tools/Documentation.Auditor/Documentation.Auditor.csproj --configuration Release --no-restore
+      # <audit>
+      - name: Audit the inventory, the tool pages, and every page
+        run: dotnet tools/Documentation.Auditor/bin/Release/net10.0/documentation.dll audit --summary "$GITHUB_STEP_SUMMARY"
+      # </audit>
+
+  external-links:
+    name: External links
+    if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Pull tool image
+        run: |
+          for attempt in 1 2 3; do
+            docker compose -f tools/lint/compose.yaml pull external-links && exit 0
+            sleep $((attempt * 10))
+          done
+          exit 1
+      # A broken external link fails this job and nothing else: no pull request runs it. The report goes to the job summary.
+      # <external-links>
+      - name: Check external links
+        run: |
+          set -o pipefail
+          status=0
+          docker compose -f tools/lint/compose.yaml run --rm -T external-links 2>&1 | tee external-links.log || status=$?
+          { echo '### External links'; echo; echo '```text'; cat external-links.log; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          exit "$status"
+      # </external-links>

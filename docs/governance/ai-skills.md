@@ -2,6 +2,7 @@
 title: "AI skills governance"
 description: "How this repository configures GitHub Copilot, which repository-owned skills it plans to keep, and how external skills are reviewed before any installation."
 type: reference
+audience: [maintainers, contributors]
 last-verified: 2026-10-08
 owner: "@RostomOhannessian"
 ---
@@ -27,22 +28,23 @@ Nothing from the external-skill review is installed today. Agent Finder relevanc
 
 ## Repository skills
 
-The planned repository skill set comes from plan section 13.2. Two of the skills wrap a deterministic CLI, and the tests in
-`tests/Governance.Auditor.Tests` check their structure, the commands they run, and their fixtures.
+The planned repository skill set comes from plan section 13.2. Three of the skills wrap a deterministic CLI, and the tests in
+`tests/Governance.Auditor.Tests` and `tests/Documentation.Auditor.Tests` check their structure, the commands they run, and their fixtures.
 
 | Skill | Phase | Behavior | Status |
 | --- | --- | --- | --- |
 | [`/advanced-security-auditor`](../../.github/skills/advanced-security-auditor/SKILL.md) | WP1.2 core, WP1.12 depth | Runs `governance security` and explains findings without auto-fixing secrets | exists |
 | [`/blast-radius-evaluator`](../../.github/skills/blast-radius-evaluator/SKILL.md) | WP1.2 core, WP1.12 depth | Runs `governance blast-radius` and summarizes affected layers, gates, and rollback needs | exists |
-| `/documentation-auditor` | WP1.3, WP1.12 | Runs Documentation.Auditor and drafts missing sections from templates | planned in WP1.3 |
+| [`/documentation-auditor`](../../.github/skills/documentation-auditor/SKILL.md) | WP1.3, WP1.12 | Runs `documentation audit`, explains the findings, and drafts the missing sections of a tool page from the template | exists |
 | `/test-plan-evaluator` | WP1.12 | Runs `governance trace` and proposes cases for uncovered requirements | planned in WP1.12 |
 | [`/adr-assistant`](../../.github/skills/adr-assistant/SKILL.md) | WP0.5 | Scaffolds or updates ADRs from the repository template and evidence rules | exists |
 | [`/tool-doc-author`](../../.github/skills/tool-doc-author/SKILL.md) | WP0.5 | Scaffolds tool pages and inventory entries from repository templates | exists |
 | [`/session-handoff`](../../.github/skills/session-handoff/SKILL.md) | WP0.5 | Updates status and the **Resume here** section, then reminds the maintainer to push | exists |
 
-The three Phase 0 skills scaffold documents that have templates. The two governance skills added in WP1.2 are different: each runs a
-deterministic command, holds no write scope, and has a fixture that the tests run, so the output the skill explains is checked in CI
-(`tests/Governance.Auditor.Tests`, `SkillTests`). The documentation and test-plan skills stay planned until their CLIs exist.
+The three Phase 0 skills scaffold documents that have templates. The three auditor skills are different: each runs a
+deterministic command, and each has a fixture that the tests run, so the output the skill explains is checked in CI
+(`SkillTests` in `tests/Governance.Auditor.Tests` and in `tests/Documentation.Auditor.Tests`). The two governance skills hold no write scope. The documentation skill
+may draft the missing sections of one tool page that a finding names, and nothing else. The test-plan skill stays planned until its CLI exists.
 
 ## Operational notes
 
@@ -56,8 +58,8 @@ deterministic command, holds no write scope, and has a fixture that the tests ru
 - Phase 0 had no application code, no `dev` command, and no governance CLI, so broad automation prompts would have had to invent behavior.
 - The three Phase 0 skills scaffold ADRs, tool pages, and handoff records that already have repository templates and clear acceptance rules.
 - The auditor-style skills waited until their deterministic CLIs existed, because the prompt layer must not become the policy engine. The
-  security and blast-radius skills arrived with `governance security` and `governance blast-radius` in WP1.2, and the documentation and
-  test-plan skills stay planned until their CLIs exist.
+  security and blast-radius skills arrived with `governance security` and `governance blast-radius` in WP1.2, the documentation skill arrived with
+  `documentation audit` in WP1.3, and the test-plan skill stays planned until its CLI exists.
 - A small set lowers the prompt-injection surface and makes review of allowed tools and write scope practical.
 - Repository-owned skills are easier to keep honest once CI fixtures exist, so a skill that wraps a CLI ships with a tested fixture.
 - Any later skill should justify itself by saving review effort without bypassing branch, status, or evidence controls.

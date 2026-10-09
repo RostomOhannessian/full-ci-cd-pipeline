@@ -13,11 +13,12 @@ current:
   work-package: null
   branch: "phase/1-api-core"
 resume:
-  last-completed: "WP1.2 is complete: the governance command line in tools/Governance.Auditor (status validate and render, trace, test-summary, github-sync, security, and blast-radius), its security and blast-radius policy files, the governance workflow, and the advanced-security-auditor and blast-radius-evaluator skills. STATUS.md and the traceability report are now generated from data, with drift checks, and every requirement that is due has a test or an evidence entry. 422 tests pass on Windows and in a Linux x86-64 container, the build has zero warnings, and the format, license, and coverage-threshold gates pass. Each security rule was shown to fail against a violating fixture. ADR-0021 and ADR-0022 are new. The work landed through pull request 19 into phase/1-api-core. WP1.0 and WP1.1 landed earlier through pull requests 17 and 18."
-  next-action: "Start WP1.3, Documentation toolchain (Issue 5): create wp/1.3-documentation-toolchain from phase/1-api-core. First close Issues 2, 3, and 4, which github-sync shows as the only drift (run it as a dry run, and pass --apply only with the maintainer's approval). The owner has four decisions waiting. First, whether to add the ci jobs (Build and test, Script tests, Format verification, License gate, Conventional Commit title) and the Governance auditors job as required checks in the master and phase rulesets, which is a settings change that needs the owner's approval, and which the plan expects from WP1.2 on. Second, whether to add tools/Governance.Auditor/ to CODEOWNERS, because the auditor is built from the pull request it audits (risk R20). Third, whether to correct the cache ACL patterns in plan section 8.5, as proposed in spike 1.b. Fourth, the Testcontainers evidence for Linux is now expected from WP1.8, because no work package before it has container tests."
+  last-completed: "WP1.3 is complete: the documentation toolchain. DocFX (modern template, warnings as errors) builds the site with a pull request preview artifact, docs.yml (renamed from docs-quality.yml, with the three required job names unchanged) adds spelling, Mermaid rendering, the site build, and the documentation auditor to every pull request plus a nightly external link check, and tools/Documentation.Auditor discovers the tools that the repository uses and enforces the inventory, the ADR-0004 license-note rule, the tool-page sections by tier, front-matter freshness, and the illustrative-block policy from governance/policies/documentation-policy.yaml. The /documentation-auditor skill, ADR-0023, six tool pages, and a catalog page are new, and 18 tool pages are owed until WP1.13. 673 tests pass, the build has zero warnings, and the format, license, coverage-threshold, Pester, and governance gates pass. Each docs gate was shown to fail on a planted defect. The work landed through pull request 20 into phase/1-api-core. WP1.0, WP1.1, and WP1.2 landed earlier through pull requests 17, 18, and 19."
+  next-action: "Start WP1.4, Developer environment (Issue 6): create wp/1.4-developer-environment from phase/1-api-core. It adds the Dev Container, the dev command, dev doctor, and the Keycloak realm files, and it supplies the scanners that the documentation auditor lists as unsupported until then (Compose and Dev Container formats). The owner has decisions waiting. First, close Issues 2, 3, and 4, which github-sync shows as the only drift (run it as a dry run, and pass --apply only with the maintainer's approval). Second, whether to add the ci jobs (Build and test, Script tests, Format verification, License gate, Conventional Commit title), the Governance auditors job, and the four new documentation jobs (Spelling, Diagrams, Documentation site, Documentation auditor) as required checks in the master and phase rulesets, which is a settings change that needs the owner's approval, and which the plan expects from WP1.2 on. Third, whether to add tools/Governance.Auditor/ and tools/Documentation.Auditor/ to CODEOWNERS, because each auditor is built from the pull request it audits (risk R20). Fourth, whether to correct the cache ACL patterns in plan section 8.5, as proposed in spike 1.b. Fifth, the Testcontainers evidence for Linux is expected from WP1.8, because no work package before it has container tests."
   open-pull-requests: []
   environment-notes:
-    - "Until the Dev Container arrives in WP1.4, Phase 1 work needs Git, Docker (running), the GitHub CLI, the .NET SDK 10.0.401, and PowerShell 7 with Pester 5 for the script tests. Run the documentation gate with the docker compose commands, the .NET gate with the dotnet commands in AGENTS.md, and the governance checks with `dotnet run --project tools/Governance.Auditor -- <command>`."
+    - "Until the Dev Container arrives in WP1.4, Phase 1 work needs Git, Docker (running), the GitHub CLI, the .NET SDK 10.0.401, and PowerShell 7 with Pester 5 for the script tests. Run the documentation gate with the docker compose commands (markdownlint, links, spelling, diagrams, secrets, secrets-worktree), the documentation auditor with `dotnet run --project tools/Documentation.Auditor -- audit`, the site build with `pwsh tools/ci/Invoke-DocFx.ps1 -Command build`, the .NET gate with the dotnet commands in AGENTS.md, and the governance checks with `dotnet run --project tools/Governance.Auditor -- <command>`."
+    - "A tool that you add to the repository needs a tool-inventory entry with a `detect` rule, and the documentation auditor fails when the files and the inventory disagree. Use the tool-doc-author skill, then run the audit."
     - "`STATUS.md` and `docs/testing/traceability.md` are generated. After you change `status.yaml`, run `status validate` and `status render`, and after you change tests or evidence, run `trace`. Never edit the pages by hand."
     - "Use the repository-local noreply Git identity described in ADR-0006 and never set a personal email in this repository."
     - "Keep the GitHub account setting Keep my email addresses private turned on. After every merge, check the author and committer emails of the merged range (see AGENTS.md)."
@@ -129,7 +130,7 @@ phases:
         pull-request: 1
         depends-on: ["WP0.1"]
         evidence:
-          - ".github/workflows/docs-quality.yml"
+          - ".github/workflows/docs.yml"
           - "tools/lint/compose.yaml"
           - ".github/dependabot.yml"
           - "https://github.com/RostomOhannessian/full-ci-cd-pipeline/actions/runs/37243822276"
@@ -225,12 +226,26 @@ phases:
       - id: "WP1.3"
         title: "Documentation toolchain"
         size: M
-        state: planned
-        branch: null
+        state: completed
+        branch: "wp/1.3-documentation-toolchain"
         issue: 5
-        pull-request: null
+        pull-request: 20
         depends-on: ["WP1.1"]
-        evidence: []
+        evidence:
+          - "tools/Documentation.Auditor/"
+          - "tests/Documentation.Auditor.Tests/"
+          - "governance/policies/documentation-policy.yaml"
+          - "docs/reference/tools/inventory.schema.json"
+          - "docs/reference/tools/"
+          - ".github/workflows/docs.yml"
+          - "docfx.json"
+          - "cspell.json"
+          - "lychee-external.toml"
+          - "tools/lint/compose.yaml"
+          - "tools/lint/check-diagrams.sh"
+          - "tools/ci/Invoke-DocFx.ps1"
+          - ".github/skills/documentation-auditor/SKILL.md"
+          - "docs/adr/0023-documentation-auditor.md"
         blockers: []
       - id: "WP1.4"
         title: "Developer environment"

@@ -12,9 +12,13 @@ jobs:
   format: { workflow: ci.yml, name: Format verification }
   license: { workflow: ci.yml, name: License gate }
   pr-title: { workflow: ci.yml, name: Conventional Commit title }
-  markdown: { workflow: docs-quality.yml, name: Markdown style }
-  links: { workflow: docs-quality.yml, name: Internal links }
-  secrets: { workflow: docs-quality.yml, name: Secret scan (full history) }
+  markdown: { workflow: docs.yml, name: Markdown style }
+  links: { workflow: docs.yml, name: Internal links }
+  secrets: { workflow: docs.yml, name: Secret scan (full history) }
+  spelling: { workflow: docs.yml, name: Spelling }
+  diagrams: { workflow: docs.yml, name: Diagrams }
+  docs-site: { workflow: docs.yml, name: Documentation site }
+  docs-audit: { workflow: docs.yml, name: Documentation auditor }
 
 # Jobs that run for every change, because they are required checks.
 always: [pr-title, markdown, links, secrets]
@@ -44,21 +48,21 @@ rules:
     paths: ['src/Catalog.Domain/**']
     layer: Domain
     area: production-code
-    jobs: [build-test, format, license]
+    jobs: [build-test, format, license, docs-site]
     docs: [tests, changelog, status]
   - id: application
     description: Use cases, ports, and the decorator pipeline.
     paths: ['src/Catalog.Application/**']
     layer: Application
     area: production-code
-    jobs: [build-test, format, license]
+    jobs: [build-test, format, license, docs-site]
     docs: [tests, changelog, status]
   - id: contracts-code
     description: Versioned transport records.
     paths: ['src/Catalog.Contracts/**']
     layer: Contracts
     area: production-code
-    jobs: [build-test, format, license]
+    jobs: [build-test, format, license, docs-site]
     reviews: [contract-review]
     flags: [contract-change]
     docs: [tests, contract-docs, changelog, status]
@@ -67,21 +71,21 @@ rules:
     paths: ['src/Catalog.Infrastructure/**']
     layer: Infrastructure
     area: production-code
-    jobs: [build-test, format, license]
+    jobs: [build-test, format, license, docs-site]
     docs: [tests, threat-model, changelog, status]
   - id: cross-cutting
     description: Decorators, observability plumbing, and cross-cutting adapters.
     paths: ['src/Catalog.CrossCutting/**']
     layer: CrossCutting
     area: production-code
-    jobs: [build-test, format, license]
+    jobs: [build-test, format, license, docs-site]
     docs: [tests, changelog, status]
   - id: api
     description: The composition root and HTTP transport.
     paths: ['src/Catalog.Api/**']
     layer: Api
     area: production-code
-    jobs: [build-test, format, license]
+    jobs: [build-test, format, license, docs-site]
     reviews: [security-review]
     docs: [tests, threat-model, changelog, status]
   - id: client
@@ -89,7 +93,7 @@ rules:
     paths: ['src/Catalog.Client/**', 'src/Catalog.SyntheticShopper/**']
     layer: Client
     area: production-code
-    jobs: [build-test, format, license]
+    jobs: [build-test, format, license, docs-site]
     docs: [tests, changelog, status]
   - id: migrations
     description: EF Core migrations. A destructive change needs the contract phase of the expand and contract policy (plan section 8.10).
@@ -114,7 +118,7 @@ rules:
     paths: ['tools/Governance.Auditor/**', 'tools/Documentation.Auditor/**']
     layer: Tooling
     area: governance-tooling
-    jobs: [build-test, format, license]
+    jobs: [build-test, format, license, docs-audit]
     reviews: [governance-tooling]
     flags: [auditor-change]
     docs: [adr, tool-inventory, changelog, status]
@@ -123,14 +127,14 @@ rules:
     paths: ['tools/ci/**', 'scripts/**']
     layer: Tooling
     area: scripts
-    jobs: [script-tests]
+    jobs: [script-tests, docs-site]
     docs: [tests, changelog]
   - id: lint-tooling
-    description: The documentation lint containers.
+    description: The documentation lint containers, and the script that checks Mermaid diagrams.
     paths: ['tools/lint/**', 'tools/versions.yaml']
     layer: Tooling
     area: ci-configuration
-    jobs: [script-tests]
+    jobs: [script-tests, spelling, diagrams]
     docs: [tool-inventory, changelog]
   - id: build-configuration
     description: The SDK pin, shared build settings, package versions, lock files, and project files.
@@ -147,7 +151,7 @@ rules:
       - '**/packages.lock.json'
     layer: Build
     area: build-configuration
-    jobs: [build-test, format, license]
+    jobs: [build-test, format, license, docs-site]
     reviews: [security-review]
     flags: [dependency-change]
     docs: [adr, tool-inventory, changelog]
@@ -216,9 +220,19 @@ rules:
 
   # Documentation.
   - id: documentation
-    description: Pages, plans, decisions, and the generated reports under docs.
-    paths: ['docs/**', '*.md', 'lychee.toml', '.markdownlint-cli2.jsonc', 'docfx.json', 'cliff.toml']
+    description: Pages, plans, decisions, the generated reports under docs, and the configuration of the documentation checks.
+    paths:
+      - 'docs/**'
+      - '*.md'
+      - 'lychee.toml'
+      - 'lychee-external.toml'
+      - '.markdownlint-cli2.jsonc'
+      - 'cspell.json'
+      - '.cspell/**'
+      - 'docfx.json'
+      - 'cliff.toml'
     area: documentation
+    jobs: [markdown, links, spelling, diagrams, docs-site, docs-audit]
     docs: [changelog]
   - id: legal
     description: License and notice files.
