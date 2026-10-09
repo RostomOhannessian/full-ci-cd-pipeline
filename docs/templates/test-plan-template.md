@@ -10,7 +10,8 @@ owner: "@RostomOhannessian"
 
 <!--
 Every requirement in scope maps to at least one test or a justified piece of non-automated evidence.
-`governance trace` (WP1.2) checks this table against requirements.yaml and the test metadata.
+`governance trace` reads requirements.yaml, the test metadata, and the evidence register, and the generated traceability report is the
+authority. Keep this table in step with it, and run `governance trace --phase {{N}}` at the exit gate.
 -->
 
 ## Scope and approach

@@ -37,6 +37,7 @@ vault-init*.json
 bin/
 obj/
 TestResults/
+testResults.xml
 coverage/
 *.trx
 *.user

@@ -21,7 +21,7 @@ gh api -X POST repos/OWNER/REPO/rulesets --input governance/github/rulesets/phas
 
 Replace `OWNER/REPO` with the repository. To change an existing ruleset, find its ID with `gh api repos/OWNER/REPO/rulesets` and use `-X PUT repos/OWNER/REPO/rulesets/ID`.
 
-Labels and milestones are created from `labels.json` and `milestones.json` with `gh label create NAME --color COLOR --description TEXT --force` and `gh api -X POST repos/OWNER/REPO/milestones`. The Phase 1 work-package Issues carry `<!-- governance:id=WPn.m -->` on their first line so that tooling can find them again.
+Labels and milestones are created from `labels.json` and `milestones.json` with `gh label create NAME --color COLOR --description TEXT --force` and `gh api -X POST repos/OWNER/REPO/milestones`, or from WP1.2 on with `dotnet run --project tools/Governance.Auditor -- github-sync --apply`, which shows the diff first. The Phase 1 work-package Issues carry `<!-- governance:id=WPn.m -->` on their first line so that tooling can find them again, and `github-sync` uses that marker.
 
 The remaining settings (merge options, security features, and Actions permissions) are single API calls that the settings record lists, one per row. `snapshot.json` shows the resulting values.
 
@@ -32,7 +32,7 @@ Re-capture the live values and compare them with `snapshot.json`:
 1. Read the repository with `gh api repos/OWNER/REPO`, the Actions settings under `repos/OWNER/REPO/actions/permissions`, and each ruleset under `repos/OWNER/REPO/rulesets/ID`.
 2. Remove volatile fields (IDs, timestamps, links) and compare the rest.
 
-From WP1.2, `governance github-sync` does this comparison and syncs labels, milestones, and Issues from `docs/project/status.yaml`, so these manual steps then go away.
+From WP1.2, `governance github-sync` compares and syncs the labels (from `labels.json`), the milestones (from `milestones.json` and the phase states in `docs/project/status.yaml`), and the work-package Issues (from `status.yaml`). It prints the diff first and writes only with `--apply`. It does not read the repository settings or the rulesets, so the comparison above stays manual until a later work package automates it.
 
 ## Rules for changing a setting
 

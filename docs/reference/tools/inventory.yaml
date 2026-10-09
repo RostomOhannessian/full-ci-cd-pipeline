@@ -41,7 +41,7 @@ entries:
     category: ai-agent
     tier: B
     lifecycle: adopt
-    usage: planned
+    usage: in-use
     introduced: phase-1
     purpose: Packages repeatable repository tasks as reusable skills for auditors, documentation, and review flows.
     license: service
@@ -50,7 +50,8 @@ entries:
     sources:
       - https://docs.github.com/en/copilot/how-tos/copilot-sdk/features/skills
       - https://docs.github.com/en/copilot/tutorials/customization-library/prompt-files
-    adrs: []
+    adrs: ["0021"]
+    notes: Five repository skills exist under .github/skills. WP0.5 added adr-assistant, tool-doc-author, and session-handoff, and WP1.2 added advanced-security-auditor and blast-radius-evaluator, which wrap the governance CLI, hold no write scope, and have fixtures that the tests run. The documentation-auditor and test-plan-evaluator skills arrive in WP1.3 and WP1.12.
 
   # API contracts
   - id: kiota
@@ -174,6 +175,7 @@ entries:
       - https://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/manage-environments
       - https://docs.github.com/en/get-started/learning-about-github/githubs-plans
     adrs: ["0013"]
+    notes: Three workflows run today, all on pull requests to master and phase branches with a read-only default token, SHA-pinned actions, and explicit timeouts. They are docs-quality (WP0.6), ci (WP1.1), and governance (WP1.2). The governance workflow runs the status, traceability, security, and blast-radius checks, and its outputs are not consumed yet. Job selection arrives with WP2.2.
   # Containers
   - id: docker-buildkit
     name: BuildKit
@@ -349,6 +351,23 @@ entries:
       - https://github.com/PowerShell/PowerShell/releases/tag/v7.6.6
       - https://learn.microsoft.com/en-us/powershell/
     adrs: ["0019"]
+  - id: github-cli
+    name: GitHub CLI
+    category: dev-environment
+    tier: B
+    lifecycle: adopt
+    usage: in-use
+    introduced: phase-0
+    purpose: Gives the maintainer a signed-in command line for GitHub, and carries the requests of governance github-sync.
+    license: MIT
+    license-source: https://github.com/cli/cli/blob/trunk/LICENSE
+    version: "2.102.0"
+    repo: https://github.com/cli/cli
+    sources:
+      - https://github.com/cli/cli
+      - https://cli.github.com/manual/gh_api
+    adrs: ["0021"]
+    notes: The version is the one that ran the WP1.2 evidence on 2026-10-08. github-sync passes arguments to gh as a list and sends bodies through standard input, so the tool stores no token. It needs gh api --paginate --slurp, which gh 2.48 and later provide, and --apply refuses to run in GitHub Actions.
 
   # Documentation tools
   - id: cspell
@@ -618,6 +637,40 @@ entries:
       - https://aka.ms/sqlclientproject
     adrs: ["0018"]
     notes: Spikes 1.d and 1.e (2026-10-06) ran 7.1.1 with EF Core 10.0.12 without warnings. A connection interceptor can set the connection string with a rotated credential before each open while pooling stays on, and SqlConnection.ClearPool on a connection built from the old credential's string clears the old pool. The pool key is the full connection string, so build the string with one shared helper. The loaded assembly reports version 7.0.0.0 for package 7.1.1.
+  - id: system-commandline
+    name: System.CommandLine
+    category: dotnet-library
+    tier: C
+    lifecycle: adopt
+    usage: in-use
+    introduced: phase-1
+    purpose: Parses the arguments of the governance command line and prints its help.
+    license: MIT
+    license-source: https://www.nuget.org/packages/System.CommandLine/2.0.12/license
+    version: "2.0.12"
+    repo: https://github.com/dotnet/command-line-api
+    sources:
+      - https://www.nuget.org/packages/System.CommandLine/2.0.12
+      - https://github.com/dotnet/command-line-api
+    adrs: ["0021"]
+    notes: Checked 2026-10-08 on nuget.org. The package is a stable 2.0 release under the MIT license, and it has no dependencies on net8.0 and later. A 3.0 release candidate exists, and the pin stays on 2.0.x until the 3.0 line is stable. It is used by tools/Governance.Auditor only.
+  - id: yamldotnet
+    name: YamlDotNet
+    category: dotnet-library
+    tier: C
+    lifecycle: adopt
+    usage: in-use
+    introduced: phase-1
+    purpose: Reads the repository's YAML documents (status, requirements, evidence, policies, and workflows) into a tree that the governance tool validates.
+    license: MIT
+    license-source: https://www.nuget.org/packages/YamlDotNet/18.1.0/license
+    version: "18.1.0"
+    repo: https://github.com/aaubry/YamlDotNet
+    sources:
+      - https://www.nuget.org/packages/YamlDotNet/18.1.0
+      - https://github.com/aaubry/YamlDotNet
+    adrs: ["0021"]
+    notes: Checked 2026-10-08 on nuget.org. The package is MIT licensed and has no dependencies on net10.0. The tool refuses YAML anchors and aliases, because the representation model resolves an alias to the node it names, which would let a nested alias multiply a file from a pull request. It is used by tools/Governance.Auditor only.
 
   # .NET runtime
   - id: aspnet-core
@@ -1490,6 +1543,22 @@ entries:
       - https://github.com/gitleaks/gitleaks/releases/tag/v8.30.1
       - https://gitleaks.io/
     adrs: ["0013"]
+  - id: governance-auditor
+    name: Governance.Auditor
+    category: security-tool
+    tier: B
+    lifecycle: adopt
+    usage: in-use
+    introduced: phase-1
+    purpose: Runs the repository's deterministic governance checks, which are status validation and rendering, requirements traceability, TRX test summaries, GitHub sync, the security auditor, and the blast-radius evaluator.
+    license: Apache-2.0
+    license-source: https://github.com/RostomOhannessian/full-ci-cd-pipeline/blob/master/LICENSE
+    version: n/a
+    repo: https://github.com/RostomOhannessian/full-ci-cd-pipeline
+    sources:
+      - https://github.com/RostomOhannessian/full-ci-cd-pipeline/tree/master/tools
+    adrs: ["0021", "0022"]
+    notes: First-party code in tools/Governance.Auditor, built as the governance command from the repository's own source, so a pull request that changes it is audited by the changed tool. The blast-radius map flags such a change for a close human read, and the threat model records the residual risk. The policies it enforces are governance/policies/security-policy.yaml and governance/policies/blast-radius-map.yaml, and it reads the license, forbidden-package, and coverage policy files from WP1.1. The Dockerfile, infrastructure, and manifest rules arrive in WP1.12.
   - id: tfsec
     name: tfsec
     category: security-tool

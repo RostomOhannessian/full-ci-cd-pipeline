@@ -1,0 +1,7 @@
+src/Catalog.Domain/Money.cs
+src/Catalog.Infrastructure/Migrations/20261001_DropPriceColumn.cs
+tests/Catalog.Domain.Tests/MoneyTests.cs
+.github/workflows/ci.yml
+Directory.Packages.props
+docs/adr/0099-example.md
+tools/mystery/unknown.bin

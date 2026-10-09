@@ -1,0 +1,58 @@
+---
+title: "Project status"
+description: "Where the project is now, how to resume work on another machine, and the state of every phase."
+type: status
+audience: [maintainers, contributors, learners]
+last-verified: {{updated}}
+owner: "@RostomOhannessian"
+---
+
+# Project status
+
+This page is generated from [status.yaml](status.yaml), which is the source of truth, by `governance status render`. Do not edit it by hand. Change `status.yaml`, run the command, and commit both files. CI fails when this page differs from the command's output. Last updated {{updated}}.
+
+## Resume here
+
+{{resume-table}}
+
+### Environment notes
+
+{{environment-notes}}
+
+### Resume on another machine
+
+1. Install Git, Docker, the GitHub CLI, the .NET SDK 10.0.401, and PowerShell 7 with Pester 5 for the script tests. The Dev Container (WP1.4) will replace this step.
+2. Clone the repository, run `git fetch origin`, and check out the branch named in the table above.
+3. Set the repository-local noreply Git identity and turn on "Keep my email addresses private" in your GitHub account settings ([ADR-0006](../adr/0006-commit-identity-and-privacy.md)). Without the setting, GitHub uses your personal email for the merges it creates.
+4. Read this page, then [AGENTS.md](../../AGENTS.md).
+5. Check that the status files agree, then run the documentation gate from the repository root (the same commands CI runs, defined in [tools/lint/compose.yaml](../../tools/lint/compose.yaml)):
+
+   ```text
+   dotnet run --project tools/Governance.Auditor -- status validate
+   dotnet run --project tools/Governance.Auditor -- status render --check
+   docker compose -f tools/lint/compose.yaml run --rm markdownlint
+   docker compose -f tools/lint/compose.yaml run --rm links
+   docker compose -f tools/lint/compose.yaml run --rm secrets-worktree
+   ```
+
+6. Continue with the next action in the table.
+
+Local environments are disposable. Clusters, Vault keys, and generated passwords belong to one machine and are regenerated on a new one, never migrated.
+
+## Phases
+
+{{phases-table}}
+
+{{work-package-sections}}
+
+## Decisions and risks
+
+[The ADR index](../adr/README.md) lists every decision with its status and the work package that accepts it. The [risk register](risk-register.md) lists the open risks, their mitigations, and the triggers that reopen them.
+
+## How to update this page
+
+1. Edit [status.yaml](status.yaml) in the same commit as the change it records.
+2. Run `dotnet run --project tools/Governance.Auditor -- status validate`, then `dotnet run --project tools/Governance.Auditor -- status render`.
+3. Commit and push the branch, so another machine can resume. The `session-handoff` skill walks through these steps ([skill file](../../.github/skills/session-handoff/SKILL.md)).
+
+The wording that does not come from `status.yaml` lives in `tools/Governance.Auditor/Status/StatusPage.template`.

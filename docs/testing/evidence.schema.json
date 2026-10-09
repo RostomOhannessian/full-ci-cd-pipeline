@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Evidence register",
+  "description": "Schema for docs/testing/evidence.yaml. Each entry points to a file that proves one or more requirements without being an automated test: a manual drill, a recorded run, a document, or a policy file. Automated tests prove requirements by carrying the requirement ID instead.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema-version", "last-verified", "entries"],
+  "properties": {
+    "schema-version": { "const": 1 },
+    "last-verified": { "$ref": "#/$defs/date" },
+    "entries": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/entry" }
+    }
+  },
+  "$defs": {
+    "date": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+    "entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["requirements", "kind", "path", "summary", "recorded"],
+      "properties": {
+        "requirements": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^REQ-(ARC|DOM|APP|API|DATA|CACHE|SEC|IDN|OBS|QUA|CI|SUP|INF|NET|POL|GIT|CON|DOC|DX|GOV|AI)-\\d{3}$" }
+        },
+        "kind": {
+          "description": "The kind of proof, using the verification names in plan section 10.1 and the requirements register.",
+          "enum": ["unit", "architecture", "snapshot", "integration", "contract", "property", "e2e", "policy", "iac", "scan", "ci", "performance", "script", "docs", "drill", "manual"]
+        },
+        "path": {
+          "description": "A repository file, or a directory when it ends with a slash. It must exist.",
+          "type": "string",
+          "minLength": 3
+        },
+        "summary": {
+          "description": "One sentence that says what the file proves.",
+          "type": "string",
+          "minLength": 20
+        },
+        "recorded": { "$ref": "#/$defs/date" }
+      }
+    }
+  }
+}

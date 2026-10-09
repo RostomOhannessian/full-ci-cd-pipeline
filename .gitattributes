@@ -22,3 +22,7 @@ docs/research/*-verification.md linguist-documentation
 *.lock.json linguist-generated
 .terraform.lock.hcl linguist-generated
 packages.lock.json linguist-generated
+
+# Pages that `governance status render` and `governance trace` generate. Edit the data they come from, never the page.
+docs/project/STATUS.md linguist-generated
+docs/testing/traceability.md linguist-generated

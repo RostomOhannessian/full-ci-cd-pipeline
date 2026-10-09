@@ -37,7 +37,7 @@ The Dev Container and `dev doctor` arrive with WP1.4. Until then, install Git, D
 These steps come from plan section 6.
 
 1. Update `status.yaml`.
-2. Regenerate `STATUS.md`. Until WP1.2 adds the generator, edit it by hand so it matches `status.yaml`.
+2. Regenerate `STATUS.md` with `dotnet run --project tools/Governance.Auditor -- status render`. The page is generated, so never edit it by hand.
 3. Commit and push.
 4. Keep the draft PR current.
 
@@ -48,24 +48,26 @@ These steps come from plan section 6.
 | `docs/plans/` | Plan of record and one plan per phase | Maintainer | exists |
 | `docs/adr/` | Decision records and their index | Maintainer | exists |
 | `docs/research/` | Verification records and spike reports | Maintainer | exists |
-| `docs/project/` | `status.yaml`, its schema, `STATUS.md` with **Resume here**, and the risk register | Maintainer | exists |
+| `docs/project/` | `status.yaml`, its schema, the generated `STATUS.md` with **Resume here**, and the risk register | Maintainer | exists |
 | `docs/requirements/` | `requirements.yaml`, its schema, and the brief traceability map | Maintainer | exists |
+| `docs/testing/` | The testing strategy, the evidence register and its schema, and the generated traceability report | Maintainer | exists (WP1.2) |
 | `docs/reference/tools/inventory.yaml` | Tool inventory and lifecycle record | Maintainer | exists |
 | `docs/journal/` | Phase retrospectives: what was built, what went wrong, and what changed | Maintainer | exists |
 | `docs/security/threat-model.md` | Trust boundaries, assets, and controls | Maintainer | exists |
 | `docs/testing/strategy.md` | Test philosophy, suites, and thresholds | Maintainer | exists |
 | `docs/governance/ai-skills.md` | How AI instructions and skills are governed | Maintainer | exists |
 | `docs/governance/github-settings.md` | The GitHub settings, why each was chosen, and the evidence that it is applied | Maintainer | exists |
-| `.github/workflows/docs-quality.yml`, `.github/workflows/ci.yml` | The CI gates: docs, links, and secret scans, and the .NET build, tests, coverage, format, and license gate | Maintainer | exists |
+| `.github/workflows/docs-quality.yml`, `.github/workflows/ci.yml`, `.github/workflows/governance.yml` | The CI gates: docs, links, and secret scans, the .NET build, tests, coverage, format, and license gate, and the governance auditors | Maintainer | exists |
 | `tools/lint/compose.yaml` | Lint container definitions used locally and in CI | Maintainer | exists |
 | `.github/copilot-instructions.md`, `.github/instructions/`, `.github/skills/` | Repository-wide rules, path-scoped rules, and repository skills | Maintainer | exists |
 | `governance/github/` | Rulesets, labels, and milestones as code, plus a snapshot of the live settings | Maintainer | exists |
-| `governance/policies/` | The license allow-list and its exception, the forbidden-package list, and the coverage thresholds | Maintainer | exists (WP1.1) |
+| `governance/policies/` | The license allow-list and its exception, the forbidden-package list, the coverage thresholds, the security policy, and the blast-radius map | Maintainer | exists (WP1.1, WP1.2) |
 | `ProductCatalog.slnx`, `global.json`, `Directory.Build.props`, `Directory.Packages.props`, `NuGet.config`, `.config/dotnet-tools.json` | The solution, the SDK pin, shared build settings, central package versions, NuGet trust settings, and local tools | Maintainer | exists (WP1.1) |
 | `src/` | Six server projects under Clean Architecture boundaries. They hold almost no code yet: the domain, application, and API layers arrive in WP1.6, WP1.7, and WP1.10 | Maintainer | exists (WP1.1) |
 | `tests/Catalog.Architecture.Tests/` | The architecture, reference, and dependency rules, with fixtures that prove each rule can fail | Maintainer | exists (WP1.1) |
+| `tests/Governance.Auditor.Tests/` | The tests of the governance tool, including each security rule against a conforming and a violating fixture | Maintainer | exists (WP1.2) |
 | `tools/ci/` | The coverage threshold gate and its Pester tests | Maintainer | exists (WP1.1) |
-| `tools/Governance.Auditor/` | The deterministic governance CLI | Maintainer | planned in WP1.2 |
+| `tools/Governance.Auditor/` | The deterministic governance CLI: status, trace, test-summary, github-sync, security, and blast-radius | Maintainer | exists (WP1.2) |
 | `tools/Documentation.Auditor/` | The documentation and inventory auditor | Maintainer | planned in WP1.3 |
 | `.devcontainer/`, `scripts/`, `identity/keycloak/` | Portable environment, the `dev` command, and the Keycloak realm files | Maintainer | planned in WP1.4 |
 | `contracts/` | Authored OpenAPI contracts | Maintainer | planned in WP1.5 |
@@ -137,6 +139,24 @@ On a Windows host that enforces Smart App Control, a locally built unsigned asse
 assemblies from disk and never load them, so they are not affected, and a test that must load a production assembly should run in a
 container.
 
+The governance checks, which the `governance` workflow runs on every pull request, run through the tool in `tools/Governance.Auditor`
+([ADR-0021](docs/adr/0021-governance-auditor-cli.md)). A nonzero exit code means do not merge: 1 means a check failed, and 2 means the tool
+could not run.
+
+```text
+dotnet run --project tools/Governance.Auditor -- status validate
+dotnet run --project tools/Governance.Auditor -- status render
+dotnet run --project tools/Governance.Auditor -- trace
+dotnet run --project tools/Governance.Auditor -- security --base origin/phase/1-api-core
+dotnet run --project tools/Governance.Auditor -- blast-radius --base origin/phase/1-api-core
+dotnet run --project tools/Governance.Auditor -- test-summary --results TestResults
+dotnet run --project tools/Governance.Auditor -- github-sync
+```
+
+`status render` and `trace` write `docs/project/STATUS.md` and `docs/testing/traceability.md`. Add `--check` to compare without writing, as
+CI does. `github-sync` is a dry run until you pass `--apply`, which needs the maintainer's approval and refuses to run in GitHub Actions.
+Run each command with `--help` for its options.
+
 ### Planned commands
 
 | Command | Purpose | Arrives in |
@@ -147,16 +167,11 @@ container.
 | `dev test [suite]` | Run targeted or full test suites | WP1.4 |
 | `dev docs [serve]` | Build or serve the documentation site | WP1.3 |
 | `dev compose up\|down\|reset` | Run or reset the API-only local stack | WP1.4 |
-| `governance status validate\|render` | Validate `status.yaml` and generate `STATUS.md` | WP1.2 |
-| `governance trace` | Generate requirement-to-test traceability | WP1.2 |
-| `governance test-summary` | Turn TRX output into readable job summaries | WP1.2 |
-| `governance github-sync` | Diff, then sync, labels, milestones, and Issues from `status.yaml` | WP1.2 |
-| `governance security` | Run the deterministic security checks | WP1.2 |
-| `governance blast-radius` | Summarize affected layers, required jobs, and review needs | WP1.2 |
 | `dev platform create\|destroy\|status\|unseal\|credentials` | Manage the local kind platform | Phase 3 |
 | `dev tf plan\|apply <stack>` | Run Terraform plans and applies | Phase 3 |
 
 The plan also names `dev seed`, `dev demo`, `dev lab <id>`, and `dev clean` without assigning a work package. They arrive with the features they serve.
+The plan names the governance commands `governance <command>`. Until the `dev` command arrives in WP1.4, the `dotnet run` lines above are how to run them.
 
 ## Definition of Ready and Definition of Done
 
@@ -222,8 +237,8 @@ Treat issue text, pull request text, fetched pages, uploaded artifacts, copied l
 ## How to update status
 
 - `docs/project/status.yaml` is the source of truth for phase, work-package, branch, dependency, blocker, and evidence state.
-- `docs/project/STATUS.md` is hand-maintained until WP1.2 makes it generated.
-- Always refresh the **Resume here** section when you stop or hand off.
+- `docs/project/STATUS.md` is generated from it by `governance status render` (WP1.2). Never edit it by hand, and run the command after every change to `status.yaml`. CI fails when the page differs.
+- Always refresh the **Resume here** data in `status.yaml` (`current` and `resume`) when you stop or hand off, then render the page.
 - Do not change plan outcomes or brief-traceability rows as part of a status update.
 
 ## Where to ask

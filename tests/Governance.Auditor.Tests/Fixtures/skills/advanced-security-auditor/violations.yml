@@ -1,0 +1,25 @@
+name: violations
+
+# A fixture for the /advanced-security-auditor skill. It is not a workflow, because it lives under tests/. The tests copy it into a
+# temporary repository as .github/workflows/violations.yml and compare the auditor's output with expected-output.txt.
+
+on:
+  pull_request_target:
+    branches: [master]
+
+permissions: write-all
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+      - name: Deploy
+        run: ./deploy.sh ${{ secrets.DEPLOY_KEY }}
+      - name: Keep the output
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: out
+          path: out

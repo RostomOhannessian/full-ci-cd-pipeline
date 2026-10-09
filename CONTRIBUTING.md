@@ -30,9 +30,9 @@ The plan, the phase plans, and the live status are all in the repository, so wor
 | --- | --- |
 | The plan | [docs/plans/implementation-plan.md](docs/plans/implementation-plan.md) |
 | Phase plans | [docs/plans/phases/](docs/plans/phases/phase-0-foundation.md) |
-| Current status and the next action | [docs/project/STATUS.md](docs/project/STATUS.md) |
+| Current status and the next action | [docs/project/STATUS.md](docs/project/STATUS.md), generated from [status.yaml](docs/project/status.yaml) |
 | Decisions | [docs/adr/](docs/adr/README.md) |
-| Requirements and traceability | [docs/requirements/brief-traceability.md](docs/requirements/brief-traceability.md) |
+| Requirements and traceability | [docs/requirements/brief-traceability.md](docs/requirements/brief-traceability.md), and the generated [traceability report](docs/testing/traceability.md) |
 
 ### Branches and pull requests
 
@@ -62,7 +62,8 @@ Release notes are generated from these messages, so a precise message is documen
 A work package is ready when its Issue states the scope, non-goals, acceptance criteria, requirement IDs, planned tests, documentation
 deliverables, size, and finished dependencies. It is done when the checklist in the
 [pull request template](.github/PULL_REQUEST_TEMPLATE.md) is complete: green checks, tests tagged with requirement IDs, documentation
-and status updated, an ADR for every decision, the threat model updated when a boundary changed, and the branch pushed.
+and status updated, an ADR for every decision, the threat model updated when a boundary changed, the governance auditors passing, and the
+branch pushed. Edit `docs/project/status.yaml` and render `STATUS.md` from it. Never edit `STATUS.md` or the traceability report by hand.
 
 ### Decisions
 
@@ -82,7 +83,19 @@ docker compose -f tools/lint/compose.yaml run --rm secrets-worktree
 The first checks Markdown style, the second checks relative links and heading anchors, and the third scans your working tree, including uncommitted files,
 for secrets. A change to code, tests, packages, or `tools/ci` also needs the .NET SDK 10.0.401 and the commands under "Commands that run today" in
 [AGENTS.md](AGENTS.md): a locked restore, a Release build with warnings as errors, the tests with coverage, the coverage thresholds, the format check,
-and the license gate. The Dev Container and a single `dev` command arrive in WP1.4.
+and the license gate. The governance checks, which the `governance` workflow runs on every pull request, run through the same tool:
+
+```text
+dotnet run --project tools/Governance.Auditor -- status validate
+dotnet run --project tools/Governance.Auditor -- status render
+dotnet run --project tools/Governance.Auditor -- trace
+dotnet run --project tools/Governance.Auditor -- security --base origin/phase/1-api-core
+dotnet run --project tools/Governance.Auditor -- blast-radius --base origin/phase/1-api-core
+```
+
+`status render` and `trace` write the generated pages, so run them, read the diff, and commit the result. The security auditor checks the
+commits since the base, and the blast-radius evaluator names the jobs, documentation, and reviews that your change needs. The Dev
+Container and a single `dev` command arrive in WP1.4.
 
 ## Documentation standards
 

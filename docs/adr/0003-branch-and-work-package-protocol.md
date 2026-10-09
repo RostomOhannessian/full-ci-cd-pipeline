@@ -88,6 +88,12 @@ a title is untrusted input. The pattern was run against valid and invalid titles
 an unknown type such as `style`, an upper-case scope, a missing space, an over-length title, and a title that starts with `::`. A squash
 merge appends the pull request number after the check, so merged titles can exceed 72 characters by the suffix.
 
+Execution record (WP1.2, 2026-10-08): `governance status validate` now checks the branch names in `status.yaml` against this protocol. A
+phase branch must be `phase/<n>-<slug>` with the phase number, and a work-package branch must be `wp/<phase>.<nn>-<slug>` with its own
+work-package number, or the phase branch itself for a docs-only phase. The `governance` workflow runs on every pull request to `master`
+and `phase/**` and checks the status files, the traceability report, the workflows (permissions, pinned actions, secrets, and limits), and
+the commit identities of the pull request. The pull-request title check stays in `ci`.
+
 ## Pros and cons of the options
 
 ### Phase branches with work-package branches and structured merges

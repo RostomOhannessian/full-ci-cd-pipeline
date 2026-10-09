@@ -37,6 +37,10 @@ For a change to code, tests, packages, or `tools/ci`, also run the .NET gate und
 a Release build with warnings as errors, the tests with coverage, `tools/ci/Test-CoverageThresholds.ps1`, `dotnet format --verify-no-changes`, and
 the `nuget-license` gate.
 
+Run the governance checks too, with `dotnet run --project tools/Governance.Auditor -- <command>`: `status validate` and `status render` after a
+change to `status.yaml`, `trace` after a change to tests or evidence, `security --base <commit>` and `blast-radius --base <commit>` before you open a
+pull request. `STATUS.md` and `docs/testing/traceability.md` are generated, so never edit them by hand.
+
 ## Do not suggest
 
 - FluentAssertions 8+ - commercial terms violate the linked-dependency policy.

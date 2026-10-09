@@ -1,0 +1,10 @@
+error [workflow-permissions] .github/workflows/violations.yml: The top level sets 'write-all', which grants every scope. List only the scopes that are needed.
+error [workflow-permissions] .github/workflows/violations.yml:13: The job 'build' sets no permissions. Set 'permissions: {}' or list the scopes it needs, so its token is explicit.
+error [action-pinning] .github/workflows/violations.yml:18: 'actions/checkout@v4' is not pinned to a full 40-character commit SHA. A tag or branch can be moved to different code.
+error [workflow-secrets] .github/workflows/violations.yml:20: The workflow uses 'secrets.DEPLOY_KEY'. Only the platform token is allowed, and other access comes from OIDC (plan section 8.8).
+error [checkout-credentials] .github/workflows/violations.yml:13: A checkout step in job 'build' does not set 'persist-credentials: false', so the token stays in the Git configuration.
+error [pull-request-target] .github/workflows/violations.yml: The workflow uses the 'pull_request_target' trigger, which runs with a write token. Use 'pull_request', or add an entry with a reason to governance/policies/security-policy.yaml.
+error [workflow-limits] .github/workflows/violations.yml:13: The job 'build' sets no 'timeout-minutes'. The default is six hours, so give every job an explicit limit.
+error [workflow-limits] .github/workflows/violations.yml:13: An upload-artifact step in job 'build' sets no 'retention-days', so the artifact lingers for the repository default.
+warning [commit-identity] No --base was given, so no commit was checked. In a pull request, pass the base and head commits.
+security: failed (8 errors, 1 warnings).

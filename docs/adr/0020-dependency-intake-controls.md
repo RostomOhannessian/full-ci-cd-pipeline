@@ -100,6 +100,17 @@ The controls are:
 - **WP1.2** adds the `governance security` rule for license policy and reads the same policy files.
 - The first Dependabot NuGet pull request shows whether the lock-file caveat appears in practice.
 
+Execution record (WP1.2, 2026-10-08): the `license-policy` rule of `governance security` reads `license-policy.json`,
+`license-overrides.json`, and `forbidden-packages.json`, and the `governance` workflow runs it on every pull request. It fails when the
+allow-list admits a license that starts with GPL, AGPL, SSPL, BUSL, Elastic, OSMFEULA, or another denied prefix, or a license reference
+that the security policy does not allow. It also fails when a package with a tool-only exception reaches a production project, and when
+any lock file resolves a forbidden package, in a transitive position or as a pre-release of a forbidden line. The architecture tests
+keep their own copy of the last two checks, and both read the same files. They now cover `tools/` as well as `src/` and `tests/`, so
+the auditor's own lock file is checked. WP1.2 added two packages, `System.CommandLine` 2.0.12 and `YamlDotNet` 18.1.0. Both are MIT,
+both resolve through the nuget.org source mapping with the required signature, and the license gate passed with the one existing
+override. [ADR-0021](0021-governance-auditor-cli.md) records why the JSON Schema library with the largest following was not chosen: its
+current license is not an OSI license.
+
 ## Pros and cons of the options
 
 ### Central Package Management with lock files, required signatures, and CI gates

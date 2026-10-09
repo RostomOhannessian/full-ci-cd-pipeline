@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- The deterministic governance CLI (ADR-0021). It audits the repository, renders generated documents, and syncs GitHub through the GitHub CLI. -->
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>governance</AssemblyName>
+    <RootNamespace>Governance.Auditor</RootNamespace>
+    <IsPackable>false</IsPackable>
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.CommandLine" />
+    <PackageReference Include="YamlDotNet" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Status\StatusPage.template" />
+    <InternalsVisibleTo Include="Governance.Auditor.Tests" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,76 @@
+# The evidence register: proof that a requirement holds when the proof is not an automated test. Automated tests prove a requirement by
+# carrying its ID, so they need no entry here. Each entry names a file that must exist. `governance trace` reads this file, checks every
+# path, and renders docs/testing/traceability.md. The schema is evidence.schema.json, and ADR-0022 explains the rules.
+schema-version: 1
+last-verified: '2026-10-08'
+entries:
+  - requirements: [REQ-GOV-001]
+    kind: docs
+    path: docs/plans/implementation-plan.md
+    summary: The implementation plan and its phase plans are repository files with a revision history, so planning does not depend on a session or a machine.
+    recorded: '2026-10-08'
+  - requirements: [REQ-GOV-001]
+    kind: docs
+    path: docs/project/status.yaml
+    summary: The status source of truth holds the phase and work-package state, the evidence links, and the resume data, and CI validates it on every pull request.
+    recorded: '2026-10-08'
+  - requirements: [REQ-GOV-001]
+    kind: docs
+    path: docs/project/risk-register.md
+    summary: The live risk register, with mitigations and revisit triggers, is a repository file that each phase retrospective reviews.
+    recorded: '2026-10-08'
+  - requirements: [REQ-GOV-001]
+    kind: docs
+    path: docs/requirements/requirements.yaml
+    summary: The requirements register, with the work packages that deliver each requirement, is a repository file, and the generated traceability report is built from it.
+    recorded: '2026-10-08'
+  - requirements: [REQ-GOV-001]
+    kind: docs
+    path: docs/journal/phase-0-retrospective.md
+    summary: The Phase 0 retrospective records what was built, what went wrong, and what changed, as the plan asks of every phase.
+    recorded: '2026-10-08'
+  - requirements: [REQ-GOV-003]
+    kind: manual
+    path: docs/testing/evidence/2026-10-08-fresh-clone-resume.md
+    summary: A fresh clone of the WP1.2 branch, in a new directory, restored, built, validated its status files, and passed the four documentation gates by following STATUS.md. The record notes that dev doctor does not exist yet.
+    recorded: '2026-10-08'
+  - requirements: [REQ-GOV-007]
+    kind: policy
+    path: docs/governance/github-settings.md
+    summary: The settings record lists the two rulesets, the code owner review, the solo-maintainer bypass, and the evidence that each was applied, with the required checks that are not applied yet.
+    recorded: '2026-10-08'
+  - requirements: [REQ-GOV-007]
+    kind: policy
+    path: .github/CODEOWNERS
+    summary: Sensitive paths require code owner review, and a test checks that the blast-radius map asks for that review for every path in the file.
+    recorded: '2026-10-08'
+  - requirements: [REQ-AI-001]
+    kind: docs
+    path: AGENTS.md
+    summary: The agent entry point carries the mission, the doctrine, the branch protocol, the prohibited actions, and the status-update protocol.
+    recorded: '2026-10-08'
+  - requirements: [REQ-AI-001]
+    kind: docs
+    path: .github/copilot-instructions.md
+    summary: The repository-wide Copilot instructions travel with the code and carry the rules that code review applies.
+    recorded: '2026-10-08'
+  - requirements: [REQ-AI-001]
+    kind: docs
+    path: .github/instructions/
+    summary: Path-scoped instruction files cover C#, tests, documentation, workflows, Terraform, Kubernetes, and policy files.
+    recorded: '2026-10-08'
+  - requirements: [REQ-AI-001]
+    kind: docs
+    path: REVIEW.md
+    summary: The review checklist that AI and human reviewers apply is a repository file with severities and a list of what not to flag.
+    recorded: '2026-10-08'
+  - requirements: [REQ-AI-003]
+    kind: docs
+    path: docs/research/2026-10-04-external-skill-review.md
+    summary: The review record covers twelve external skill candidates, each with its publisher, license signal, pinned commit, and recommendation, and none is installed.
+    recorded: '2026-10-08'
+  - requirements: [REQ-AI-003]
+    kind: docs
+    path: docs/governance/ai-skills.md
+    summary: The six-step external skill review, the approval rule, and the review results are written down, and the repository installs no external skill.
+    recorded: '2026-10-08'

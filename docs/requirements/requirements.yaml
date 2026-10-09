@@ -1,5 +1,5 @@
 schema-version: 1
-last-verified: '2026-10-04'
+last-verified: '2026-10-08'
 areas:
   ARC: Architecture and layering
   DOM: Domain model
@@ -1541,7 +1541,7 @@ requirements:
   - script
   - ci
   evidence: status render output and drift check
-  status: planned
+  status: verified
 - id: REQ-GOV-003
   title: The resume protocol works from a fresh clone on another machine
   statement: A fresh clone can resume work by reading STATUS.md, checking out the active branch, running dev doctor, and continuing with the next action, and the end-of-session protocol updates status, regenerates STATUS.md, commits, and keeps the draft pull request current.
@@ -1557,7 +1557,8 @@ requirements:
   - manual
   - docs
   evidence: fresh-clone resume transcript
-  status: planned
+  status: in_progress
+  notes: The status page is generated and a fresh clone resumes from it (see the evidence record). The dev doctor step arrives with WP1.4, and until then the resume protocol uses the quality-gate commands in AGENTS.md.
 - id: REQ-GOV-004
   title: Definition of Ready and Done govern every work package
   statement: Every work package requires an issue with scope, non-goals, acceptance criteria, requirement IDs, planned test cases, documentation deliverables, size, and dependencies before it starts, and must satisfy all nine Done criteria before it merges.
@@ -1569,7 +1570,7 @@ requirements:
   - docs
   - manual
   evidence: CONTRIBUTING and pull-request template
-  status: planned
+  status: verified
 - id: REQ-GOV-005
   title: Every significant decision becomes an ADR with recorded evidence
   statement: Every decision that changes architecture, a trust boundary, a dependency policy, a tool, or a process is recorded as an ADR in docs/adr, and the four brief ADRs are proposed in Phase 0 and accepted by WP1.8, WP2.5, WP3.3, and WP4.3.

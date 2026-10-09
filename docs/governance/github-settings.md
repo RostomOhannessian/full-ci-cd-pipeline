@@ -3,7 +3,7 @@ title: "GitHub settings record"
 description: "The configuration of this repository's GitHub settings, why each value was chosen, and the evidence that it is applied."
 type: reference
 audience: [maintainers, contributors]
-last-verified: 2026-10-04
+last-verified: 2026-10-08
 owner: "@RostomOhannessian"
 ---
 
@@ -81,6 +81,8 @@ Both rulesets let the repository admin role bypass them for pull requests only, 
 | `phase branch protection` | `phase/**` | A pull request is required, the same checks must pass, and force pushes are blocked. | applied |
 
 Later work packages extend the required checks: the build, test, governance, and docs checks arrive with WP1.1 to WP1.3, and code scanning results arrive with WP2.3. The inputs are in [governance/github/rulesets](../../governance/github/rulesets/master.json).
+
+**Not applied yet (checked 2026-10-08).** The `ci` jobs from WP1.1 and the `Governance auditors` job from WP1.2 run on every pull request, but neither is a required check, because adding a required check is a settings change that needs the owner's approval. The plan says both auditors are required from WP1.2 on, so the owner's decision completes that step. The job names to add are `Governance auditors` and the five `ci` jobs, and `governance/github/rulesets/*.json` and `snapshot.json` change in the same pull request that applies it.
 
 ### Smoke test (2026-10-04)
 
