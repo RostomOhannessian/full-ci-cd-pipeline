@@ -218,6 +218,7 @@ phases:
           - ".github/skills/blast-radius-evaluator/SKILL.md"
           - "docs/testing/evidence.yaml"
           - "docs/testing/traceability.md"
+          - "docs/testing/evidence/2026-10-08-fresh-clone-resume.md"
           - "docs/adr/0021-governance-auditor-cli.md"
           - "docs/adr/0022-generated-status-and-traceability.md"
         blockers: []

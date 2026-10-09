@@ -29,6 +29,11 @@ entries:
     path: docs/journal/phase-0-retrospective.md
     summary: The Phase 0 retrospective records what was built, what went wrong, and what changed, as the plan asks of every phase.
     recorded: '2026-10-08'
+  - requirements: [REQ-GOV-003]
+    kind: manual
+    path: docs/testing/evidence/2026-10-08-fresh-clone-resume.md
+    summary: A fresh clone of the WP1.2 branch, in a new directory, restored, built, validated its status files, and passed the four documentation gates by following STATUS.md. The record notes that dev doctor does not exist yet.
+    recorded: '2026-10-08'
   - requirements: [REQ-GOV-007]
     kind: policy
     path: docs/governance/github-settings.md
