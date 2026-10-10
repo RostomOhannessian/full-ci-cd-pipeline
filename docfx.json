@@ -25,6 +25,8 @@
           "**/bin/**",
           "**/obj/**",
           ".git/**",
+          ".dev/**",
+          ".env",
           ".docfx/**",
           "_site/**",
           "TestResults/**",

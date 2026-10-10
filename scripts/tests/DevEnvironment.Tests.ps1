@@ -120,6 +120,14 @@ Describe '.env.example' {
         $ignore | Should -Match '(?m)^\.env$'
         $ignore | Should -Match '(?m)^!\.env\.example$'
     }
+
+    It 'stays out of the documentation site, which copies every repository file that it does not exclude' {
+        $docfx = Get-Content -Path (Join-Path $script:Root 'docfx.json') -Raw | ConvertFrom-Json
+        $excluded = @($docfx.build.resource | ForEach-Object { $_.exclude } | Where-Object { $_ })
+
+        $excluded | Should -Contain '.env' -Because 'the generated .env holds this machine''s secrets, and the site build would copy it into _site'
+        $excluded | Should -Contain '.dev/**' -Because 'the installed tools are downloaded code, not documentation'
+    }
 }
 
 Describe 'The dev shims' {
