@@ -216,7 +216,7 @@ Describe 'Invoke-DevBootstrap' {
         Invoke-DevBootstrap -SkipTools -RepositoryRoot $script:Root | Should -Be 0
         Should -Invoke -ModuleName Dev.Commands Install-DevToolSet -Times 0 -Exactly
 
-        Remove-Item -Path (Join-Path $script:Root '.env')
+        Remove-Item -Path (Join-Path $script:Root '.env') -Force
         Invoke-DevBootstrap -SkipTools -SkipEnvironment -RepositoryRoot $script:Root | Should -Be 0
         Join-Path $script:Root '.env' | Should -Not -Exist
     }

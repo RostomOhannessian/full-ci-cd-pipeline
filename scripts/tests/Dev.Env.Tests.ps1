@@ -109,7 +109,9 @@ Describe 'Initialize-DevEnvironment' {
     It 'restricts the file to its owner on Linux and macOS' -Skip:$IsWindows {
         Initialize-DevEnvironment -TemplatePath (Write-Template $script:Template) -Path $script:Env | Out-Null
 
-        [string][System.IO.File]::GetUnixFileMode($script:Env) | Should -Be 'UserRead, UserWrite'
+        $ownerOnly = [System.IO.UnixFileMode]::UserRead -bor [System.IO.UnixFileMode]::UserWrite
+
+        [System.IO.File]::GetUnixFileMode($script:Env) | Should -Be $ownerOnly
     }
 
     It 'never changes a value that exists' {
