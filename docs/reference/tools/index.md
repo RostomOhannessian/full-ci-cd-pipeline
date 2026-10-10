@@ -2,7 +2,7 @@
 title: "Tool reference"
 description: "How tools are inventoried, tiered, and documented, and what every tool page must contain."
 audience: [learners, contributors, maintainers]
-last-verified: 2026-10-08
+last-verified: 2026-10-10
 owner: "@RostomOhannessian"
 ---
 
@@ -24,8 +24,16 @@ A page is named after its inventory ID. Tier C libraries are in [the dependency 
 | [markdownlint-cli2](markdownlint-cli2.md) | B | Enforces the Markdown house style |
 | [Mermaid CLI](mermaid-cli.md) | B | Proves that every diagram renders |
 | [Documentation.Auditor](documentation-auditor.md) | B | Checks the inventory, the tool pages, and every page |
+| [Dev Containers](dev-containers.md) | B | The pinned environment that CI builds to prove the onboarding path |
+| [The dev command](dev-command.md) | B | The single local entry point, with the verified tool installer |
+| [PowerShell](powershell.md) | B | Runs the dev command, restored as a local .NET tool |
+| [SQL Server](sql-server.md) | A | The relational store that the API uses, run in a container |
+| [Valkey](valkey.md) | A | The distributed cache and backplane, with an ACL user |
+| [Keycloak](keycloak.md) | A | The identity provider, with the catalog realm as code |
+| [grafana/otel-lgtm](otel-lgtm.md) | B | The local telemetry stack that receives OTLP |
 
-Eighteen tools that are in use have no page yet, and WP1.13 owes them. The audit reports each as a note, and it fails when WP1.13 is completed and a page is still missing.
+Eighteen tools that are in use have no page yet, and WP1.13 owes them. The audit reports each as a note, and it fails when WP1.13 is completed and a page is still missing. The Tier C entries for the Dev Container
+features, its base image, and the `devcontainers/ci` action are in [the dependency catalog](dependency-catalog.md).
 
 ## What a tool page contains
 
@@ -65,13 +73,13 @@ The `usage` field says where a tool is in practice: `planned`, `in-use`, `evalua
 ## How the inventory is kept honest
 
 - **Verified facts.** Licenses and versions were read from the source on the date in `last-verified`. A value of `unverified` means exactly that.
-  Versions are a point-in-time record. The pins live in `Directory.Packages.props`, `.config/dotnet-tools.json`, the workflows, `tools/lint/compose.yaml`,
-  and later `tools/versions.yaml`, Terraform lock files, and manifests. The auditor compares each pin with the recorded version.
+  Versions are a point-in-time record. The pins live in `Directory.Packages.props`, `.config/dotnet-tools.json`, `tools/versions.yaml`, the workflows, the Compose files, `.devcontainer/devcontainer-lock.json`,
+  and later Terraform lock files and manifests. The auditor compares each pin with the recorded version.
 - **Discovery.** The [Documentation.Auditor](documentation-auditor.md) reads the files that name tools, and an entry tells it what to look for with `detect` rules,
   each written as `kind:pattern`. The kinds are `nuget` (a package ID), `dotnet-tool` (a tool package ID), `action` (`owner/repo`), `image` (a repository
-  without its tag), and `file` (a glob). A trailing `*` matches any ending. The scanners today read package and project files, the local tool manifest,
-  workflows, Compose files, and Dockerfiles. Anything the auditor finds that no entry detects fails the build, and so does an entry that says `planned` for a tool in use.
-- **Formats not read yet.** Terraform, Helm charts, Kubernetes manifests, Kyverno policies, the Dev Container, and `tools/versions.yaml` arrive in later work packages. The
+  without its tag), `feature` (a Dev Container feature, without its tag), `psmodule` (a PowerShell module in `tools/versions.yaml`), and `file` (a glob). A trailing `*` matches any ending. The scanners today read package and project files, the local tool manifest,
+  workflows, Compose files, Dockerfiles, the Dev Container configuration and its lock file, and `tools/versions.yaml`. Anything the auditor finds that no entry detects fails the build, and so does an entry that says `planned` for a tool in use.
+- **Formats not read yet.** Terraform, Helm charts, Kubernetes manifests, and Kyverno policies arrive in later work packages. The
   policy lists each with the work package that adds it, and the audit fails as soon as one of these files exists without a scanner.
 - **Pages.** A tool that is in use and has Tier A or B needs a page named `<id>.md` in this folder. A Tier C library needs a level-2 section in
   [the dependency catalog](dependency-catalog.md). A page that a later work package owes is listed in the policy with that work package.

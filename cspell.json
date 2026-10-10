@@ -19,6 +19,7 @@
   "useGitignore": true,
   "ignorePaths": [
     ".git/**",
+    ".dev/**",
     "**/packages.lock.json",
     "docs/research/*-verification.md",
     "governance/github/snapshot.json"

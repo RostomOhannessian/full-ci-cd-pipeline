@@ -50,7 +50,7 @@ tracking, and license evidence in sync.
 4. Record the verification date explicitly.
 5. Keep the inventory entry aligned with the schema, `docs/reference/tools/inventory.schema.json`, which the Documentation.Auditor enforces. Required
    fields are `id`, `name`, `category`, `tier`, `lifecycle`, `usage`, `introduced`, `purpose`, `license`, `license-source`, `version`,
-   `sources`, and `adrs`. Add `detect` rules (`kind:pattern`, with the kinds `nuget`, `dotnet-tool`, `action`, `image`, and `file`) to a tool that the
+   `sources`, and `adrs`. Add `detect` rules (`kind:pattern`, with the kinds `nuget`, `dotnet-tool`, `action`, `image`, `feature`, `psmodule`, and `file`) to a tool that the
    repository uses, so the auditor can find it, and set `usage` to `in-use` in the work package that first runs the tool.
 6. Use `repo` when current entries use it, and add `notes` whenever the tool
    has a caveat, a non-permissive license, a hold rationale, or a deferred

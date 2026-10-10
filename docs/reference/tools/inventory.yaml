@@ -178,7 +178,7 @@ entries:
       - https://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/manage-environments
       - https://docs.github.com/en/get-started/learning-about-github/githubs-plans
     adrs: ["0013"]
-    notes: Four workflows run today, all on pull requests to master and phase branches with a read-only default token, SHA-pinned actions, and explicit timeouts. They are docs (WP0.6 as docs-quality, and WP1.3), ci (WP1.1), and governance (WP1.2), and docs also runs nightly for external links. The governance workflow runs the status, traceability, security, and blast-radius checks, and its outputs are not consumed yet. Job selection arrives with WP2.2. Every action in use is GitHub-owned, so one entry covers them, and the first third-party action needs its own entry.
+    notes: Five workflows run today, all on pull requests to master and phase branches with a read-only default token, SHA-pinned actions, and explicit timeouts. They are docs (WP0.6 as docs-quality, and WP1.3), ci (WP1.1), governance (WP1.2), and devcontainer (WP1.4, which also runs weekly), and docs also runs nightly for external links. The governance workflow runs the status, traceability, security, and blast-radius checks, and its outputs are not consumed yet. Job selection arrives with WP2.2. One entry covers every GitHub-owned action, and each third-party action has its own entry. The first is devcontainers/ci (WP1.4).
     detect: ["action:actions/*"]
   # Containers
   - id: docker-buildkit
@@ -222,7 +222,7 @@ entries:
     category: data-store
     tier: A
     lifecycle: adopt
-    usage: planned
+    usage: in-use
     introduced: phase-1
     purpose: Stores the catalog, Keycloak, idempotency, and outbox data used by the sample system.
     license: proprietary, free developer edition for non-production use
@@ -232,26 +232,28 @@ entries:
       - https://www.microsoft.com/en-us/sql-server/sql-server-downloads
       - https://learn.microsoft.com/en-us/sql/linux/containers/deploy
       - https://go.microsoft.com/fwlink/?linkid=866658
-    adrs: ["0012", "0018", "0019"]
-    notes: The project uses SQL Server 2022 container images for teaching and testing and pins the exact digest at implementation time. Spike 1.d (2026-10-06) used the 2022-latest image at digest sha256:4402d880dd4c34bfa7d8705e56a86cd6c88da80a1f6bbbe741f999e76264a090 (server 16.0.4295.3, Developer Edition, amd64). Microsoft documents SQL Server container images as supported only on x86-64 Linux hosts, with Rosetta 2, Prism, and QEMU not tested or supported (checked 2026-10-06). Measure memory from the container cgroup, because SQL Server's own memory views overstate it inside a container.
+    adrs: ["0012", "0018", "0019", "0026"]
+    notes: compose.yaml (WP1.4) runs the 2022-latest image at digest sha256:4402d880dd4c34bfa7d8705e56a86cd6c88da80a1f6bbbe741f999e76264a090, which reported server 16.0.4295.3 (RTM-CU27, Developer edition, x64) on 2026-10-10. Starting the container sets ACCEPT_EULA=Y, which accepts Microsoft's terms for the Developer edition, and those terms allow development and test use and not production use. The project uses the image for teaching and testing, links no SQL Server code, and does not redistribute the image. Microsoft documents SQL Server container images as supported only on x86-64 Linux hosts, with Rosetta 2, Prism, and QEMU not tested or supported (checked 2026-10-06). Measure memory from the container cgroup, because SQL Server's own memory views overstate it inside a container. With MSSQL_MEMORY_LIMIT_MB set to 2048, the idle stack measured about 1.1 GiB for this container (docker stats, 2026-10-10).
+    detect: ["image:mcr.microsoft.com/mssql/server"]
   - id: valkey
     name: Valkey
     category: data-store
     tier: A
     lifecycle: adopt
-    usage: planned
+    usage: in-use
     introduced: phase-1
     purpose: Supplies the distributed cache, backplane, and selected ephemeral coordination data.
     license: BSD-3-Clause
     license-source: https://github.com/valkey-io/valkey
-    version: "9.1.2"
+    version: "8.1"
     repo: https://github.com/valkey-io/valkey
     sources:
       - https://github.com/valkey-io/valkey
-      - https://github.com/valkey-io/valkey/releases/tag/9.1.2
+      - https://github.com/valkey-io/valkey/releases/tag/8.1.10
       - https://valkey.io/download/
-    adrs: ["0016"]
-    notes: Spike 1.b (2026-10-06) ran the same two-host cache tests against the 8.1 and 9.1 lines (servers 8.1.10 and 9.1.2, amd64) with identical results, so either line works as the L2 and backplane. The Testcontainers .NET project has no Valkey module, so tests use its Redis builder with a pinned Valkey image.
+    adrs: ["0016", "0026"]
+    notes: compose.yaml (WP1.4) pins the 8.1 long-term-support line at digest sha256:640c5e62cea04b6d6f2084232651d0cc70362d31f4f805e7be94dbed6855e8f2 (server 8.1.10 in spike 1.b, checked 2026-10-06), and 9.1.2 is the current line. Spike 1.b (2026-10-06) ran the same two-host cache tests against both lines with identical results, so either works as the L2 and backplane. The Testcontainers .NET project has no Valkey module, so tests use its Redis builder with a pinned Valkey image.
+    detect: ["image:valkey/valkey"]
 
   # Developer environment
   - id: aspire
@@ -286,13 +288,14 @@ entries:
     sources:
       - https://docs.github.com/en/billing/concepts/product-billing/github-codespaces
       - https://docs.github.com/en/codespaces/overview
-    adrs: ["0019"]
+    adrs: ["0019", "0025"]
+    notes: The Dev Container carries hostRequirements for 4 cores and 16 GB (WP1.4), which is the smallest machine that plan section 12 names for the api profile. Nobody has opened it in Codespaces yet, so the usage stays planned until a maintainer does, and the page is written then. The devcontainer workflow proves the same Dev Container on a hosted runner.
   - id: dev-containers
     name: Dev Container specification
     category: dev-environment
     tier: B
     lifecycle: adopt
-    usage: planned
+    usage: in-use
     introduced: phase-1
     purpose: Defines the reproducible local development environment used by the repo and its Codespaces image.
     license: CC-BY-4.0
@@ -302,8 +305,9 @@ entries:
     sources:
       - https://github.com/devcontainers/spec
       - https://containers.dev/
-    adrs: ["0019"]
-    notes: A specification, not software. Its license covers the specification text only.
+    adrs: ["0019", "0025"]
+    notes: A specification, not software. Its license covers the specification text only. The Dev Container is in .devcontainer (WP1.4), and it is built with the Dev Containers CLI 0.89.0 (MIT, checked 2026-10-10), which the devcontainers/ci action runs in CI and which generated the feature lock file.
+    detect: ["file:.devcontainer/devcontainer.json"]
   - id: docker-compose
     name: Docker Compose
     category: dev-environment
@@ -311,7 +315,7 @@ entries:
     lifecycle: adopt
     usage: in-use
     introduced: phase-0
-    purpose: Runs the repository's pinned lint containers today, and starts the API-only stack for onboarding, local smoke tests, and identity bootstrap from WP1.4.
+    purpose: Runs the repository's pinned lint containers, and starts the API-only stack for onboarding, local smoke tests, and identity bootstrap.
     license: Apache-2.0
     license-source: https://github.com/docker/compose
     version: "v5.6.0"
@@ -320,17 +324,17 @@ entries:
       - https://github.com/docker/compose
       - https://github.com/docker/compose/releases/tag/v5.6.0
       - https://docs.docker.com/compose/
-    adrs: ["0019"]
-    notes: tools/lint/compose.yaml defines the documentation and secret-scan checks (WP0.6 and WP1.3). The API-only stack in compose.yaml arrives in WP1.4.
+    adrs: ["0019", "0026"]
+    notes: tools/lint/compose.yaml defines the documentation and secret-scan checks (WP0.6 and WP1.3), and compose.yaml at the root defines the API-only stack (WP1.4). The stack uses inline configs, which need Compose 2.23 or newer, and dev doctor checks for it. The Dev Container ran Compose 2.40.3 and Docker Desktop ran 5.5.1 on 2026-10-10.
     detect: ["file:**/compose*.y*ml"]
   - id: mise
     name: mise
     category: dev-environment
-    tier: B
-    lifecycle: assess
-    usage: planned
-    introduced: phase-1
-    purpose: Is one candidate for the verified developer tool installer mentioned in the Phase 1 environment plan.
+    tier: n/a
+    lifecycle: hold
+    usage: evaluated-only
+    introduced: n/a
+    purpose: Was evaluated as the verified developer tool installer for the Phase 1 environment before ADR-0024 chose a custom installer.
     license: MIT
     license-source: https://github.com/jdx/mise
     version: "v2026.10.2"
@@ -339,14 +343,14 @@ entries:
       - https://github.com/jdx/mise
       - https://github.com/jdx/mise/releases/tag/v2026.10.2
       - https://mise.jdx.dev/
-    adrs: []
-    notes: The repository has not yet decided between mise and a custom verified installer, so this remains an assessed option.
+    adrs: ["0024"]
+    notes: Held, not rejected for its quality. mise would be a fourth native prerequisite beside Git, Docker, and the .NET SDK, which REQ-DX-002 forbids, and the installer needs only PowerShell, which the repository already restores as a local tool. ADR-0024 lists the revisit triggers, and the first is a need for many binary tools on every platform, which Phase 3 may bring.
   - id: powershell
     name: PowerShell
     category: dev-environment
     tier: B
     lifecycle: adopt
-    usage: planned
+    usage: in-use
     introduced: phase-1
     purpose: Drives the local developer scripts, doctor checks, and governance automation used across the repo.
     license: MIT
@@ -357,7 +361,99 @@ entries:
       - https://github.com/PowerShell/PowerShell
       - https://github.com/PowerShell/PowerShell/releases/tag/v7.6.6
       - https://learn.microsoft.com/en-us/powershell/
-    adrs: ["0019"]
+    adrs: ["0019", "0025"]
+    notes: PowerShell 7.6.6 is a local .NET tool in .config/dotnet-tools.json (WP1.4), restored from nuget.org with the required repository signature, so the native prerequisites stay Git, Docker, and the .NET SDK. The dev and dev.cmd shims start it as dotnet pwsh.
+    detect: ["dotnet-tool:powershell"]
+  - id: dev-command
+    name: The dev command
+    category: dev-environment
+    tier: B
+    lifecycle: adopt
+    usage: in-use
+    introduced: phase-1
+    purpose: Is the single local entry point for setup, build and test, documentation, and the API-only stack, and installs the pinned script tools after checking their checksums.
+    license: Apache-2.0
+    license-source: https://github.com/RostomOhannessian/full-ci-cd-pipeline/blob/master/LICENSE
+    version: n/a
+    repo: https://github.com/RostomOhannessian/full-ci-cd-pipeline
+    sources:
+      - https://github.com/RostomOhannessian/full-ci-cd-pipeline/tree/master/scripts
+    adrs: ["0024", "0025"]
+    notes: First-party code in scripts, written in PowerShell with Pester tests and PSScriptAnalyzer (WP1.4). It includes the verified installer for tools/versions.yaml, which ADR-0024 chose over mise. The commands for the platform and Terraform arrive in Phase 3.
+    detect: ["file:scripts/dev.ps1"]
+  - id: devcontainer-feature-docker-in-docker
+    name: Docker-in-Docker Dev Container feature
+    category: dev-environment
+    tier: C
+    lifecycle: adopt
+    usage: in-use
+    introduced: phase-1
+    purpose: Runs a Docker daemon inside the Dev Container, so Compose, kind, and Testcontainers work without sharing the host's Docker socket.
+    license: MIT
+    license-source: https://github.com/devcontainers/features/blob/main/LICENSE
+    version: "4.1.3"
+    repo: https://github.com/devcontainers/features
+    sources:
+      - https://github.com/devcontainers/features/tree/main/src/docker-in-docker
+      - https://containers.dev/features
+    adrs: ["0025"]
+    notes: Major version 4 is pinned in .devcontainer/devcontainer.json, and the lock file pins 4.1.3 by digest (checked 2026-10-10). The feature runs the container privileged, which is the cost of an isolated daemon, and ADR-0025 and the threat model record it.
+    detect: ["feature:ghcr.io/devcontainers/features/docker-in-docker"]
+  - id: devcontainer-feature-github-cli
+    name: GitHub CLI Dev Container feature
+    category: dev-environment
+    tier: C
+    lifecycle: adopt
+    usage: in-use
+    introduced: phase-1
+    purpose: Installs the GitHub CLI in the Dev Container, for the maintainer's pull request and Issue work.
+    license: MIT
+    license-source: https://github.com/devcontainers/features/blob/main/LICENSE
+    version: "1.1.3"
+    repo: https://github.com/devcontainers/features
+    sources:
+      - https://github.com/devcontainers/features/tree/main/src/github-cli
+      - https://containers.dev/features
+    adrs: ["0025"]
+    notes: Major version 1 is pinned in .devcontainer/devcontainer.json, and the lock file pins 1.1.3 by digest (checked 2026-10-10). The feature installs the latest GitHub CLI release unless a version is set, and the tool itself is the github-cli entry.
+    detect: ["feature:ghcr.io/devcontainers/features/github-cli"]
+  - id: dotnet-devcontainer-image
+    name: Microsoft .NET Dev Container image
+    category: container
+    tier: C
+    lifecycle: adopt
+    usage: in-use
+    introduced: phase-1
+    purpose: Is the base of the Dev Container, with the .NET SDK, Git, PowerShell, and a non-root user.
+    license: MIT
+    license-source: https://github.com/devcontainers/images/blob/main/LICENSE
+    version: "10.0"
+    repo: https://github.com/devcontainers/images
+    sources:
+      - https://github.com/devcontainers/images/tree/main/src/dotnet
+      - https://mcr.microsoft.com/en-us/artifact/mar/devcontainers/dotnet
+    adrs: ["0025"]
+    notes: .devcontainer/Dockerfile pins mcr.microsoft.com/devcontainers/dotnet 10.0 at digest sha256:694076b55f447d4b9f5b49bc6616c2e904d63e1a61e43680b2bbea46011b6783, which carried SDK 10.0.401 on Ubuntu 24.04 on 2026-10-10. The image contains software under other licenses, as every Linux distribution image does, and the repository links none of it.
+    detect: ["image:mcr.microsoft.com/devcontainers/dotnet"]
+  - id: devcontainers-ci
+    name: devcontainers/ci
+    category: ci-service
+    tier: C
+    lifecycle: adopt
+    usage: in-use
+    introduced: phase-1
+    purpose: Builds the Dev Container on a hosted runner and runs the onboarding commands in it.
+    license: MIT
+    license-source: https://github.com/devcontainers/ci/blob/main/LICENSE
+    version: "v0.3.1900000450"
+    repo: https://github.com/devcontainers/ci
+    sources:
+      - https://github.com/devcontainers/ci
+      - https://github.com/devcontainers/ci/releases/tag/v0.3.1900000450
+      - https://github.com/devcontainers/ci/blob/main/docs/github-action.md
+    adrs: ["0025"]
+    notes: A third-party action, pinned by commit SHA 513af61f4de4f75d37e4438f184ba4358f0fc1ca in .github/workflows/devcontainer.yml (release v0.3.1900000450, published 2026-06-01, checked 2026-10-10), with push set to never and a read-only token. It is maintained under the devcontainers organization, and ADR-0025 records why it was chosen over calling the Dev Containers CLI directly.
+    detect: ["action:devcontainers/ci"]
   - id: github-cli
     name: GitHub CLI
     category: dev-environment
@@ -1019,7 +1115,7 @@ entries:
     category: identity
     tier: A
     lifecycle: adopt
-    usage: planned
+    usage: in-use
     introduced: phase-1
     purpose: Issues OAuth 2.0 and OIDC tokens for the API and platform sign-in flows.
     license: Apache-2.0
@@ -1030,7 +1126,9 @@ entries:
       - https://github.com/keycloak/keycloak
       - https://github.com/keycloak/keycloak/releases/tag/26.8.0
       - https://www.keycloak.org/server/db
-    adrs: ["0008", "0009"]
+    adrs: ["0008", "0009", "0026"]
+    notes: compose.yaml (WP1.4) runs quay.io/keycloak/keycloak 26.8.0 at digest sha256:27b3230fbabb8c9ff3c66c864cf09dcd8a41aca82e5100679d109ef0eeb05741 in development mode with an in-memory database, and imports identity/keycloak/realms/catalog-realm.json on every start. On 2026-10-10 the stack showed that Keycloak 26.8.0 does not withhold a requested client scope from a user who lacks the role that the scope maps to (a reader that asked for catalog.admin received it in the scope claim), while the realm_access.roles claim holds only the roles that the user has and the requested scopes cover. ADR-0026 records the finding, and the API must authorize on the role claim as well as the scope.
+    detect: ["image:quay.io/keycloak/keycloak"]
   - id: keycloak-config-cli
     name: keycloak-config-cli
     category: identity
@@ -1352,7 +1450,7 @@ entries:
     category: observability
     tier: B
     lifecycle: adopt
-    usage: planned
+    usage: in-use
     introduced: phase-1
     purpose: Supplies the lightweight local observability stack for the Compose quick-start profile.
     license: Apache-2.0
@@ -1363,8 +1461,9 @@ entries:
       - https://github.com/grafana/docker-otel-lgtm
       - https://github.com/grafana/docker-otel-lgtm/releases/tag/v0.35.0
       - https://grafana.com/docs/opentelemetry/docker-lgtm/
-    adrs: ["0004"]
-    notes: The image bundles Grafana, Loki, Tempo, and Prometheus, so it includes AGPL-3.0 components. It is used for local development only and is not redistributed, so ADR-0004 treats it as tool-only.
+    adrs: ["0004", "0026"]
+    notes: The image bundles Grafana, Loki, Tempo, Pyroscope, and Prometheus, so it includes AGPL-3.0 components (GitHub reports Pyroscope as AGPL-3.0, checked 2026-10-10). It is used for local development only and is not redistributed, so ADR-0004 treats it as tool-only. compose.yaml (WP1.4) runs grafana/otel-lgtm 0.35.0 at digest sha256:2de1094c593c671cbfca878a28ffcd7e46ff5e32f2ce966c0cf33003f6cf4266, bound to 127.0.0.1, and the container used about 0.5 GiB at idle on 2026-10-10 (docker stats). Its Grafana reported version 13.2.2. Version 0.36.0 was published on 2026-10-09, and Dependabot proposes the update.
+    detect: ["image:grafana/otel-lgtm"]
   - id: prometheus
     name: Prometheus
     category: observability
@@ -2234,14 +2333,15 @@ entries:
     purpose: Tests the repository's PowerShell setup and developer scripts.
     license: Apache-2.0
     license-source: https://raw.githubusercontent.com/pester/Pester/master/LICENSE
-    version: "6.2.0"
+    version: "5.9.0"
     repo: https://github.com/pester/Pester
     sources:
       - https://github.com/pester/Pester
-      - https://github.com/pester/Pester/releases/tag/6.2.0
+      - https://github.com/pester/Pester/releases/tag/5.9.0
       - https://pester.dev/
-    adrs: ["0018"]
-    notes: The version above is the plan baseline. WP1.1 runs the coverage-gate tests on Pester 5.9.0, which is preinstalled on the ubuntu-24.04 runner image 20260927.320.1 (checked 2026-10-08), and written against the Pester 5 syntax. WP1.4 pins the version in tools/versions.yaml and decides whether to move to the plan baseline.
+    adrs: ["0018", "0024"]
+    notes: Pinned at 5.9.0 in tools/versions.yaml (WP1.4), with the SHA-256 of the package that the PowerShell Gallery serves (its SHA-512 matched the Gallery's published hash on 2026-10-10). The tests are written against Pester 5, and 5.9.0 is the version that the ubuntu-24.04 runner image ships. Pester 6.2.0 is the current release (published 2026-09-09, checked 2026-10-10). Moving to it is a later, reviewed change, because 6 is a new major version and this work package has no reason to migrate every test.
+    detect: ["psmodule:Pester"]
   - id: psscriptanalyzer
     name: PSScriptAnalyzer
     category: test-tool
@@ -2258,8 +2358,9 @@ entries:
       - https://github.com/PowerShell/PSScriptAnalyzer
       - https://github.com/PowerShell/PSScriptAnalyzer/releases/tag/1.25.0
       - https://learn.microsoft.com/en-us/powershell/utility-modules/psscriptanalyzer/overview
-    adrs: ["0018"]
-    notes: WP1.1 runs version 1.25.0, which is preinstalled on the ubuntu-24.04 runner image 20260927.320.1 (checked 2026-10-08), over tools/ci with warnings and errors blocking.
+    adrs: ["0018", "0024"]
+    notes: Pinned at 1.25.0 in tools/versions.yaml (WP1.4), with the SHA-256 of the package that the PowerShell Gallery serves (its SHA-512 matched the Gallery's published hash on 2026-10-10). It runs over scripts and tools/ci with warnings and errors blocking, through scripts/Invoke-ScriptTests.ps1.
+    detect: ["psmodule:PSScriptAnalyzer"]
   - id: reportgenerator
     name: ReportGenerator
     category: test-tool

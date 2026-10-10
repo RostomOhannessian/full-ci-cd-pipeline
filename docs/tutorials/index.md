@@ -3,7 +3,7 @@ title: "Tutorials"
 description: "How the repository's guided learning paths and task-focused how-to guides are planned, and what a reader can use today."
 audience: [learners, contributors, maintainers]
 type: explanation
-last-verified: 2026-10-04
+last-verified: 2026-10-10
 owner: "@RostomOhannessian"
 ---
 
@@ -30,6 +30,7 @@ The seven learning paths in [plan section 11.4](../plans/implementation-plan.md)
 | Phase | Page or set | Kind | Work package | Status |
 | --- | --- | --- | --- | --- |
 | 1 | 00-start-here | Tutorial | WP1.13 | planned |
+| 1 | Native setup: Git, Docker, and the .NET SDK, without the Dev Container | Tutorial | WP1.4 | [native setup](native-setup.md) |
 | 1 | Quick start: run the API-only stack and call the API with a token | Tutorial | WP1.13 | planned |
 | 1 | Clean Architecture and DDD in practice | Tutorial | WP1.13 | planned |
 | 1 | Task recipes under `docs/tutorials/how-to` for local setup, the `dev` command, and API workflows | How-to guide set | WP1.13 | planned |

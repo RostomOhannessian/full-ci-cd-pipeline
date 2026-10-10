@@ -2,7 +2,7 @@
 title: "Architecture decision records"
 description: "Index of every architecture, tool, and process decision, with its status and the work package that accepts it."
 audience: [learners, contributors, maintainers]
-last-verified: 2026-10-08
+last-verified: 2026-10-10
 owner: "@RostomOhannessian"
 ---
 
@@ -48,6 +48,9 @@ The rules for writing them are in [ADR-0001](0001-record-architecture-decisions.
 | [0021](0021-governance-auditor-cli.md) | Build the governance auditors as one deterministic .NET command line | accepted | Accepted 2026-10-08 in WP1.2 |
 | [0022](0022-generated-status-and-traceability.md) | Generate the status page and the traceability report, and prove requirements with tests or an evidence register | accepted | Accepted 2026-10-08 in WP1.2 |
 | [0023](0023-documentation-auditor.md) | Audit the documentation with a deterministic .NET tool, and build the site with warnings as errors | accepted | Accepted 2026-10-08 in WP1.3 |
+| [0024](0024-verified-tool-installer.md) | Install developer tools with a verified PowerShell installer, and leave mise on hold | accepted | Accepted 2026-10-10 in WP1.4 |
+| [0025](0025-dev-command-and-dev-container.md) | Run local development through one PowerShell command, thin shims, and a pinned Dev Container | accepted | Accepted 2026-10-10 in WP1.4 |
+| [0026](0026-api-only-compose-stack-and-catalog-realm.md) | Run the API's dependencies in Compose, and keep one catalog realm file as the identity source | accepted | Accepted 2026-10-10 in WP1.4 |
 
 The evidence behind these decisions is in the [research records](../research/README.md). The plan that ties them together is
 [the implementation plan](../plans/implementation-plan.md).

@@ -152,7 +152,8 @@ function Test-DevStackHealth {
     }
 
     if ($problems) {
-        return Build-DevCheck -Name 'Containers' -Status fail -Message ($problems -join '; ') -Fix 'Run: ./dev compose up, then ./dev compose logs <service>'
+        return Build-DevCheck -Name 'Containers' -Status fail -Message ($problems -join '; ') `
+            -Fix 'Run: ./dev compose logs <service>. If you changed .env after the first start, run: ./dev compose reset (a database keeps the password it was created with).'
     }
 
     return Build-DevCheck -Name 'Containers' -Status ok -Message "$($script:Services -join ', ') are running and healthy."

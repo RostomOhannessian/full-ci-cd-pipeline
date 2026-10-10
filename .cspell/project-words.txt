@@ -49,6 +49,7 @@ lycheeverse
 masstransit
 mediat
 mediatr
+moby
 namotion
 netarchtest
 newtonsoft
@@ -66,7 +67,9 @@ pipefail
 postconditions
 preapproved
 preapproves
+prebuild
 prebuilds
+psmodule
 psscriptanalyzer
 recreatable
 redocly
@@ -103,6 +106,7 @@ unbuilt
 unmilestoned
 unreviewed
 valkey
+winget
 worklist
 xunit
 yamldotnet

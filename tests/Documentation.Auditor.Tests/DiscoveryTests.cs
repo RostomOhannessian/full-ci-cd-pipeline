@@ -1,4 +1,5 @@
 using Documentation.Auditor.Discovery;
+using Documentation.Auditor.Policy;
 using Documentation.Auditor.Tests.Support;
 using Xunit;
 
@@ -287,6 +288,239 @@ jobs:
         repository.Add("generated/Other.csproj", """<Project><ItemGroup><PackageReference Include="Mystery.Package" Version="1.0.0" /></ItemGroup></Project>""");
 
         Expect.Passes(await CliRunner.RunAsync(repository, "inventory"));
+    }
+}
+
+public sealed class DevEnvironmentDiscoveryTests
+{
+    // The image tag and the locked feature version are 1.2.3, the version that the sample entry acme-lib records, so one entry can detect them all.
+    private const string Lock = """
+{
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {
+      "version": "1.2.3",
+      "resolved": "ghcr.io/devcontainers/features/docker-in-docker@sha256:25b9f05705ffba7dbe503230ac76081419306f8c8bc88e0ce78c4ecd99a0c78c",
+      "integrity": "sha256:25b9f05705ffba7dbe503230ac76081419306f8c8bc88e0ce78c4ecd99a0c78c"
+    }
+  }
+}
+""";
+
+    private const string Config = """
+{
+  // The base image and one feature, as a Dev Container is written.
+  "name": "Sample",
+  "image": "mcr.example.test/devcontainers/base:1.2.3@sha256:0000000000000000000000000000000000000000000000000000000000000000",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": { "moby": false },
+  },
+}
+""";
+
+    private static TestRepository DevContainerRepository() =>
+        Samples.Baseline()
+            .Add(".devcontainer/devcontainer.json", Config)
+            .Add(".devcontainer/devcontainer-lock.json", Lock);
+
+    private static TestRepository Documented(TestRepository repository) =>
+        repository.Replace(
+            "docs/reference/tools/inventory.yaml",
+            "    detect: [\"nuget:Acme.Lib\"]",
+            "    detect: [\"nuget:Acme.Lib\", \"image:mcr.example.test/devcontainers/*\", \"feature:ghcr.io/devcontainers/features/*\"]");
+
+    [Fact]
+    [Trait("Requirement", "REQ-DOC-003")]
+    public async Task The_image_and_the_feature_of_a_dev_container_are_found_and_a_comment_and_a_trailing_comma_are_allowed()
+    {
+        using var repository = DevContainerRepository();
+
+        var result = await CliRunner.RunAsync(repository, "inventory");
+
+        var errors = Expect.Errors(result);
+        Assert.Equal(2, errors.Count);
+        Assert.Contains(errors, line => line.Contains("[tool-undocumented]", StringComparison.Ordinal) && line.Contains("'mcr.example.test/devcontainers/base'", StringComparison.Ordinal) && line.Contains("image:", StringComparison.Ordinal));
+        Assert.Contains(errors, line => line.Contains("'ghcr.io/devcontainers/features/docker-in-docker'", StringComparison.Ordinal) && line.Contains("feature:ghcr.io/devcontainers/features/docker-in-docker", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    [Trait("Requirement", "REQ-DOC-003")]
+    public async Task A_documented_dev_container_passes()
+    {
+        using var repository = Documented(DevContainerRepository());
+
+        Expect.Passes(await CliRunner.RunAsync(repository, "inventory"));
+    }
+
+    [Fact]
+    [Trait("Requirement", "REQ-DOC-003")]
+    public async Task A_feature_is_compared_with_the_version_in_the_lock_file_and_a_pin_that_drifts_fails()
+    {
+        using var repository = Documented(DevContainerRepository());
+        repository.Replace(".devcontainer/devcontainer-lock.json", "\"version\": \"1.2.3\"", "\"version\": \"2.18.0\"");
+
+        var result = await CliRunner.RunAsync(repository, "inventory");
+
+        Expect.FailsOnlyWith(result, "tool-version-drift");
+        Assert.Contains("pins version 2.18.0", result.Output, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    [Trait("Requirement", "REQ-DX-001")]
+    public async Task A_dev_container_with_features_and_no_lock_file_fails()
+    {
+        using var repository = Documented(DevContainerRepository()).Remove(".devcontainer/devcontainer-lock.json");
+
+        var result = await CliRunner.RunAsync(repository, "inventory");
+
+        Expect.FailsOnlyWith(result, "devcontainer-lock-missing");
+        Assert.Contains(".devcontainer/devcontainer-lock.json", result.Output, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    [Trait("Requirement", "REQ-DX-001")]
+    public async Task A_feature_that_the_lock_file_lacks_fails()
+    {
+        using var repository = Documented(DevContainerRepository());
+        repository.Replace(".devcontainer/devcontainer.json", "\"ghcr.io/devcontainers/features/docker-in-docker:2\": { \"moby\": false },", "\"ghcr.io/devcontainers/features/docker-in-docker:2\": { \"moby\": false },\n    \"ghcr.io/devcontainers/features/github-cli:1\": {},");
+
+        var result = await CliRunner.RunAsync(repository, "inventory");
+
+        Expect.FailsOnlyWith(result, "devcontainer-lock-missing");
+        Assert.Contains("github-cli:1", result.Output, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    [Trait("Requirement", "REQ-DX-001")]
+    public async Task A_lock_entry_for_a_feature_that_is_gone_fails_as_stale()
+    {
+        using var repository = Documented(DevContainerRepository());
+        repository.Replace(".devcontainer/devcontainer-lock.json", "\"features\": {", "\"features\": {\n    \"ghcr.io/devcontainers/features/node:1\": { \"version\": \"1.0.0\", \"resolved\": \"x@sha256:abc\", \"integrity\": \"sha256:abc\" },");
+
+        var result = await CliRunner.RunAsync(repository, "inventory");
+
+        Expect.FailsOnlyWith(result, "devcontainer-lock-stale");
+        Assert.Contains("features/node:1", result.Output, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    [Trait("Requirement", "REQ-DX-001")]
+    public async Task A_lock_entry_without_a_digest_fails_as_unpinned()
+    {
+        using var repository = Documented(DevContainerRepository());
+        repository.Replace(".devcontainer/devcontainer-lock.json", "ghcr.io/devcontainers/features/docker-in-docker@sha256:25b9f05705ffba7dbe503230ac76081419306f8c8bc88e0ce78c4ecd99a0c78c\"", "ghcr.io/devcontainers/features/docker-in-docker:2.17.0\"");
+
+        Expect.FailsOnlyWith(await CliRunner.RunAsync(repository, "inventory"), "devcontainer-lock-unpinned");
+    }
+
+    [Fact]
+    [Trait("Requirement", "REQ-DOC-003")]
+    public async Task A_feature_in_a_folder_of_the_repository_needs_no_lock_and_no_entry()
+    {
+        using var repository = Samples.Baseline().Add(".devcontainer/devcontainer.json", """{ "name": "Sample", "features": { "./local-feature": {} } }""");
+
+        Expect.Passes(await CliRunner.RunAsync(repository, "inventory"));
+    }
+
+    [Fact]
+    [Trait("Requirement", "REQ-DOC-003")]
+    public async Task A_dev_container_configuration_that_is_not_valid_json_is_reported_and_not_skipped()
+    {
+        using var repository = Samples.Baseline().Add(".devcontainer/devcontainer.json", """{ "image": """);
+
+        Expect.FailsOnlyWith(await CliRunner.RunAsync(repository, "inventory"), "discovery-unreadable");
+    }
+
+    [Fact]
+    [Trait("Requirement", "REQ-DOC-003")]
+    public async Task The_dockerfile_of_a_dev_container_is_read_like_any_other()
+    {
+        using var repository = Samples.Baseline().Add(".devcontainer/Dockerfile", "FROM mcr.example.test/devcontainers/base:1.2.3@sha256:abc\nENV A=1\n");
+
+        var result = await CliRunner.RunAsync(repository, "inventory");
+
+        Expect.FailsOnlyWith(result, "tool-undocumented");
+        Assert.Contains("'mcr.example.test/devcontainers/base'", result.Output, StringComparison.Ordinal);
+    }
+    private const string Versions = """
+schema-version: 1
+tools:
+  - id: pester
+    kind: powershell-module
+    name: Pester
+    version: 5.9.0
+    url: https://www.powershellgallery.com/api/v2/package/Pester/5.9.0
+    sha256: 5a0fd80b361600bf4bbd4c307c1fd01b17f11668bab19e657add41b00ad22ab9
+""";
+
+    [Fact]
+    [Trait("Requirement", "REQ-DOC-003")]
+    public async Task A_module_in_the_tool_manifest_that_no_entry_detects_fails_with_the_rule_to_add()
+    {
+        using var repository = Samples.Baseline().Add("tools/versions.yaml", Versions);
+
+        var result = await CliRunner.RunAsync(repository, "inventory");
+
+        Expect.FailsOnlyWith(result, "tool-undocumented");
+        Assert.Contains("'Pester'", result.Output, StringComparison.Ordinal);
+        Assert.Contains("psmodule:Pester", result.Output, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    [Trait("Requirement", "REQ-DOC-003")]
+    public async Task A_documented_module_passes_and_its_pin_is_compared_with_the_recorded_version()
+    {
+        using var repository = Samples.Baseline().Add("tools/versions.yaml", Versions);
+        repository.Replace("docs/reference/tools/inventory.yaml", "    detect: [\"nuget:Acme.Lib\"]", "    detect: [\"nuget:Acme.Lib\", \"psmodule:Pester\"]");
+
+        var result = await CliRunner.RunAsync(repository, "inventory");
+
+        Expect.FailsOnlyWith(result, "tool-version-drift");
+
+        repository.Replace("tools/versions.yaml", "version: 5.9.0\n    url: https://www.powershellgallery.com/api/v2/package/Pester/5.9.0", "version: 1.2.3\n    url: https://www.powershellgallery.com/api/v2/package/Pester/1.2.3");
+
+        Expect.Passes(await CliRunner.RunAsync(repository, "inventory"));
+    }
+
+    [Fact]
+    [Trait("Requirement", "REQ-DOC-003")]
+    public async Task A_tool_of_a_kind_the_auditor_cannot_read_is_reported_so_it_cannot_hide_in_the_manifest()
+    {
+        using var repository = Samples.Baseline().Add("tools/versions.yaml", Versions.Replace("powershell-module", "archive"));
+
+        var result = await CliRunner.RunAsync(repository, "inventory");
+
+        Expect.FailsOnlyWith(result, "discovery-unreadable");
+        Assert.Contains("kind 'archive'", result.Output, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    [Trait("Requirement", "REQ-DOC-003")]
+    public async Task A_manifest_with_an_anchor_is_refused_and_reported()
+    {
+        using var repository = Samples.Baseline().Add("tools/versions.yaml", Versions.Replace("id: pester", "id: &x pester"));
+
+        Expect.FailsOnlyWith(await CliRunner.RunAsync(repository, "inventory"), "discovery-unreadable");
+    }
+
+    [Fact]
+    [Trait("Requirement", "REQ-DOC-003")]
+    public async Task The_installed_tools_folder_is_not_scanned()
+    {
+        using var repository = Samples.Baseline().Replace("governance/policies/documentation-policy.yaml", "discovery:\n", "discovery:\n  exclude-paths: ['.dev/**']\n");
+        repository.Add(".dev/modules/Pester/5.9.0/Thing.csproj", """<Project><ItemGroup><PackageReference Include="Mystery.Package" Version="1.0.0" /></ItemGroup></Project>""");
+
+        Expect.Passes(await CliRunner.RunAsync(repository, "inventory"));
+    }
+
+    [Fact]
+    [Trait("Requirement", "REQ-DOC-003")]
+    public void The_real_policy_no_longer_lists_the_dev_container_or_the_manifest_as_unreadable()
+    {
+        var policy = DocumentationPolicy.Load(RealRepository.Files);
+
+        Assert.DoesNotContain(policy.Discovery.UnsupportedSources, source => source.Pattern.StartsWith(".devcontainer", StringComparison.Ordinal));
+        Assert.DoesNotContain(policy.Discovery.UnsupportedSources, source => source.Pattern.Contains("versions.yaml", StringComparison.Ordinal));
+        Assert.Contains(".dev/**", policy.Discovery.ExcludePaths);
     }
 }
 

@@ -31,4 +31,4 @@ exclude = [
   '\.localtest\.me',
   '^https?://([a-z0-9-]+\.)*example\.(com|org|net|test)',
 ]
-exclude_path = ['^docs/templates/', '^\.git/', '^_site/', '^\.docfx/']
+exclude_path = ['^docs/templates/', '^\.git/', '^_site/', '^\.docfx/', '^\.dev/']

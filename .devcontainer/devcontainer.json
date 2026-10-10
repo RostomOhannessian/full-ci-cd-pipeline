@@ -1,0 +1,33 @@
+{
+  "name": "Secure Product Catalog",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": "."
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:4": {
+      "moby": false
+    },
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+  "hostRequirements": {
+    "cpus": 4,
+    "memory": "16gb"
+  },
+  "postCreateCommand": "sh ./dev bootstrap && sh ./dev doctor",
+  "forwardPorts": [8180, 3000],
+  "portsAttributes": {
+    "8180": { "label": "Keycloak", "onAutoForward": "notify" },
+    "3000": { "label": "Grafana", "onAutoForward": "notify" }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-vscode.powershell",
+        "ms-dotnettools.csharp",
+        "DavidAnson.vscode-markdownlint",
+        "redhat.vscode-yaml"
+      ]
+    }
+  }
+}

@@ -69,9 +69,26 @@ updates:
           - minor
           - patch
 
-  # The three entries below name manifests that arrive later: compose.yaml and the Dev Container in WP1.4, and the Dockerfile in
-  # Phase 2. Dependabot reads this file from the default branch, so they take effect when the phase merges. Until a manifest
-  # exists, Dependabot reports that it found none for that ecosystem.
+  # The Dev Container (WP1.4): the base image in its Dockerfile, its features and their lock file (the devcontainers entry below), and the API-only
+  # stack in compose.yaml (the docker-compose entry at the end). Dependabot reads this file from the default branch, so these entries take effect when the
+  # phase merges.
+  - package-ecosystem: docker
+    directory: /.devcontainer
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: America/New_York
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps)"
+    labels:
+      - dependencies
+      - docker
+
+  # The Dockerfile for the product image arrives in Phase 2. Until it exists, Dependabot reports that it found no manifest for this entry.
   - package-ecosystem: docker
     directory: /
     schedule:

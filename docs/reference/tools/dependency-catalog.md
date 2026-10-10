@@ -1,19 +1,19 @@
 ---
 title: "Dependency catalog"
-description: "The libraries that this repository uses and that need no page of their own: what each is for, why it was chosen, how it is referenced, and where to read more."
+description: "The libraries, Dev Container features, images, and actions that this repository uses and that need no page of their own: what each is for, why it was chosen, how it is referenced, and where to read more."
 audience: [learners, contributors]
-last-verified: 2026-10-08
+last-verified: 2026-10-10
 owner: "@RostomOhannessian"
 ---
 
 # Dependency catalog
 
-This page holds one entry for each Tier C library in [the tool inventory](inventory.yaml): a library with little to teach beyond usage. The
-[Documentation.Auditor](documentation-auditor.md) checks that every Tier C library that is in use has a level-2 heading here with the library's name.
+This page holds one entry for each Tier C tool in [the tool inventory](inventory.yaml): a library, a Dev Container feature, an image, or an action with little to teach beyond usage. The
+[Documentation.Auditor](documentation-auditor.md) checks that every Tier C tool that is in use has a level-2 heading here with the tool's name.
 A library that carries real concepts, such as FusionCache or FluentValidation, gets a Tier A or B tool page instead.
 
-Every version lives in `Directory.Packages.props` and nowhere else ([ADR-0020](../../adr/0020-dependency-intake-controls.md)), so a project
-names a package without a version.
+The version of every library lives in `Directory.Packages.props` and nowhere else ([ADR-0020](../../adr/0020-dependency-intake-controls.md)), so a project
+names a package without a version. The pin of each other entry is in the file that the entry names.
 
 ## System.CommandLine
 
@@ -57,3 +57,83 @@ and aliases, because the library resolves an alias to the node it names, so a ne
 
 - [YamlDotNet repository](https://github.com/aaubry/YamlDotNet) (checked 2026-10-08)
 - [YamlDotNet 18.1.0 on NuGet](https://www.nuget.org/packages/YamlDotNet/18.1.0) (checked 2026-10-08)
+
+## Docker-in-Docker Dev Container feature
+
+**Purpose.** Runs a Docker daemon inside the Dev Container, so Compose, kind, and Testcontainers work without the container sharing the host's Docker socket.
+
+**Rationale.** A container that mounts the host's socket controls every container on the host, and a daemon of its own keeps the stack, its images, and its volumes inside the
+container. The cost is that the feature runs the container privileged, and [ADR-0025](../../adr/0025-dev-command-and-dev-container.md) and
+[the threat model](../../security/threat-model.md) record it. The feature is MIT licensed. Version 4.1.3 is locked (checked 2026-10-10).
+
+**Setup.** The configuration names the feature with its major version, and the lock file pins the exact version and digest.
+
+```json
+"ghcr.io/devcontainers/features/docker-in-docker:4": { "moby": false }
+```
+
+**Used by.** `.devcontainer/devcontainer.json` and `.devcontainer/devcontainer-lock.json`.
+
+**Sources.**
+
+- [The feature's source and options](https://github.com/devcontainers/features/tree/main/src/docker-in-docker) (checked 2026-10-10)
+- [Dev Container features](https://containers.dev/features) (checked 2026-10-10)
+
+## GitHub CLI Dev Container feature
+
+**Purpose.** Installs the GitHub CLI in the Dev Container, for the maintainer's pull request and Issue work.
+
+**Rationale.** The command line is the supported way to script GitHub from the terminal, and the feature installs it without a line in the Dockerfile. The feature is MIT licensed. Version 1.1.3 is
+locked (checked 2026-10-10). The feature installs the latest GitHub CLI release unless a version is set, and the tool itself is the `github-cli` entry in the inventory.
+
+**Setup.** The configuration names the feature with its major version, and the lock file pins the exact version and digest.
+
+```json
+"ghcr.io/devcontainers/features/github-cli:1": {}
+```
+
+**Used by.** `.devcontainer/devcontainer.json` and `.devcontainer/devcontainer-lock.json`.
+
+**Sources.**
+
+- [The feature's source and options](https://github.com/devcontainers/features/tree/main/src/github-cli) (checked 2026-10-10)
+- [Dev Container features](https://containers.dev/features) (checked 2026-10-10)
+
+## Microsoft .NET Dev Container image
+
+**Purpose.** Is the base of the Dev Container, with the .NET SDK, Git, PowerShell, and a non-root user.
+
+**Rationale.** The image carries the SDK that `global.json` pins, so the Dockerfile needs no installer for it, and Microsoft maintains it. The image is MIT licensed, and it contains software under other
+licenses, as every Linux distribution image does. The repository links none of it. The tag `10.0` carried SDK 10.0.401 on Ubuntu 24.04 when the digest was pinned (checked 2026-10-10).
+
+**Setup.** The Dockerfile names the image with its tag and digest, so a rebuild gives the same tools, and Dependabot proposes updates to both.
+
+```dockerfile
+FROM mcr.microsoft.com/devcontainers/dotnet:10.0@sha256:694076b55f447d4b9f5b49bc6616c2e904d63e1a61e43680b2bbea46011b6783
+```
+
+**Used by.** `.devcontainer/Dockerfile`.
+
+**Sources.**
+
+- [The image's source and tags](https://github.com/devcontainers/images/tree/main/src/dotnet) (checked 2026-10-10)
+- [The image on the Microsoft Artifact Registry](https://mcr.microsoft.com/en-us/artifact/mar/devcontainers/dotnet) (checked 2026-10-10)
+
+## devcontainers/ci
+
+**Purpose.** Builds the Dev Container on a hosted runner and runs the onboarding commands in it.
+
+**Rationale.** It is the action that the Dev Containers project publishes for this job: it builds the image, starts the container, runs the lifecycle commands, and runs a command in it. The alternative
+was to call the Dev Containers CLI from a script, which repeats what the action does. It is a third-party action, so it is pinned by commit SHA (release v0.3.1900000450, checked 2026-10-10), it runs with
+`push: never` and a read-only token, and it is MIT licensed.
+
+**Setup.** The workflow names the action by SHA, with the release in a comment, and passes the command to run.
+
+[!code-bash[Run the onboarding in a Dev Container](../../../.github/workflows/devcontainer.yml#onboarding)]
+
+**Used by.** `.github/workflows/devcontainer.yml`.
+
+**Sources.**
+
+- [The action's repository](https://github.com/devcontainers/ci) (checked 2026-10-10)
+- [The GitHub Action guide](https://github.com/devcontainers/ci/blob/main/docs/github-action.md) (checked 2026-10-10)

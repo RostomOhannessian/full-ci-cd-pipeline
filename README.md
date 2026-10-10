@@ -116,7 +116,17 @@ The complete plan, with the reasoning behind every choice, is [the implementatio
 
 ### What runs today
 
-Phase 0 has no application code. The documentation quality gate runs the same way in CI and on your machine. It needs Git and Docker:
+Phase 1 has started, and the application layers are still nearly empty. The developer environment runs, so you can bring up the API-only stack, which holds SQL Server, Valkey, Keycloak, and the telemetry stack, and check it. You need Docker and the .NET SDK 10.0.401, or the Dev Container. The Dev Container route and the native route are in [the quick start lab](docs/labs/quick-start-api-stack.md) and [the native setup guide](docs/tutorials/native-setup.md):
+
+```text
+./dev doctor
+./dev bootstrap
+./dev compose up
+./dev compose check
+./dev compose down
+```
+
+On Windows, `./dev` in PowerShell and `.\dev` in cmd.exe both run `dev.cmd`. The documentation quality gate runs the same way in CI and on your machine. It needs Git and Docker:
 
 ```text
 docker compose -f tools/lint/compose.yaml run --rm markdownlint
@@ -124,7 +134,7 @@ docker compose -f tools/lint/compose.yaml run --rm links
 docker compose -f tools/lint/compose.yaml run --rm secrets-worktree
 ```
 
-The one-command quick start for the API arrives with the developer environment in Phase 1, and the full local platform arrives in Phase 3. This section will be replaced by a tested tutorial then.
+The API itself arrives with WP1.10, and the full local platform arrives in Phase 3. [AGENTS.md](AGENTS.md) lists every command that runs today.
 
 ## Documentation map
 

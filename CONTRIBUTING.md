@@ -99,8 +99,13 @@ dotnet run --project tools/Governance.Auditor -- blast-radius --base origin/phas
 ```
 
 `status render` and `trace` write the generated pages, so run them, read the diff, and commit the result. The security auditor checks the
-commits since the base, and the blast-radius evaluator names the jobs, documentation, and reviews that your change needs. The Dev
-Container and a single `dev` command arrive in WP1.4.
+commits since the base, and the blast-radius evaluator names the jobs, documentation, and reviews that your change needs.
+
+The Dev Container and the `dev` command set the whole environment up ([ADR-0025](docs/adr/0025-dev-command-and-dev-container.md)). Open the repository in the
+Dev Container, or install Git, Docker, and the .NET SDK and follow [the native setup guide](docs/tutorials/native-setup.md). Then run `./dev doctor` to check the
+host against its profile, `./dev bootstrap` to install the pinned script tools and create your local `.env`, and `./dev test scripts` for the Pester tests. A change
+to a script, the Compose file, the realm, the Dev Container, or `tools/versions.yaml` needs the script tests, and a new developer tool needs a pin and a checksum in
+`tools/versions.yaml` and an entry in the tool inventory ([ADR-0024](docs/adr/0024-verified-tool-installer.md)).
 
 ## Documentation standards
 
