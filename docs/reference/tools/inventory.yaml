@@ -452,7 +452,7 @@ entries:
       - https://github.com/devcontainers/ci/releases/tag/v0.3.1900000450
       - https://github.com/devcontainers/ci/blob/main/docs/github-action.md
     adrs: ["0025"]
-    notes: A third-party action, pinned by commit SHA 513af61f4de4f75d37e4438f184ba4358f0fc1ca in .github/workflows/devcontainer.yml (release v0.3.1900000450, published 2026-06-01, checked 2026-10-10), with push set to never and a read-only token. It is maintained under the devcontainers organization, and ADR-0025 records why it was chosen over calling the Dev Containers CLI directly.
+    notes: A third-party action, pinned by commit SHA 513af61f4de4f75d37e4438f184ba4358f0fc1ca in .github/workflows/devcontainer.yml (release v0.3.1900000450, published 2026-06-01, checked 2026-10-10), with push set to never and a read-only token. It is maintained under the devcontainers organization, which GitHub lists as a verified creator (checked 2026-10-10), so the repository's Actions allow-list for verified creators admits it without a settings change. ADR-0025 records why it was chosen over calling the Dev Containers CLI directly.
     detect: ["action:devcontainers/ci"]
   - id: github-cli
     name: GitHub CLI
