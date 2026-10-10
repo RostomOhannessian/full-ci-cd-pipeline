@@ -66,6 +66,7 @@ Conventional Commits and attached to each release together with its evidence bun
 - The `ci` workflow runs the script tests through `scripts/Invoke-ScriptTests.ps1`, which installs the pinned and checksum-verified Pester and PSScriptAnalyzer instead of whatever the runner image carries. Dependabot also watches `/.devcontainer`.
 - The blast-radius map has a `devcontainer` job and a `tool-manifest` rule, and `governance.yml` publishes `run-devcontainer`. The tool inventory marks the Dev Containers, PowerShell, Pester, PSScriptAnalyzer, SQL Server, Valkey, Keycloak, and the telemetry stack as `in-use`, mise as `hold`, and Codespaces stays planned.
 - The threat model has a developer-environment boundary (TB2a), and the risk register has R21 (the Keycloak scope and role finding) and R22 (the privileged Dev Container).
+- The documentation site build leaves out `.env` and `.dev/`, because it copies every repository file that it does not exclude (the working-tree secret scan found a copy of a generated `.env` in `_site` before the exclusion). The link, spelling, and Markdown checks skip `.dev/`, where `dev bootstrap` installs downloaded tools.
 
 ### Fixed
 
