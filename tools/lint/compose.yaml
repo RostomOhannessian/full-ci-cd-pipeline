@@ -76,7 +76,8 @@ services:
       GIT_CONFIG_VALUE_0: /repo
     command: ["git", "/repo", "--redact", "--no-banner", "--verbose"]
 
-  # Secret scan over the working tree, including files that are not committed yet. Run it before every commit.
+  # Secret scan over the working tree, including files that are not committed yet. Run it before every commit. It reads gitleaks-worktree.toml, which
+  # keeps the default rules and allows only the git-ignored .env that "dev bootstrap" generates (gitleaks does not read .gitignore).
   secrets-worktree:
     <<: *gitleaks
-    command: ["dir", "/repo", "--redact", "--no-banner", "--verbose"]
+    command: ["dir", "/repo", "--config", "/repo/tools/lint/gitleaks-worktree.toml", "--redact", "--no-banner", "--verbose"]

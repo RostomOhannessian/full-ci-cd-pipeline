@@ -1,0 +1,127 @@
+# The API-only stack: the `api` resource profile of plan section 12 and ADR-0019. It runs the services that the API depends on, on 127.0.0.1 only,
+# with disposable data. The API itself runs on the host (or, later, in a container). Run it through the dev command:
+#
+#   ./dev bootstrap        creates .env with random secrets, installs the pinned script tools
+#   ./dev compose up       starts the stack and waits until every service is healthy
+#   ./dev compose check    proves that SQL Server, Valkey, Keycloak, and the telemetry stack answer as the plan describes
+#   ./dev compose down     stops it, and ./dev compose reset also deletes the data
+#
+# Every image is pinned by tag and digest, and Dependabot (docker-compose ecosystem) proposes updates to both. Every secret comes from .env, which
+# `dev bootstrap` generates from .env.example, so no credential is in this file. Static credentials are for Compose only: Phase 3 replaces them with
+# Vault-delivered ones (plan section 8.8).
+name: catalog
+
+services:
+  # SQL Server 2022, Developer edition. Starting it accepts Microsoft's license terms for that edition (ACCEPT_EULA), which allow development and test use
+  # and not production use. The image runs on x86-64 only (ADR-0019). MSSQL_MEMORY_LIMIT_MB keeps the idle footprint near 1 GB (spike 1.d).
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest@sha256:4402d880dd4c34bfa7d8705e56a86cd6c88da80a1f6bbbe741f999e76264a090
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: Developer
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:?Run "dev bootstrap" to create .env}
+      MSSQL_MEMORY_LIMIT_MB: "2048"
+    mem_limit: 3g
+    ports:
+      - "127.0.0.1:${SQL_PORT:-1433}:1433"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -Q \"SELECT 1\" -b -o /dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 18
+      start_period: 20s
+    security_opt:
+      - no-new-privileges:true
+
+  # Valkey 8.1, the long-term-support line (ADR-0016). The default user is off, and the application user sees only the catalog development keys and
+  # channels, with the command list that spike 1.b measured. The ACL file is built by Compose from .env, so the passwords stay out of the repository.
+  # The key and channel patterns cover both forms: FusionCache writes L2 keys as "v2:<prefix>:<key>" and its backplane channel as "<prefix>.Backplane:v2"
+  # (spike 1.b), and plan section 8.5 describes "catalog:<env>:*". WP1.9 owns the final key scheme and narrows this list to match it.
+  valkey:
+    image: valkey/valkey:8.1@sha256:640c5e62cea04b6d6f2084232651d0cc70362d31f4f805e7be94dbed6855e8f2
+    command: ["valkey-server", "--aclfile", "/etc/valkey/users.acl", "--maxmemory", "128mb", "--maxmemory-policy", "allkeys-lru", "--save", "", "--appendonly", "no"]
+    environment:
+      VALKEY_ADMIN_PASSWORD: ${VALKEY_ADMIN_PASSWORD:?Run "dev bootstrap" to create .env}
+      # The checks in "dev compose check" read these inside the container, so a password never appears on a host command line.
+      VALKEY_APP_USER: ${VALKEY_APP_USER:-catalog-dev}
+      VALKEY_APP_PASSWORD: ${VALKEY_APP_PASSWORD:?Run "dev bootstrap" to create .env}
+    mem_limit: 256m
+    configs:
+      - source: valkey-acl
+        target: /etc/valkey/users.acl
+    ports:
+      - "127.0.0.1:${VALKEY_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD-SHELL", "valkey-cli --user admin --pass \"$$VALKEY_ADMIN_PASSWORD\" --no-auth-warning ping | grep -q PONG"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    security_opt:
+      - no-new-privileges:true
+
+  # Keycloak 26.8, in development mode with an in-memory database. It imports the catalog realm from the single source file on every start, so the realm
+  # is always what Git says (REQ-IDN-005). It advertises one fixed issuer, http://localhost:<KEYCLOAK_PORT>/realms/catalog (plan section 8.7). The
+  # secrets and demo passwords in the realm file are ${NAME} placeholders that Keycloak fills from the environment below.
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.8.0@sha256:27b3230fbabb8c9ff3c66c864cf09dcd8a41aca82e5100679d109ef0eeb05741
+    command:
+      - start-dev
+      - --import-realm
+      - --db=dev-mem
+      - --http-port=8080
+      - --hostname=http://localhost:${KEYCLOAK_PORT:-8180}
+      - --health-enabled=true
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USER:-admin}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:?Run "dev bootstrap" to create .env}
+      CATALOG_SMOKE_TESTS_SECRET: ${CATALOG_SMOKE_TESTS_SECRET:?Run "dev bootstrap" to create .env}
+      CATALOG_SYNTHETIC_SHOPPER_SECRET: ${CATALOG_SYNTHETIC_SHOPPER_SECRET:?Run "dev bootstrap" to create .env}
+      CATALOG_READER_PASSWORD: ${CATALOG_READER_PASSWORD:?Run "dev bootstrap" to create .env}
+      CATALOG_EDITOR_PASSWORD: ${CATALOG_EDITOR_PASSWORD:?Run "dev bootstrap" to create .env}
+      CATALOG_ADMIN_PASSWORD: ${CATALOG_ADMIN_PASSWORD:?Run "dev bootstrap" to create .env}
+    mem_limit: 1536m
+    volumes:
+      - ./identity/keycloak/realms/catalog-realm.json:/opt/keycloak/data/import/catalog-realm.json:ro
+    ports:
+      - "127.0.0.1:${KEYCLOAK_PORT:-8180}:8080"
+    healthcheck:
+      # The image has no curl, so the check speaks HTTP over a bash socket to the management port, as the Keycloak documentation shows.
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9000 && printf 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && grep -q '\"status\": \"UP\"' <&3"]
+      interval: 10s
+      timeout: 5s
+      retries: 18
+      start_period: 30s
+    security_opt:
+      - no-new-privileges:true
+
+  # grafana/otel-lgtm: Grafana, Prometheus, Tempo, Loki, and an OpenTelemetry Collector in one image, for local development only (ADR-0004 records the
+  # AGPL components as tool-only). It receives OTLP on 4317 (gRPC) and 4318 (HTTP). WP1.11 provisions the dashboards.
+  otel-lgtm:
+    image: grafana/otel-lgtm:0.35.0@sha256:2de1094c593c671cbfca878a28ffcd7e46ff5e32f2ce966c0cf33003f6cf4266
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?Run "dev bootstrap" to create .env}
+    mem_limit: 1g
+    ports:
+      - "127.0.0.1:${GRAFANA_PORT:-3000}:3000"
+      - "127.0.0.1:${OTLP_GRPC_PORT:-4317}:4317"
+      - "127.0.0.1:${OTLP_HTTP_PORT:-4318}:4318"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:3000/api/health >/dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 24
+      start_period: 30s
+    security_opt:
+      - no-new-privileges:true
+
+configs:
+  valkey-acl:
+    content: |
+      user default off
+      user admin on >${VALKEY_ADMIN_PASSWORD:?Run "dev bootstrap" to create .env} ~* &* +@all
+      user ${VALKEY_APP_USER:-catalog-dev} on >${VALKEY_APP_PASSWORD:?Run "dev bootstrap" to create .env} ~v2:catalog:dev:* ~catalog:dev:* %R~__Booksleeve_TieBreak &catalog:dev.Backplane:v2 &catalog:dev:* &__Booksleeve_MasterChanged -@all +client|id +client|setinfo +client|setname +cluster|nodes +config|get +echo +expire +get +hmget +hmset +info +ping +publish +select +subscribe +unlink +unsubscribe
+
+volumes:
+  sqlserver-data:
