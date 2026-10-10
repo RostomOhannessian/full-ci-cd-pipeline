@@ -93,7 +93,7 @@ reclaim the space.
 - **Pinned base.** The Dockerfile starts from `mcr.microsoft.com/devcontainers/dotnet:10.0` at a digest. That image carried SDK 10.0.401 on Ubuntu 24.04 (checked 2026-10-10), which is what `global.json` pins.
 - **Locked features.** `docker-in-docker` at major version 4 (locked at 4.1.3) gives the container its own Docker daemon, with `moby` off so Docker CE is used. `github-cli` at major version 1 (locked at 1.1.3)
   adds the GitHub CLI. The documentation auditor fails when a feature is missing from the lock file, when the lock file keeps a feature that is gone, and when a locked feature has no digest.
-- **Lifecycle.** `postCreateCommand` is `sh ./dev bootstrap && sh ./dev doctor`. It calls `sh` explicitly, so a clone on a file system without an executable bit still works.
+- **Lifecycle.** `postCreateCommand` marks the workspace as a safe Git directory in the container, and then runs `sh ./dev bootstrap && sh ./dev doctor`. The Git step is needed because a Windows bind mount shows the files as owned by root, and Git then refuses the folder as "dubious ownership". The command calls `sh` explicitly, so a clone on a file system without an executable bit still works.
 - **Host requirements.** 4 CPUs and 16 GB, which is the smallest machine that plan section 12 names for the `api` profile.
 - **Proof in CI.** The `devcontainer` workflow builds the container and runs the onboarding on every change to what the container runs, every Monday, and by hand. The commands are these:
 

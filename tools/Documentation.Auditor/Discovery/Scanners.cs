@@ -181,24 +181,27 @@ internal static partial class Scanners
         var features = config["features"] as JsonObject;
         JsonObject? locked = null;
 
+        // A feature in a folder of this repository is repository content, and it needs no lock.
+        static bool IsLocal(string reference) => reference.StartsWith("./", StringComparison.Ordinal) || reference.StartsWith("../", StringComparison.Ordinal);
+        var remoteCount = features?.Count(feature => !IsLocal(feature.Key)) ?? 0;
+
         if (lockText is not null)
         {
             var lockDocument = JsonNode.Parse(lockText, documentOptions: options) as JsonObject ?? throw new GovernanceException($"{lockPath}: the lock file is not a JSON object.");
             locked = lockDocument["features"] as JsonObject ?? [];
         }
 
-        if (features is { Count: > 0 } && locked is null)
+        if (remoteCount > 0 && locked is null)
         {
             findings.Add(Finding.Error(
                 "devcontainer-lock-missing",
-                $"This configuration uses {features.Count} feature(s) and there is no {lockPath}. The lock file pins each feature to a version and a digest, so create it with the Dev Containers CLI (devcontainer upgrade) and commit it.",
+                $"This configuration uses {remoteCount} feature(s) and there is no {lockPath}. The lock file pins each feature to a version and a digest, so create it with the Dev Containers CLI (devcontainer upgrade) and commit it.",
                 path));
         }
 
         foreach (var (reference, _) in features ?? [])
         {
-            // A feature in a folder of this repository is repository content, and it needs no lock.
-            if (reference.StartsWith("./", StringComparison.Ordinal) || reference.StartsWith("../", StringComparison.Ordinal))
+            if (IsLocal(reference))
             {
                 continue;
             }

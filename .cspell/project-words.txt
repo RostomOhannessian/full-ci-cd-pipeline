@@ -71,6 +71,7 @@ prebuild
 prebuilds
 psmodule
 psscriptanalyzer
+pyroscope
 recreatable
 redocly
 rekor

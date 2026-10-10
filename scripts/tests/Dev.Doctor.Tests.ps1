@@ -258,6 +258,16 @@ Describe 'Test-DevGitIdentity' {
 
         (Test-DevGitIdentity | Where-Object Name -EQ 'Git identity').Status | Should -Be 'warn'
     }
+
+    It 'explains a folder that Git refuses because another user owns it, and offers the safe.directory fix' {
+        $script:EmailExit = 128; $script:Email = "fatal: detected dubious ownership in repository at '/workspaces/example'"
+
+        $check = Test-DevGitIdentity | Where-Object Name -EQ 'Git identity'
+
+        $check.Status | Should -Be 'warn'
+        $check.Message | Should -BeLike '*another user owns the folder*'
+        $check.Fix | Should -BeLike '*safe.directory*'
+    }
 }
 
 Describe 'Test-DevDotnet' {

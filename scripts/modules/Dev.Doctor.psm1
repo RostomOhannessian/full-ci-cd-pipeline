@@ -115,7 +115,11 @@ function Test-DevGitIdentity {
     $email = Invoke-DevNative -FilePath 'git' -ArgumentList @('config', '--local', 'user.email') -WorkingDirectory $RepositoryRoot
     $value = if ($email.ExitCode -eq 0) { ($email.Output -join '').Trim() } else { '' }
 
-    if ($value -match '^\d+\+[A-Za-z0-9-]+@users\.noreply\.github\.com$') {
+    if (($email.Output -join ' ') -match 'dubious ownership') {
+        $results += Build-DevCheck -Name 'Git identity' -Status warn -Message 'Git refuses to read this repository because another user owns the folder, so the commit email cannot be checked.' `
+            -Fix 'Run: git config --global --add safe.directory <the repository folder>, or open the folder as its owner.'
+    }
+    elseif ($value -match '^\d+\+[A-Za-z0-9-]+@users\.noreply\.github\.com$') {
         $results += Build-DevCheck -Name 'Git identity' -Status ok -Message 'The repository commit email is a GitHub noreply address.'
     }
     else {

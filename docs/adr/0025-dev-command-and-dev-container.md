@@ -72,7 +72,7 @@ docker-in-docker keeps Compose, kind, and Testcontainers away from the host's Do
 
 - **Base.** `.devcontainer/Dockerfile` starts from `mcr.microsoft.com/devcontainers/dotnet:10.0` pinned by tag and digest, and sets the telemetry opt-outs.
 - **Features.** `docker-in-docker:4` with `moby` off (Docker CE) and `github-cli:1`, pinned by `.devcontainer/devcontainer-lock.json`, which the documentation auditor checks against the configuration (missing, stale, and undigested entries fail).
-- **Lifecycle.** `postCreateCommand` runs `sh ./dev bootstrap && sh ./dev doctor`, which installs the pinned tools, creates `.env`, and checks the machine. It calls `sh` explicitly, so a clone without the executable bit still works.
+- **Lifecycle.** `postCreateCommand` marks the workspace as a safe Git directory in the container, and then runs `sh ./dev bootstrap && sh ./dev doctor`, which installs the pinned tools, creates `.env`, and checks the machine. The Git step is needed because a Windows bind mount shows the files as owned by root, and Git then refuses the folder as "dubious ownership" (found on 2026-10-10, and doctor says so in that case). The command calls `sh` explicitly, so a clone without the executable bit still works.
 - **Host requirements.** 4 CPUs and 16 GB, which is the smallest Codespaces machine that plan section 12 names for the `api` profile. Keycloak and Grafana are forwarded.
 - **Editor extensions.** Four are suggested (PowerShell, C#, markdownlint, and YAML). None is required, and the repository depends on none.
 
@@ -86,7 +86,7 @@ docker-in-docker keeps Compose, kind, and Testcontainers away from the host's Do
 
 ### Consequences
 
-- Good: one command and one language on every host, with 278 script tests and no analyzer findings, and the shims are the only host-specific files.
+- Good: one command and one language on every host, with 275 script tests and no analyzer findings, and the shims are the only host-specific files.
 - Good: a fresh Dev Container is built and used in CI, so a change that breaks onboarding fails before it merges.
 - Good: a rebuild gives the same tools, because the base image, the features, and the scripts' tools are pinned.
 - Bad: the Dev Container runs privileged, because docker-in-docker needs it. A compromised container could take over the host's Docker Desktop VM. Mitigation: the daemon is private to the container, no host socket is
@@ -97,7 +97,7 @@ docker-in-docker keeps Compose, kind, and Testcontainers away from the host's Do
 
 ### Confirmation
 
-- **WP1.4** delivers the command, its modules, 278 Pester tests, the shims, the Dev Container, the workflow, and the evidence record. The hosted run of the workflow is linked from the pull request.
+- **WP1.4** delivers the command, its modules, 275 Pester tests, the shims, the Dev Container, the workflow, and the evidence record. The hosted run of the workflow is linked from the pull request.
 - Pester tests check the shims, the command table against AGENTS.md, the doctor checks with a faked machine, and the Dev Container files (digest pins, the lock file, the lifecycle command).
 - A local run built the Dev Container with the Dev Containers CLI 0.89.0 and `--frozen-lockfile`, ran `postCreateCommand`, and ran Lab 1 inside it with docker-in-docker (evidence record, 2026-10-10).
 - **WP1.13** records the native Windows, Linux, and macOS smoke tests that the Phase 1 exit gate requires, and the first Codespaces run.

@@ -14,7 +14,7 @@
     "cpus": 4,
     "memory": "16gb"
   },
-  "postCreateCommand": "sh ./dev bootstrap && sh ./dev doctor",
+  "postCreateCommand": "git config --global --add safe.directory ${containerWorkspaceFolder} && sh ./dev bootstrap && sh ./dev doctor",
   "forwardPorts": [8180, 3000],
   "portsAttributes": {
     "8180": { "label": "Keycloak", "onAutoForward": "notify" },

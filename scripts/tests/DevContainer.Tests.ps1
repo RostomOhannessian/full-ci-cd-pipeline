@@ -58,6 +58,10 @@ Describe 'devcontainer.json' {
         $script:Config.postCreateCommand.IndexOf('bootstrap') | Should -BeLessThan $script:Config.postCreateCommand.IndexOf('doctor')
     }
 
+    It 'trusts the workspace folder in Git first, because a Windows bind mount shows it as owned by root' {
+        $script:Config.postCreateCommand | Should -Match '^git config --global --add safe\.directory \$\{containerWorkspaceFolder\} && '
+    }
+
     It 'starts the shim through sh, so a lost execute bit cannot break the command' {
         $script:Config.postCreateCommand | Should -Match '(^|&&\s*)sh \./dev '
     }
