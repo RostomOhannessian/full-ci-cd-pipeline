@@ -1462,8 +1462,8 @@ requirements:
   - docs
   - ci
   evidence: devcontainers/ci run
-  status: in_progress
-  notes: The Dev Container has a digest-pinned base image, a committed feature lock file, docker-in-docker, and a postCreateCommand that runs dev doctor, all checked by Pester tests and by the documentation auditor. It was built and run end to end on a developer machine (evidence record of 2026-10-10). The hosted devcontainers/ci run becomes the proof when the WP1.4 pull request has one.
+  status: verified
+  notes: The Dev Container has a digest-pinned base image, a committed feature lock file, docker-in-docker, and a postCreateCommand that runs dev doctor, all checked by Pester tests and by the documentation auditor. It was built and run end to end from a fresh clone on a developer machine (evidence record of 2026-10-10), and the hosted devcontainers/ci run of the WP1.4 pull request passed in 3 minutes 28 seconds (run 38093435177).
 - id: REQ-DX-002
   title: Native setup stays limited to Git Docker and .NET 10
   statement: The native setup for Windows, Linux, and macOS requires only Git, Docker, and the .NET 10 SDK, restores PowerShell 7 as a local .NET tool, and exposes thin dev and dev.cmd shims that invoke scripts/dev.ps1.

@@ -50,6 +50,10 @@ The first runs found defects that the Windows host had hidden. Each is fixed in 
 - Two Pester tests failed only on Linux: `Remove-Item` needs `-Force` for a dot file, and .NET prints file mode flags in value order.
 - The documentation site build copied the generated `.env` into `_site`. The working-tree secret scan found it, and `docfx.json` now excludes `.env` and `.dev/`, with a test.
 
+## The hosted run
+
+The `devcontainer` workflow ran the same path on a hosted `ubuntu-24.04` runner for the pull request (run `38093435177`). It built the Dev Container through `devcontainers/ci`, ran `postCreateCommand`, and then ran `dev doctor`, `dev build`, `dev test unit`, and Lab 1 (`setup`, `run`, `cleanup`) inside it. The job passed in 3 minutes 28 seconds. Doctor reported `11 ok, 1 warning(s), 0 failure(s)` there, and the one warning is the repository's commit email, which a hosted checkout does not set. Lab 1 ended with `quick start: 5 ok, 0 warning(s), 0 failure(s)`.
+
 ## What this does not prove
 
 - It does not prove that the Dev Container opens in VS Code or in a Codespace. The hosted workflow proves the build and the lifecycle commands on a hosted runner, and a person must still open the container in an editor once.
