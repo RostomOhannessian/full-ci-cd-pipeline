@@ -107,7 +107,7 @@ section 8.7's "scopes are parsed from the space-delimited `scope` claim". The pl
 
 ### Confirmation
 
-- **WP1.4** delivers the stack, the realm file, `dev compose check`, and the tests: 44 Pester tests over `compose.yaml`, `.env.example`, and the realm file, and 28 over the check's logic.
+- **WP1.4** delivers the stack, the realm file, `dev compose check`, and the tests: 45 Pester tests over `compose.yaml`, `.env.example`, the documentation site configuration, and the realm file, and 28 over the check's logic.
 - The check ran against the real stack on a Windows host with Docker Desktop and inside the Dev Container with docker-in-docker (evidence record, 2026-10-10).
 - **WP1.9** narrows the Valkey ACL to the key scheme that it fixes, and tests it with FusionCache.
 - **WP1.10** builds `Catalog.Identity.ContractTests`, which import this file into a Keycloak Testcontainer, and the API's policies that require the role and the scope.

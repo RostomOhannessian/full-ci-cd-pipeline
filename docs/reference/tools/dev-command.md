@@ -43,7 +43,7 @@ wrong usage or a command that does not exist yet.
 | Criterion | What was found |
 | --- | --- |
 | License | The scripts are first-party code under the repository's Apache-2.0 license |
-| Maintenance | The repository maintains it, with 275 Pester tests in `scripts/tests`, PSScriptAnalyzer at warning level, and a CI job that runs both |
+| Maintenance | The repository maintains it, with 278 Pester tests in `scripts/tests`, PSScriptAnalyzer at warning level, and a CI job that runs both |
 | Cost | No prerequisite beyond Git, Docker, and the .NET SDK, because PowerShell is a local .NET tool |
 | Trade-off | The repository maintains an installer and a small YAML reader, which the tests and the strict subset keep honest. `mise` stays on hold (checked 2026-10-10) |
 
@@ -80,7 +80,7 @@ wrong usage or a command that does not exist yet.
 
    [!code-bash[Script tests in CI](../../../.github/workflows/ci.yml#script-tests)]
 
-   Locally, `./dev test scripts` runs the same script. Expected output: `PSScriptAnalyzer found no problems.` and a last line that starts `Tests Passed: 302, Failed: 0, Skipped: 1` (checked 2026-10-10), where the count grows with the tests.
+   Locally, `./dev test scripts` runs the same script. Expected output: `PSScriptAnalyzer found no problems.` and a last line that starts `Tests Passed: 305, Failed: 0, Skipped: 1` (checked 2026-10-10), where the count grows with the tests.
 
 5. Start the stack and check it. [Lab 1](../../labs/quick-start-api-stack.md) walks through it.
 
