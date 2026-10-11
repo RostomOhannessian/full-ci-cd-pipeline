@@ -41,7 +41,7 @@ The rules for writing them are in [ADR-0001](0001-record-architecture-decisions.
 | [0014](0014-iac-scanning-trivy-as-tfsec-successor.md) | Use Trivy for infrastructure-as-code scanning | proposed | WP3.1 |
 | [0015](0015-gateway-api-with-envoy-gateway.md) | Use Gateway API with Envoy Gateway as the only entry point | proposed | WP3.2 |
 | [0016](0016-cache-implementation-fusioncache.md) | Implement caching with FusionCache behind ICatalogCache | proposed | WP1.9 |
-| [0017](0017-contract-first-api-design.md) | Design the API contract first and enforce conformance | proposed | WP1.5 |
+| [0017](0017-contract-first-api-design.md) | Design the API contract first and enforce conformance | accepted | Accepted 2026-10-11 in WP1.5 |
 | [0018](0018-test-stack-and-quality-gates.md) | Standardize on the Phase 1 test stack and quality gates | accepted | Accepted 2026-10-08 in WP1.1 |
 | [0019](0019-resource-profiles-and-host-support.md) | Define resource profiles and an explicit host support matrix | proposed | WP3.0 |
 | [0020](0020-dependency-intake-controls.md) | Control dependency intake with central versions, lock files, signatures, and a license gate | accepted | Accepted 2026-10-08 in WP1.1 |
@@ -51,6 +51,8 @@ The rules for writing them are in [ADR-0001](0001-record-architecture-decisions.
 | [0024](0024-verified-tool-installer.md) | Install developer tools with a verified PowerShell installer, and leave mise on hold | accepted | Accepted 2026-10-10 in WP1.4 |
 | [0025](0025-dev-command-and-dev-container.md) | Run local development through one PowerShell command, thin shims, and a pinned Dev Container | accepted | Accepted 2026-10-10 in WP1.4 |
 | [0026](0026-api-only-compose-stack-and-catalog-realm.md) | Run the API's dependencies in Compose, and keep one catalog realm file as the identity source | accepted | Accepted 2026-10-10 in WP1.4 |
+| [0027](0027-contract-linter-and-conformance-tooling.md) | Lint the contract with Spectral, test it with Microsoft.OpenApi, and compare documents with oasdiff | accepted | Accepted 2026-10-11 in WP1.5 |
+| [0028](0028-http-api-conventions-of-v1.md) | Fix the HTTP conventions of the version 1 contract | accepted | Accepted 2026-10-11 in WP1.5 |
 
 The evidence behind these decisions is in the [research records](../research/README.md). The plan that ties them together is
 [the implementation plan](../plans/implementation-plan.md).

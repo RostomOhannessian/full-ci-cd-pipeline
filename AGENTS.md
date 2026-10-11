@@ -66,7 +66,7 @@ These steps come from plan section 6.
 | `src/` | Six server projects under Clean Architecture boundaries. They hold almost no code yet: the domain, application, and API layers arrive in WP1.6, WP1.7, and WP1.10 | Maintainer | exists (WP1.1) |
 | `tests/Catalog.Architecture.Tests/` | The architecture, reference, and dependency rules, with fixtures that prove each rule can fail | Maintainer | exists (WP1.1) |
 | `tests/Governance.Auditor.Tests/` | The tests of the governance tool, including each security rule against a conforming and a violating fixture | Maintainer | exists (WP1.2) |
-| `tools/ci/` | The coverage threshold gate, the DocFX wrapper, and their Pester tests | Maintainer | exists (WP1.1, WP1.3) |
+| `tools/ci/` | The coverage threshold gate, the DocFX wrapper, the contract conformance script, and their Pester tests, including the tests that break the contract once for each lint rule | Maintainer | exists (WP1.1, WP1.3, WP1.5) |
 | `tools/Governance.Auditor/` | The deterministic governance CLI: status, trace, test-summary, github-sync, security, and blast-radius | Maintainer | exists (WP1.2) |
 | `tools/Documentation.Auditor/` | The documentation and inventory auditor | Maintainer | exists (WP1.3) |
 | `.devcontainer/` | The Dev Container: a pinned base image, locked features, and docker-in-docker | Maintainer | exists (WP1.4) |
@@ -75,7 +75,8 @@ These steps come from plan section 6.
 | `compose.yaml`, `.env.example` | The API-only stack (SQL Server, Valkey, Keycloak, and the telemetry stack) and the variables it reads | Maintainer | exists (WP1.4) |
 | `identity/keycloak/` | The Keycloak realm files, with `${ENV}` placeholders. The catalog realm exists, and the platform realm arrives in WP3.5 | Maintainer | exists (WP1.4) |
 | `docs/runbooks/`, `docs/labs/` | Operational procedures and hands-on labs. Machine migration and Lab 1 exist | Maintainer | exists (WP1.4) |
-| `contracts/` | Authored OpenAPI contracts | Maintainer | planned in WP1.5 |
+| `contracts/` | The authored OpenAPI contract of the v1 API (`contracts/openapi/catalog/v1/catalog.openapi.yaml`) and the Spectral ruleset that lints it. The contract comes first, and the code follows it | Maintainer | exists (WP1.5) |
+| `tests/Catalog.Contract.Tests/` | The tests that read the contract with Microsoft.OpenApi and check it against the permission matrix, the error catalog, and the style guide | Maintainer | exists (WP1.5) |
 | `infra/` | Terraform modules and stacks | Maintainer | planned in WP3.1 |
 | `policies/kyverno/` | Kyverno policies, exceptions, and tests | Maintainer | planned in WP3.6 |
 | `k8s/` | GitOps manifests and overlays that Argo CD owns | Maintainer | planned from WP3.8 |
@@ -125,7 +126,15 @@ docker compose -f tools/lint/compose.yaml run --rm secrets-worktree
 ```
 
 The `external-links` service checks external URLs and runs nightly in CI, not on a pull request, so run it by hand only when you add a
-link to another site. The documentation auditor and the documentation site build need the .NET SDK
+link to another site. A change to the API contract also needs the contract lint, which runs the Spectral ruleset in a container
+([ADR-0027](docs/adr/0027-contract-linter-and-conformance-tooling.md)). A served OpenAPI document is compared with the contract by a script, from WP1.10:
+
+```text
+docker compose -f tools/lint/compose.yaml run --rm contract-lint
+pwsh -NoProfile -File tools/ci/Test-ContractConformance.ps1 -Served <served document>
+```
+
+The documentation auditor and the documentation site build need the .NET SDK
 ([ADR-0023](docs/adr/0023-documentation-auditor.md)):
 
 ```text

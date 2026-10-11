@@ -47,6 +47,11 @@ Conventional Commits and attached to each release together with its evidence bun
 - Documentation auditor scanners for the Dev Container (features and lock file) and `tools/versions.yaml`, with `feature` and `psmodule` detect kinds, and the unsupported-source entries for both removed.
 - Lab 1 (quick start), the machine-migration runbook, the native setup tutorial, the host support matrix, and tool pages for the Dev Containers, PowerShell, the `dev` command, SQL Server, Valkey, Keycloak, and the telemetry stack.
 - A narrow allowance in `tools/lint/gitleaks-worktree.toml` for the git-ignored `.env`, used only by the `secrets-worktree` working-tree scan. The full-history `secrets` scan is unchanged.
+- WP1.5 contract v1 design: the authored OpenAPI 3.1 contract in `contracts/openapi/catalog/v1/catalog.openapi.yaml` with 10 operations on categories and products, Problem Details for 17 error types, strong ETags with `If-Match` and `If-None-Match`, an `Idempotency-Key` on every create, opaque keyset cursors, the version and deprecation headers, three OAuth scopes, and a valid example for every body.
+- The contract linter: Spectral 6.17.0 from a digest-pinned container (`contract-lint` in `tools/lint/compose.yaml`) with a ruleset of 15 `catalog-` rules, a `Contract lint` job in `ci.yml`, and `tools/ci/ContractRules.Tests.ps1`, which breaks the contract once for each rule and expects the rule to fire.
+- `tests/Catalog.Contract.Tests`: 86 tests tagged with requirement IDs that read the contract with Microsoft.OpenApi 2.12.2 and check it against the permission matrix, the error catalog, and the style guide, and that check the patterns of the headers against sample values.
+- `tools/ci/Test-ContractConformance.ps1` and its tests: the comparison of a served OpenAPI document with the contract through oasdiff 1.33.0, which ignores descriptions, examples, and summaries. WP1.10 generates the served document.
+- ADR-0017 accepted, ADR-0027 on the contract linter and the conformance tooling, ADR-0028 on the HTTP conventions of v1, the API contract page, the API style guide, the error catalog, and tool pages for OpenAPI, Spectral, and oasdiff.
 
 ### Changed
 
@@ -66,6 +71,10 @@ Conventional Commits and attached to each release together with its evidence bun
 - The `ci` workflow runs the script tests through `scripts/Invoke-ScriptTests.ps1`, which installs the pinned and checksum-verified Pester and PSScriptAnalyzer instead of whatever the runner image carries. Dependabot also watches `/.devcontainer`.
 - The blast-radius map has a `devcontainer` job and a `tool-manifest` rule, and `governance.yml` publishes `run-devcontainer`. The tool inventory marks the Dev Containers, PowerShell, Pester, PSScriptAnalyzer, SQL Server, Valkey, Keycloak, and the telemetry stack as `in-use`, mise as `hold`, and Codespaces stays planned.
 - The threat model has a developer-environment boundary (TB2a), and the risk register has R21 (the Keycloak scope and role finding) and R22 (the privileged Dev Container).
+- The threat model's API edge (TB4) lists the contract controls: a scope on every operation, the preconditions, the idempotency rule, the linter that holds them, and the conformance check that holds the running API to them.
+- The blast-radius map has a `contract` job, and a change under `contracts/` selects it with the build, the script tests, and the documentation site. `governance.yml` publishes `run-contract`.
+- The tool inventory marks OpenAPI, Spectral, oasdiff, and Microsoft.OpenApi as `in-use` and replaces the `openapi-linter` placeholder with Spectral. Requirement CON-001 is verified, and API-001 to API-005 and CON-002 are in progress until WP1.7, WP1.8, and WP1.10.
+- The `dev` command's unit suite includes `Catalog.Contract.Tests` without a change, because it finds test projects by name.
 - The documentation site build leaves out `.env` and `.dev/`, because it copies every repository file that it does not exclude (the working-tree secret scan found a copy of a generated `.env` in `_site` before the exclusion). The link, spelling, and Markdown checks skip `.dev/`, where `dev bootstrap` installs downloaded tools.
 
 ### Fixed

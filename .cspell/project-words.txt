@@ -103,6 +103,7 @@ tfvars
 timebox
 trailofbits
 truststore
+tufin
 unbuilt
 unmilestoned
 unreviewed
@@ -111,4 +112,5 @@ winget
 worklist
 xunit
 yamldotnet
+yamlreader
 zizmor

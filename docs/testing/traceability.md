@@ -3,7 +3,7 @@ title: "Requirements traceability"
 description: "A generated map from every requirement to the tests and evidence that prove it, and to the work packages that deliver it."
 type: reference
 audience: [maintainers, contributors, learners]
-last-verified: 2026-10-10
+last-verified: 2026-10-11
 owner: "@RostomOhannessian"
 ---
 
@@ -18,10 +18,10 @@ A requirement is in scope once every work package that delivers it is completed,
 | Measure | Requirements |
 | --- | --- |
 | Requirements | 121 |
-| In scope and covered | 10 |
+| In scope and covered | 11 |
 | In scope and missing proof | 0 |
-| Covered before they are due | 21 |
-| Not yet due | 90 |
+| Covered before they are due | 27 |
+| Not yet due | 83 |
 | Deferred or withdrawn | 0 |
 
 ## AI: AI enablement
@@ -36,11 +36,11 @@ A requirement is in scope once every work package that delivers it is completed,
 
 | Requirement | Title | Delivered by | State | Tests | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| `REQ-API-001` | v1 endpoints expose products and categories | WP1.5, WP1.10 | Not yet due | None | None |
-| `REQ-API-002` | Responses advertise API versions and deprecation | WP1.5, WP4.1 | Not yet due | None | None |
-| `REQ-API-003` | Conditional requests enforce strong ETags | WP1.5, WP1.10 | Not yet due | None | None |
-| `REQ-API-004` | POST creates require an Idempotency-Key | WP1.5, WP1.8, WP1.10 | Not yet due | None | None |
-| `REQ-API-005` | Errors use RFC 9457 Problem Details | WP1.5, WP1.10 | Not yet due | None | None |
+| `REQ-API-001` | v1 endpoints expose products and categories | WP1.5, WP1.10 | Covered | [ContractShapeTests.cs](../../tests/Catalog.Contract.Tests/ContractShapeTests.cs), [DocumentationAgreementTests.cs](../../tests/Catalog.Contract.Tests/DocumentationAgreementTests.cs), [ContractRules.Tests.ps1](../../tools/ci/ContractRules.Tests.ps1) | contract: [catalog.openapi.yaml](../../contracts/openapi/catalog/v1/catalog.openapi.yaml), docs: [api-contract.md](../reference/api-contract.md) |
+| `REQ-API-002` | Responses advertise API versions and deprecation | WP1.5, WP4.1 | Covered | [DocumentationAgreementTests.cs](../../tests/Catalog.Contract.Tests/DocumentationAgreementTests.cs), [HttpSemanticsTests.cs](../../tests/Catalog.Contract.Tests/HttpSemanticsTests.cs), [ContractRules.Tests.ps1](../../tools/ci/ContractRules.Tests.ps1) | docs: [api-style-guide.md](../reference/api-style-guide.md) |
+| `REQ-API-003` | Conditional requests enforce strong ETags | WP1.5, WP1.10 | Covered | [HttpSemanticsTests.cs](../../tests/Catalog.Contract.Tests/HttpSemanticsTests.cs), [ContractRules.Tests.ps1](../../tools/ci/ContractRules.Tests.ps1) | None |
+| `REQ-API-004` | POST creates require an Idempotency-Key | WP1.5, WP1.8, WP1.10 | Covered | [HttpSemanticsTests.cs](../../tests/Catalog.Contract.Tests/HttpSemanticsTests.cs), [ContractRules.Tests.ps1](../../tools/ci/ContractRules.Tests.ps1) | docs: [api-style-guide.md](../reference/api-style-guide.md) |
+| `REQ-API-005` | Errors use RFC 9457 Problem Details | WP1.5, WP1.10 | Covered | [DocumentationAgreementTests.cs](../../tests/Catalog.Contract.Tests/DocumentationAgreementTests.cs), [ErrorCatalogTests.cs](../../tests/Catalog.Contract.Tests/ErrorCatalogTests.cs), [HttpSemanticsTests.cs](../../tests/Catalog.Contract.Tests/HttpSemanticsTests.cs), and 1 more | docs: [error-catalog.md](../reference/error-catalog.md) |
 | `REQ-API-006` | JSON input is strict and bounded | WP1.10 | Not yet due | None | None |
 | `REQ-API-007` | Rate limits return 429 and Retry-After | WP1.10, WP4.4 | Not yet due | None | None |
 | `REQ-API-008` | Representative product flows exercise CQRS cache and events | WP1.10, WP1.13 | Not yet due | None | None |
@@ -88,8 +88,8 @@ A requirement is in scope once every work package that delivers it is completed,
 
 | Requirement | Title | Delivered by | State | Tests | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| `REQ-CON-001` | The authored OpenAPI document is the contract source of truth | WP1.5 | Not yet due | None | None |
-| `REQ-CON-002` | Served and authored contracts stay structurally equal | WP1.5, WP1.10 | Not yet due | None | None |
+| `REQ-CON-001` | The authored OpenAPI document is the contract source of truth | WP1.5 | Covered | [ContractShapeTests.cs](../../tests/Catalog.Contract.Tests/ContractShapeTests.cs), [DocumentationAgreementTests.cs](../../tests/Catalog.Contract.Tests/DocumentationAgreementTests.cs), [ContractRules.Tests.ps1](../../tools/ci/ContractRules.Tests.ps1) | contract: [catalog.openapi.yaml](../../contracts/openapi/catalog/v1/catalog.openapi.yaml), docs: [api-contract.md](../reference/api-contract.md) |
+| `REQ-CON-002` | Served and authored contracts stay structurally equal | WP1.5, WP1.10 | Covered | [ContractConformance.Tests.ps1](../../tools/ci/ContractConformance.Tests.ps1) | None |
 | `REQ-CON-003` | Breaking v1 contract changes are blocked before merge | WP4.1 | Not yet due | None | None |
 | `REQ-CON-004` | The generated Catalog.Client is deterministic and drift-checked | WP4.1, WP4.2 | Not yet due | None | None |
 | `REQ-CON-005` | Pact verifies the primary consumer scenarios against a real socket | WP1.0, WP4.2 | Not yet due | None | None |

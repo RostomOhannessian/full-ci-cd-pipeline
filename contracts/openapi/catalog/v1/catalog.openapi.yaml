@@ -1,0 +1,1661 @@
+openapi: 3.1.0
+info:
+  title: Product Catalog API
+  version: 1.0.0
+  summary: The version 1 contract of the product catalog HTTP API.
+  description: |
+    This document is the source of truth for the HTTP API of the Secure Product Catalog Platform. It is authored first, and the running API must
+    conform to it (ADR-0017). The sections below summarize the rules that every operation follows. The API style guide and the error catalog
+    in the repository documentation explain each rule and each error type.
+
+    **Authentication.** Every operation needs a bearer token from the catalog realm, with the scope that the operation names. The scopes are
+    `catalog.read` for reads, `catalog.write` for creating and changing products, and `catalog.admin` for discontinuing products and for every
+    category write.
+
+    **Versioning.** The version is a segment of the path (`/api/v1`). Every response carries `api-supported-versions`. When a version is
+    deprecated, its responses also carry `api-deprecated-versions`, `Deprecation` (RFC 9745), and `Sunset` (RFC 8594).
+
+    **Conditional requests.** A single resource has a strong `ETag`. A `GET` with a matching `If-None-Match` returns 304. A `PUT` and a discontinue
+    action require `If-Match`: a missing header returns 428, and a stale one returns 412.
+
+    **Idempotent creates.** Every `POST` that creates a resource requires an `Idempotency-Key` header. The same key with the same body replays the
+    first response. The same key with a different body returns 422, and the same key while the first request still runs returns 409.
+
+    **Pagination.** Collections use opaque keyset cursors. A page carries `nextCursor` in the body and a `Link` header with `rel="next"`.
+
+    **Errors.** Every error is `application/problem+json` (RFC 9457) with a `type` that names an entry of the error catalog, and a `traceId`.
+    Validation errors list the messages for each field. The API rejects an unknown JSON property with a 400.
+  license:
+    name: Apache-2.0
+    identifier: Apache-2.0
+  contact:
+    name: Product Catalog maintainers
+    url: https://github.com/RostomOhannessian/full-ci-cd-pipeline/discussions
+servers:
+  - url: http://localhost:8080
+    description: The API-only Compose stack on a developer machine.
+  - url: https://api.catalog.localtest.me:8443
+    description: The local Kubernetes platform (planned for Phase 3).
+tags:
+  - name: Categories
+    description: Groups of products. A product belongs to one active category.
+  - name: Products
+    description: The items of the catalog.
+security:
+  - oauth2: [catalog.read]
+paths:
+  /api/v1/categories:
+    get:
+      operationId: listCategories
+      tags: [Categories]
+      summary: List categories
+      description: |
+        Returns one page of categories, ordered by name. Requires the `catalog.read` scope.
+      security:
+        - oauth2: [catalog.read]
+      parameters:
+        - $ref: '#/components/parameters/CategoryStatusFilter'
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: One page of categories.
+          headers:
+            Link:
+              $ref: '#/components/headers/Link'
+            api-supported-versions:
+              $ref: '#/components/headers/ApiSupportedVersions'
+            api-deprecated-versions:
+              $ref: '#/components/headers/ApiDeprecatedVersions'
+            Deprecation:
+              $ref: '#/components/headers/Deprecation'
+            Sunset:
+              $ref: '#/components/headers/Sunset'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoryPage'
+              examples:
+                firstPage:
+                  summary: A first page with a next page
+                  value:
+                    items:
+                      - id: 0197f3a2-8c1e-7a53-9b0d-4f6e2c1a5d90
+                        name: Electronics
+                        status: active
+                        createdAt: '2026-10-11T12:00:00Z'
+                        updatedAt: '2026-10-11T12:00:00Z'
+                      - id: 0197f3a2-9d4f-7b64-8c1e-5a7f3d2b6e01
+                        name: Garden
+                        status: active
+                        createdAt: '2026-10-11T12:01:00Z'
+                        updatedAt: '2026-10-11T12:01:00Z'
+                    nextCursor: eyJ2IjoxLCJrIjoiR2FyZGVuIn0
+                lastPage:
+                  summary: The last page
+                  value:
+                    items:
+                      - id: 0197f3a2-a05b-7c75-9d2f-6b8a4e3c7f12
+                        name: Toys
+                        status: discontinued
+                        createdAt: '2026-10-11T12:02:00Z'
+                        updatedAt: '2026-10-12T09:30:00Z'
+                    nextCursor: null
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+    post:
+      operationId: createCategory
+      tags: [Categories]
+      summary: Create a category
+      description: |
+        Creates a category. Requires the `catalog.admin` scope and an `Idempotency-Key` header. A replay of the same request returns the first
+        response again. The response carries the `Location` and the `ETag` of the new category.
+      security:
+        - oauth2: [catalog.admin]
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        description: The name of the new category.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryCreate'
+            examples:
+              electronics:
+                summary: A new category
+                value:
+                  name: Electronics
+      responses:
+        '201':
+          description: The category was created, or the first response of the same request was replayed.
+          headers:
+            Location:
+              $ref: '#/components/headers/Location'
+            ETag:
+              $ref: '#/components/headers/ETag'
+            api-supported-versions:
+              $ref: '#/components/headers/ApiSupportedVersions'
+            api-deprecated-versions:
+              $ref: '#/components/headers/ApiDeprecatedVersions'
+            Deprecation:
+              $ref: '#/components/headers/Deprecation'
+            Sunset:
+              $ref: '#/components/headers/Sunset'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+              examples:
+                created:
+                  summary: The created category
+                  value:
+                    id: 0197f3a2-8c1e-7a53-9b0d-4f6e2c1a5d90
+                    name: Electronics
+                    status: active
+                    createdAt: '2026-10-11T12:00:00Z'
+                    updatedAt: '2026-10-11T12:00:00Z'
+        '400':
+          $ref: '#/components/responses/BadRequestIdempotent'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/IdempotencyInProgress'
+        '413':
+          $ref: '#/components/responses/PayloadTooLarge'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaType'
+        '422':
+          $ref: '#/components/responses/IdempotencyKeyReused'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /api/v1/categories/{categoryId}:
+    parameters:
+      - $ref: '#/components/parameters/CategoryId'
+    get:
+      operationId: getCategory
+      tags: [Categories]
+      summary: Get a category
+      description: |
+        Returns one category with its `ETag`. Requires the `catalog.read` scope. A request with a matching `If-None-Match` returns 304 with no body.
+      security:
+        - oauth2: [catalog.read]
+      parameters:
+        - $ref: '#/components/parameters/IfNoneMatch'
+      responses:
+        '200':
+          description: The category.
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+            api-supported-versions:
+              $ref: '#/components/headers/ApiSupportedVersions'
+            api-deprecated-versions:
+              $ref: '#/components/headers/ApiDeprecatedVersions'
+            Deprecation:
+              $ref: '#/components/headers/Deprecation'
+            Sunset:
+              $ref: '#/components/headers/Sunset'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+              examples:
+                active:
+                  summary: An active category
+                  value:
+                    id: 0197f3a2-8c1e-7a53-9b0d-4f6e2c1a5d90
+                    name: Electronics
+                    status: active
+                    createdAt: '2026-10-11T12:00:00Z'
+                    updatedAt: '2026-10-11T12:00:00Z'
+        '304':
+          description: The category has not changed since the `ETag` in `If-None-Match`. The response has no body.
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+            api-supported-versions:
+              $ref: '#/components/headers/ApiSupportedVersions'
+            api-deprecated-versions:
+              $ref: '#/components/headers/ApiDeprecatedVersions'
+            Deprecation:
+              $ref: '#/components/headers/Deprecation'
+            Sunset:
+              $ref: '#/components/headers/Sunset'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+    put:
+      operationId: updateCategory
+      tags: [Categories]
+      summary: Rename a category
+      description: |
+        Replaces the name of a category. Requires the `catalog.admin` scope and an `If-Match` header with the current `ETag`. A missing header
+        returns 428, and a stale one returns 412. The response carries the new `ETag`.
+      security:
+        - oauth2: [catalog.admin]
+      parameters:
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        description: The new name of the category.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryUpdate'
+            examples:
+              rename:
+                summary: A new name
+                value:
+                  name: Consumer electronics
+      responses:
+        '200':
+          description: The category after the change.
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+            api-supported-versions:
+              $ref: '#/components/headers/ApiSupportedVersions'
+            api-deprecated-versions:
+              $ref: '#/components/headers/ApiDeprecatedVersions'
+            Deprecation:
+              $ref: '#/components/headers/Deprecation'
+            Sunset:
+              $ref: '#/components/headers/Sunset'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+              examples:
+                renamed:
+                  summary: The renamed category
+                  value:
+                    id: 0197f3a2-8c1e-7a53-9b0d-4f6e2c1a5d90
+                    name: Consumer electronics
+                    status: active
+                    createdAt: '2026-10-11T12:00:00Z'
+                    updatedAt: '2026-10-12T08:15:00Z'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '412':
+          $ref: '#/components/responses/PreconditionFailed'
+        '413':
+          $ref: '#/components/responses/PayloadTooLarge'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaType'
+        '428':
+          $ref: '#/components/responses/PreconditionRequired'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /api/v1/categories/{categoryId}/discontinue:
+    parameters:
+      - $ref: '#/components/parameters/CategoryId'
+    post:
+      operationId: discontinueCategory
+      tags: [Categories]
+      summary: Discontinue a category
+      description: |
+        Moves a category from `active` to `discontinued`, after which no product can be assigned to it. Requires the `catalog.admin` scope and an
+        `If-Match` header. The action is idempotent: discontinuing a category that is already discontinued returns 200 with the same
+        representation and the same `ETag`.
+      security:
+        - oauth2: [catalog.admin]
+      parameters:
+        - $ref: '#/components/parameters/IfMatch'
+      responses:
+        '200':
+          description: The category after the action.
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+            api-supported-versions:
+              $ref: '#/components/headers/ApiSupportedVersions'
+            api-deprecated-versions:
+              $ref: '#/components/headers/ApiDeprecatedVersions'
+            Deprecation:
+              $ref: '#/components/headers/Deprecation'
+            Sunset:
+              $ref: '#/components/headers/Sunset'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+              examples:
+                discontinued:
+                  summary: The discontinued category
+                  value:
+                    id: 0197f3a2-a05b-7c75-9d2f-6b8a4e3c7f12
+                    name: Toys
+                    status: discontinued
+                    createdAt: '2026-10-11T12:02:00Z'
+                    updatedAt: '2026-10-12T09:30:00Z'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '412':
+          $ref: '#/components/responses/PreconditionFailed'
+        '428':
+          $ref: '#/components/responses/PreconditionRequired'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /api/v1/products:
+    get:
+      operationId: listProducts
+      tags: [Products]
+      summary: List products
+      description: |
+        Returns one page of products. The filters narrow the result and combine with AND. Sorted by `createdAt`, the newest product comes first,
+        and sorted by `name`, the order is A to Z. A cursor is valid only with the filters and the sort that produced it. Requires the
+        `catalog.read` scope.
+      security:
+        - oauth2: [catalog.read]
+      parameters:
+        - $ref: '#/components/parameters/CategoryFilter'
+        - $ref: '#/components/parameters/ProductStatusFilter'
+        - $ref: '#/components/parameters/SearchText'
+        - $ref: '#/components/parameters/Sort'
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: One page of products.
+          headers:
+            Link:
+              $ref: '#/components/headers/Link'
+            api-supported-versions:
+              $ref: '#/components/headers/ApiSupportedVersions'
+            api-deprecated-versions:
+              $ref: '#/components/headers/ApiDeprecatedVersions'
+            Deprecation:
+              $ref: '#/components/headers/Deprecation'
+            Sunset:
+              $ref: '#/components/headers/Sunset'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductPage'
+              examples:
+                firstPage:
+                  summary: A first page with a next page
+                  value:
+                    items:
+                      - id: 0197f3a4-1b2c-7d3e-8f40-5a6b7c8d9e01
+                        sku: KB-100
+                        name: Mechanical keyboard
+                        description: A hot-swappable 75 percent keyboard with a USB-C cable.
+                        price:
+                          amount: '89.99'
+                          currency: USD
+                        categoryId: 0197f3a2-8c1e-7a53-9b0d-4f6e2c1a5d90
+                        status: active
+                        createdAt: '2026-10-11T12:10:00Z'
+                        updatedAt: '2026-10-11T12:10:00Z'
+                    nextCursor: eyJ2IjoxLCJrIjoiMjAyNi0xMC0xMVQxMjoxMDowMFoifQ
+                lastPage:
+                  summary: The last page
+                  value:
+                    items:
+                      - id: 0197f3a4-2c3d-7e4f-9051-6b7c8d9e0f12
+                        sku: MS-200
+                        name: Wireless mouse
+                        description: null
+                        price:
+                          amount: '1990'
+                          currency: JPY
+                        categoryId: 0197f3a2-8c1e-7a53-9b0d-4f6e2c1a5d90
+                        status: discontinued
+                        createdAt: '2026-10-11T12:11:00Z'
+                        updatedAt: '2026-10-12T10:00:00Z'
+                    nextCursor: null
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+    post:
+      operationId: createProduct
+      tags: [Products]
+      summary: Create a product
+      description: |
+        Creates a product in an active category. Requires the `catalog.write` scope and an `Idempotency-Key` header. The SKU is unique across
+        the catalog and cannot change later. A replay of the same request returns the first response again. The response carries the `Location`
+        and the `ETag` of the new product.
+      security:
+        - oauth2: [catalog.write]
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        description: The SKU, name, optional description, price, and category of the new product.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductCreate'
+            examples:
+              keyboard:
+                summary: A new product
+                value:
+                  sku: kb-100
+                  name: Mechanical keyboard
+                  description: A hot-swappable 75 percent keyboard with a USB-C cable.
+                  price:
+                    amount: '89.99'
+                    currency: USD
+                  categoryId: 0197f3a2-8c1e-7a53-9b0d-4f6e2c1a5d90
+      responses:
+        '201':
+          description: The product was created, or the first response of the same request was replayed.
+          headers:
+            Location:
+              $ref: '#/components/headers/Location'
+            ETag:
+              $ref: '#/components/headers/ETag'
+            api-supported-versions:
+              $ref: '#/components/headers/ApiSupportedVersions'
+            api-deprecated-versions:
+              $ref: '#/components/headers/ApiDeprecatedVersions'
+            Deprecation:
+              $ref: '#/components/headers/Deprecation'
+            Sunset:
+              $ref: '#/components/headers/Sunset'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+              examples:
+                created:
+                  summary: The created product, with the SKU normalized to upper case
+                  value:
+                    id: 0197f3a4-1b2c-7d3e-8f40-5a6b7c8d9e01
+                    sku: KB-100
+                    name: Mechanical keyboard
+                    description: A hot-swappable 75 percent keyboard with a USB-C cable.
+                    price:
+                      amount: '89.99'
+                      currency: USD
+                    categoryId: 0197f3a2-8c1e-7a53-9b0d-4f6e2c1a5d90
+                    status: active
+                    createdAt: '2026-10-11T12:10:00Z'
+                    updatedAt: '2026-10-11T12:10:00Z'
+        '400':
+          $ref: '#/components/responses/BadRequestIdempotent'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/ProductCreateConflict'
+        '413':
+          $ref: '#/components/responses/PayloadTooLarge'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaType'
+        '422':
+          $ref: '#/components/responses/IdempotencyKeyReused'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /api/v1/products/{productId}:
+    parameters:
+      - $ref: '#/components/parameters/ProductId'
+    get:
+      operationId: getProduct
+      tags: [Products]
+      summary: Get a product
+      description: |
+        Returns one product with its `ETag`. Requires the `catalog.read` scope. A request with a matching `If-None-Match` returns 304 with no body.
+      security:
+        - oauth2: [catalog.read]
+      parameters:
+        - $ref: '#/components/parameters/IfNoneMatch'
+      responses:
+        '200':
+          description: The product.
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+            api-supported-versions:
+              $ref: '#/components/headers/ApiSupportedVersions'
+            api-deprecated-versions:
+              $ref: '#/components/headers/ApiDeprecatedVersions'
+            Deprecation:
+              $ref: '#/components/headers/Deprecation'
+            Sunset:
+              $ref: '#/components/headers/Sunset'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+              examples:
+                active:
+                  summary: An active product
+                  value:
+                    id: 0197f3a4-1b2c-7d3e-8f40-5a6b7c8d9e01
+                    sku: KB-100
+                    name: Mechanical keyboard
+                    description: A hot-swappable 75 percent keyboard with a USB-C cable.
+                    price:
+                      amount: '89.99'
+                      currency: USD
+                    categoryId: 0197f3a2-8c1e-7a53-9b0d-4f6e2c1a5d90
+                    status: active
+                    createdAt: '2026-10-11T12:10:00Z'
+                    updatedAt: '2026-10-11T12:10:00Z'
+        '304':
+          description: The product has not changed since the `ETag` in `If-None-Match`. The response has no body.
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+            api-supported-versions:
+              $ref: '#/components/headers/ApiSupportedVersions'
+            api-deprecated-versions:
+              $ref: '#/components/headers/ApiDeprecatedVersions'
+            Deprecation:
+              $ref: '#/components/headers/Deprecation'
+            Sunset:
+              $ref: '#/components/headers/Sunset'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+    put:
+      operationId: updateProduct
+      tags: [Products]
+      summary: Replace a product
+      description: |
+        Replaces the name, description, price, and category of a product. The SKU and the identifier cannot change, so the body does not contain
+        them. Requires the `catalog.write` scope and an `If-Match` header with the current `ETag`. A missing header returns 428, and a stale one
+        returns 412. A discontinued product rejects a change of price or category with 409. The response carries the new `ETag`.
+      security:
+        - oauth2: [catalog.write]
+      parameters:
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        description: The new name, optional description, price, and category of the product.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductUpdate'
+            examples:
+              repriced:
+                summary: A new price
+                value:
+                  name: Mechanical keyboard
+                  description: A hot-swappable 75 percent keyboard with a USB-C cable.
+                  price:
+                    amount: '79.99'
+                    currency: USD
+                  categoryId: 0197f3a2-8c1e-7a53-9b0d-4f6e2c1a5d90
+      responses:
+        '200':
+          description: The product after the change.
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+            api-supported-versions:
+              $ref: '#/components/headers/ApiSupportedVersions'
+            api-deprecated-versions:
+              $ref: '#/components/headers/ApiDeprecatedVersions'
+            Deprecation:
+              $ref: '#/components/headers/Deprecation'
+            Sunset:
+              $ref: '#/components/headers/Sunset'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+              examples:
+                repriced:
+                  summary: The repriced product
+                  value:
+                    id: 0197f3a4-1b2c-7d3e-8f40-5a6b7c8d9e01
+                    sku: KB-100
+                    name: Mechanical keyboard
+                    description: A hot-swappable 75 percent keyboard with a USB-C cable.
+                    price:
+                      amount: '79.99'
+                      currency: USD
+                    categoryId: 0197f3a2-8c1e-7a53-9b0d-4f6e2c1a5d90
+                    status: active
+                    createdAt: '2026-10-11T12:10:00Z'
+                    updatedAt: '2026-10-12T08:20:00Z'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/ProductDiscontinuedConflict'
+        '412':
+          $ref: '#/components/responses/PreconditionFailed'
+        '413':
+          $ref: '#/components/responses/PayloadTooLarge'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaType'
+        '428':
+          $ref: '#/components/responses/PreconditionRequired'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /api/v1/products/{productId}/discontinue:
+    parameters:
+      - $ref: '#/components/parameters/ProductId'
+    post:
+      operationId: discontinueProduct
+      tags: [Products]
+      summary: Discontinue a product
+      description: |
+        Moves a product from `active` to `discontinued`. Requires the `catalog.admin` scope and an `If-Match` header. The action is idempotent:
+        discontinuing a product that is already discontinued returns 200 with the same representation and the same `ETag`.
+      security:
+        - oauth2: [catalog.admin]
+      parameters:
+        - $ref: '#/components/parameters/IfMatch'
+      responses:
+        '200':
+          description: The product after the action.
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+            api-supported-versions:
+              $ref: '#/components/headers/ApiSupportedVersions'
+            api-deprecated-versions:
+              $ref: '#/components/headers/ApiDeprecatedVersions'
+            Deprecation:
+              $ref: '#/components/headers/Deprecation'
+            Sunset:
+              $ref: '#/components/headers/Sunset'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+              examples:
+                discontinued:
+                  summary: The discontinued product
+                  value:
+                    id: 0197f3a4-2c3d-7e4f-9051-6b7c8d9e0f12
+                    sku: MS-200
+                    name: Wireless mouse
+                    description: null
+                    price:
+                      amount: '1990'
+                      currency: JPY
+                    categoryId: 0197f3a2-8c1e-7a53-9b0d-4f6e2c1a5d90
+                    status: discontinued
+                    createdAt: '2026-10-11T12:11:00Z'
+                    updatedAt: '2026-10-12T10:00:00Z'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '412':
+          $ref: '#/components/responses/PreconditionFailed'
+        '428':
+          $ref: '#/components/responses/PreconditionRequired'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+components:
+  securitySchemes:
+    oauth2:
+      type: oauth2
+      description: |
+        OAuth 2.0 tokens from the `catalog` realm. The URLs are the defaults of the API-only Compose stack, and each environment publishes its own
+        issuer. The API validates the issuer, the audience (`catalog-api`), the signature, and the lifetime, and reads the scopes from the
+        space-delimited `scope` claim.
+      flows:
+        authorizationCode:
+          authorizationUrl: http://localhost:8180/realms/catalog/protocol/openid-connect/auth
+          tokenUrl: http://localhost:8180/realms/catalog/protocol/openid-connect/token
+          scopes:
+            catalog.read: Read categories and products.
+            catalog.write: Create and change products.
+            catalog.admin: Discontinue products, and create, rename, and discontinue categories.
+        clientCredentials:
+          tokenUrl: http://localhost:8180/realms/catalog/protocol/openid-connect/token
+          scopes:
+            catalog.read: Read categories and products.
+            catalog.write: Create and change products.
+            catalog.admin: Discontinue products, and create, rename, and discontinue categories.
+  parameters:
+    CategoryId:
+      name: categoryId
+      in: path
+      required: true
+      description: The identifier of the category.
+      schema:
+        $ref: '#/components/schemas/Id'
+      example: 0197f3a2-8c1e-7a53-9b0d-4f6e2c1a5d90
+    ProductId:
+      name: productId
+      in: path
+      required: true
+      description: The identifier of the product.
+      schema:
+        $ref: '#/components/schemas/Id'
+      example: 0197f3a4-1b2c-7d3e-8f40-5a6b7c8d9e01
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: |
+        A unique key for this create request, as a quoted string of 1 to 128 printable ASCII characters (the Structured Field string of the IETF
+        idempotency-key draft). Generate a new random value for each new request, and send the same value when you retry that request.
+      schema:
+        type: string
+        pattern: '^"[\x21\x23-\x5B\x5D-\x7E]{1,128}"$'
+      example: '"c1b7e2a4-5f1d-4d0a-8f2e-3a6d9e1b7c42"'
+    IfMatch:
+      name: If-Match
+      in: header
+      required: true
+      description: The strong `ETag` of the representation that the change is based on. Weak entity tags, lists, and `*` are not accepted.
+      schema:
+        $ref: '#/components/schemas/StrongEntityTag'
+      example: '"AAAAAAAAB9E"'
+    IfNoneMatch:
+      name: If-None-Match
+      in: header
+      required: false
+      description: A strong `ETag` that the client already holds. When it still matches, the response is 304 with no body.
+      schema:
+        $ref: '#/components/schemas/StrongEntityTag'
+      example: '"AAAAAAAAB9E"'
+    PageSize:
+      name: pageSize
+      in: query
+      required: false
+      description: The largest number of items on the page.
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+      example: 20
+    Cursor:
+      name: cursor
+      in: query
+      required: false
+      description: The `nextCursor` of the previous page. The value is opaque, so never build or change one.
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 512
+        pattern: '^[A-Za-z0-9_-]+$'
+      example: eyJ2IjoxLCJrIjoiR2FyZGVuIn0
+    CategoryStatusFilter:
+      name: status
+      in: query
+      required: false
+      description: Returns only the categories with this status. Without it, categories of every status are returned.
+      schema:
+        $ref: '#/components/schemas/LifecycleStatus'
+      example: active
+    CategoryFilter:
+      name: categoryId
+      in: query
+      required: false
+      description: Returns only the products of this category.
+      schema:
+        $ref: '#/components/schemas/Id'
+      example: 0197f3a2-8c1e-7a53-9b0d-4f6e2c1a5d90
+    ProductStatusFilter:
+      name: status
+      in: query
+      required: false
+      description: Returns only the products with this status. Without it, products of every status are returned.
+      schema:
+        $ref: '#/components/schemas/LifecycleStatus'
+      example: active
+    SearchText:
+      name: q
+      in: query
+      required: false
+      description: Returns only the products whose name or SKU contains this text, ignoring case.
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 100
+      example: keyboard
+    Sort:
+      name: sort
+      in: query
+      required: false
+      description: The order of the products. `createdAt` puts the newest first, and `name` sorts A to Z.
+      schema:
+        type: string
+        enum: [createdAt, name]
+        default: createdAt
+      example: name
+  headers:
+    ApiSupportedVersions:
+      description: The versions of the API that this server supports, such as `1.0`. Every response carries this header.
+      required: true
+      schema:
+        type: string
+        pattern: '^[0-9]+\.[0-9]+(, [0-9]+\.[0-9]+)*$'
+      example: '1.0'
+    ApiDeprecatedVersions:
+      description: The versions that are deprecated, sent only while a version is inside its support window.
+      required: false
+      schema:
+        type: string
+        pattern: '^[0-9]+\.[0-9]+(, [0-9]+\.[0-9]+)*$'
+      example: '0.9'
+    Deprecation:
+      description: |
+        The date when this version became deprecated, as a Structured Field date such as `@1798761600` (RFC 9745). It is sent only for a deprecated
+        version.
+      required: false
+      schema:
+        type: string
+        pattern: '^@[0-9]+$'
+      example: '@1798761600'
+    Sunset:
+      description: The date after which this version may stop working, as an HTTP date (RFC 8594). It is sent only for a deprecated version.
+      required: false
+      schema:
+        type: string
+      example: Wed, 30 Jun 2027 23:59:59 GMT
+    ETag:
+      description: The strong entity tag of the representation. Send it back in `If-Match` or `If-None-Match`.
+      required: true
+      schema:
+        $ref: '#/components/schemas/StrongEntityTag'
+      example: '"AAAAAAAAB9E"'
+    Location:
+      description: The URL of the created resource.
+      required: true
+      schema:
+        type: string
+        format: uri
+      example: http://localhost:8080/api/v1/products/0197f3a4-1b2c-7d3e-8f40-5a6b7c8d9e01
+    Link:
+      description: |
+        The URL of the next page with `rel="next"` (RFC 8288). It is present only when `nextCursor` in the body is not null, and it keeps every
+        filter of the request.
+      required: false
+      schema:
+        type: string
+      example: '<http://localhost:8080/api/v1/products?pageSize=20&cursor=eyJ2IjoxLCJrIjoiMjAyNi0xMC0xMVQxMjoxMDowMFoifQ>; rel="next"'
+    RetryAfter:
+      description: The number of seconds to wait before the next request.
+      required: true
+      schema:
+        type: integer
+        minimum: 0
+      example: 30
+    WwwAuthenticate:
+      description: The challenge for a bearer token (RFC 6750).
+      required: true
+      schema:
+        type: string
+      example: Bearer realm="catalog", error="invalid_token"
+  schemas:
+    Id:
+      type: string
+      format: uuid
+      description: A UUID version 7 identifier.
+      examples:
+        - 0197f3a2-8c1e-7a53-9b0d-4f6e2c1a5d90
+    StrongEntityTag:
+      type: string
+      pattern: '^"[A-Za-z0-9_-]{1,64}"$'
+      description: A strong entity tag, which is a quoted token without the `W/` prefix.
+      examples:
+        - '"AAAAAAAAB9E"'
+    LifecycleStatus:
+      type: string
+      enum: [active, discontinued]
+      description: The lifecycle of a category or a product. The only transition is from `active` to `discontinued`.
+    CurrencyCode:
+      type: string
+      enum: [USD, EUR, GBP, JPY]
+      description: An ISO 4217 currency code from the allowed set. JPY has no minor unit, and the others have two decimal places.
+    Money:
+      type: object
+      description: An amount of money. The amount is a string, because a JSON number loses digits in many clients.
+      required: [amount, currency]
+      additionalProperties: false
+      properties:
+        amount:
+          type: string
+          pattern: '^(0|[1-9][0-9]{0,11})(\.[0-9]{1,4})?$'
+          description: |
+            A decimal number that is not negative, with no sign, no exponent, and at most 12 integer digits. The currency sets how many decimal
+            places are allowed, and a longer fraction is a validation error.
+          examples:
+            - '89.99'
+        currency:
+          $ref: '#/components/schemas/CurrencyCode'
+    Sku:
+      type: string
+      minLength: 3
+      maxLength: 32
+      pattern: '^[A-Z0-9]+(-[A-Z0-9]+)*$'
+      description: The stock keeping unit in its canonical form, which is upper case.
+      examples:
+        - KB-100
+    SkuInput:
+      type: string
+      minLength: 3
+      maxLength: 32
+      pattern: '^[A-Za-z0-9]+(-[A-Za-z0-9]+)*$'
+      description: A stock keeping unit. The API normalizes it to upper case, and it is unique across the catalog.
+      examples:
+        - kb-100
+    ProductName:
+      type: string
+      minLength: 1
+      maxLength: 200
+      description: The name of a product. The API trims leading and trailing white space.
+      examples:
+        - Mechanical keyboard
+    CategoryName:
+      type: string
+      minLength: 1
+      maxLength: 100
+      description: The name of a category. The API trims leading and trailing white space.
+      examples:
+        - Electronics
+    Description:
+      type: [string, 'null']
+      maxLength: 2000
+      description: An optional description. A missing or null value means that the product has none.
+      examples:
+        - A hot-swappable 75 percent keyboard with a USB-C cable.
+    Category:
+      type: object
+      description: A category as the API returns it.
+      required: [id, name, status, createdAt, updatedAt]
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        name:
+          $ref: '#/components/schemas/CategoryName'
+        status:
+          $ref: '#/components/schemas/LifecycleStatus'
+        createdAt:
+          type: string
+          format: date-time
+          description: When the category was created, in UTC.
+        updatedAt:
+          type: string
+          format: date-time
+          description: When the category last changed, in UTC.
+    CategoryCreate:
+      type: object
+      description: The body that creates a category.
+      required: [name]
+      additionalProperties: false
+      properties:
+        name:
+          $ref: '#/components/schemas/CategoryName'
+    CategoryUpdate:
+      type: object
+      description: The body that renames a category.
+      required: [name]
+      additionalProperties: false
+      properties:
+        name:
+          $ref: '#/components/schemas/CategoryName'
+    CategoryPage:
+      type: object
+      description: One page of categories.
+      required: [items, nextCursor]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Category'
+        nextCursor:
+          type: [string, 'null']
+          description: The cursor of the next page, or null on the last page.
+    Product:
+      type: object
+      description: A product as the API returns it.
+      required: [id, sku, name, description, price, categoryId, status, createdAt, updatedAt]
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        sku:
+          $ref: '#/components/schemas/Sku'
+        name:
+          $ref: '#/components/schemas/ProductName'
+        description:
+          $ref: '#/components/schemas/Description'
+        price:
+          $ref: '#/components/schemas/Money'
+        categoryId:
+          $ref: '#/components/schemas/Id'
+        status:
+          $ref: '#/components/schemas/LifecycleStatus'
+        createdAt:
+          type: string
+          format: date-time
+          description: When the product was created, in UTC.
+        updatedAt:
+          type: string
+          format: date-time
+          description: When the product last changed, in UTC.
+    ProductCreate:
+      type: object
+      description: The body that creates a product. The category must exist and be active.
+      required: [sku, name, price, categoryId]
+      additionalProperties: false
+      properties:
+        sku:
+          $ref: '#/components/schemas/SkuInput'
+        name:
+          $ref: '#/components/schemas/ProductName'
+        description:
+          $ref: '#/components/schemas/Description'
+        price:
+          $ref: '#/components/schemas/Money'
+        categoryId:
+          $ref: '#/components/schemas/Id'
+    ProductUpdate:
+      type: object
+      description: The body that replaces a product. A missing description clears it. The category must exist and be active.
+      required: [name, price, categoryId]
+      additionalProperties: false
+      properties:
+        name:
+          $ref: '#/components/schemas/ProductName'
+        description:
+          $ref: '#/components/schemas/Description'
+        price:
+          $ref: '#/components/schemas/Money'
+        categoryId:
+          $ref: '#/components/schemas/Id'
+    ProductPage:
+      type: object
+      description: One page of products.
+      required: [items, nextCursor]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Product'
+        nextCursor:
+          type: [string, 'null']
+          description: The cursor of the next page, or null on the last page.
+    ProblemDetails:
+      type: object
+      description: |
+        An error, as RFC 9457 Problem Details. The `type` is a URL of the error catalog, and a client should branch on it and never on the title or
+        the detail. The detail is a safe message for a person, and it never holds a stack trace, a query, or a secret.
+      required: [type, title, status, traceId]
+      properties:
+        type:
+          type: string
+          format: uri
+          pattern: '^https://rostomohannessian\.github\.io/full-ci-cd-pipeline/reference/error-catalog\.html#[a-z0-9-]+$'
+          description: A URL of the error catalog. Its fragment names the entry.
+        title:
+          type: string
+          description: A short summary that is the same for every error of this type.
+        status:
+          type: integer
+          minimum: 400
+          maximum: 599
+          description: The HTTP status code of the response.
+        detail:
+          type: string
+          description: An explanation of this occurrence.
+        instance:
+          type: string
+          format: uri-reference
+          description: The path of the request.
+        traceId:
+          type: string
+          pattern: '^[0-9a-f]{32}$'
+          description: The W3C trace identifier of the request, which links the error to its trace and its logs.
+    ValidationProblemDetails:
+      description: A Problem Details body that can also list the messages for each invalid field. The `errors` member is present when the `type` is `validation-failed`.
+      allOf:
+        - $ref: '#/components/schemas/ProblemDetails'
+        - type: object
+          properties:
+            errors:
+              type: object
+              description: |
+                The messages for each invalid field. A key is the JSON path of the field, such as `price.amount`, and a value lists the messages.
+                A parameter or a header uses its own name as the key.
+              additionalProperties:
+                type: array
+                minItems: 1
+                items:
+                  type: string
+  responses:
+    BadRequest:
+      description: The request is not valid. The `type` says whether a field failed validation or the request could not be parsed.
+      headers:
+        api-supported-versions:
+          $ref: '#/components/headers/ApiSupportedVersions'
+        api-deprecated-versions:
+          $ref: '#/components/headers/ApiDeprecatedVersions'
+        Deprecation:
+          $ref: '#/components/headers/Deprecation'
+        Sunset:
+          $ref: '#/components/headers/Sunset'
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ValidationProblemDetails'
+          examples:
+            validationFailed:
+              summary: A field failed validation
+              value:
+                type: https://rostomohannessian.github.io/full-ci-cd-pipeline/reference/error-catalog.html#validation-failed
+                title: One or more validation errors occurred.
+                status: 400
+                detail: The request has 2 invalid fields. See errors for the messages.
+                instance: /api/v1/products
+                traceId: 4bf92f3577b34da6a3ce929d0e0e4736
+                errors:
+                  name:
+                    - The name must have between 1 and 200 characters.
+                  price.amount:
+                    - The amount must have at most 2 decimal places for USD.
+            malformedRequest:
+              summary: The body is not valid JSON
+              value:
+                type: https://rostomohannessian.github.io/full-ci-cd-pipeline/reference/error-catalog.html#malformed-request
+                title: The request could not be parsed.
+                status: 400
+                detail: The request body is not valid JSON.
+                instance: /api/v1/products
+                traceId: 4bf92f3577b34da6a3ce929d0e0e4736
+    BadRequestIdempotent:
+      description: |
+        The request is not valid. Besides a failed validation and a body that cannot be parsed, a create request fails when the `Idempotency-Key`
+        header is missing.
+      headers:
+        api-supported-versions:
+          $ref: '#/components/headers/ApiSupportedVersions'
+        api-deprecated-versions:
+          $ref: '#/components/headers/ApiDeprecatedVersions'
+        Deprecation:
+          $ref: '#/components/headers/Deprecation'
+        Sunset:
+          $ref: '#/components/headers/Sunset'
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ValidationProblemDetails'
+          examples:
+            validationFailed:
+              summary: A field failed validation
+              value:
+                type: https://rostomohannessian.github.io/full-ci-cd-pipeline/reference/error-catalog.html#validation-failed
+                title: One or more validation errors occurred.
+                status: 400
+                detail: The request has 1 invalid field. See errors for the messages.
+                instance: /api/v1/products
+                traceId: 4bf92f3577b34da6a3ce929d0e0e4736
+                errors:
+                  categoryId:
+                    - The category does not exist or is discontinued.
+            malformedRequest:
+              summary: The body is not valid JSON
+              value:
+                type: https://rostomohannessian.github.io/full-ci-cd-pipeline/reference/error-catalog.html#malformed-request
+                title: The request could not be parsed.
+                status: 400
+                detail: The request body is not valid JSON.
+                instance: /api/v1/products
+                traceId: 4bf92f3577b34da6a3ce929d0e0e4736
+            idempotencyKeyRequired:
+              summary: The Idempotency-Key header is missing
+              value:
+                type: https://rostomohannessian.github.io/full-ci-cd-pipeline/reference/error-catalog.html#idempotency-key-required
+                title: An Idempotency-Key header is required.
+                status: 400
+                detail: Send an Idempotency-Key header with a unique value for each new create request.
+                instance: /api/v1/products
+                traceId: 4bf92f3577b34da6a3ce929d0e0e4736
+    Unauthorized:
+      description: The request has no valid bearer token. The token is missing, expired, or not accepted for this API.
+      headers:
+        WWW-Authenticate:
+          $ref: '#/components/headers/WwwAuthenticate'
+        api-supported-versions:
+          $ref: '#/components/headers/ApiSupportedVersions'
+        api-deprecated-versions:
+          $ref: '#/components/headers/ApiDeprecatedVersions'
+        Deprecation:
+          $ref: '#/components/headers/Deprecation'
+        Sunset:
+          $ref: '#/components/headers/Sunset'
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+          examples:
+            unauthorized:
+              summary: The token is missing or not valid
+              value:
+                type: https://rostomohannessian.github.io/full-ci-cd-pipeline/reference/error-catalog.html#unauthorized
+                title: Authentication is required.
+                status: 401
+                detail: Send a valid bearer token in the Authorization header.
+                instance: /api/v1/products
+                traceId: 4bf92f3577b34da6a3ce929d0e0e4736
+    Forbidden:
+      description: The token is valid, and it does not carry the scope that this operation requires.
+      headers:
+        api-supported-versions:
+          $ref: '#/components/headers/ApiSupportedVersions'
+        api-deprecated-versions:
+          $ref: '#/components/headers/ApiDeprecatedVersions'
+        Deprecation:
+          $ref: '#/components/headers/Deprecation'
+        Sunset:
+          $ref: '#/components/headers/Sunset'
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+          examples:
+            forbidden:
+              summary: The scope is missing
+              value:
+                type: https://rostomohannessian.github.io/full-ci-cd-pipeline/reference/error-catalog.html#forbidden
+                title: The token does not allow this operation.
+                status: 403
+                detail: This operation requires the catalog.write scope.
+                instance: /api/v1/products
+                traceId: 4bf92f3577b34da6a3ce929d0e0e4736
+    NotFound:
+      description: No category or product has this identifier.
+      headers:
+        api-supported-versions:
+          $ref: '#/components/headers/ApiSupportedVersions'
+        api-deprecated-versions:
+          $ref: '#/components/headers/ApiDeprecatedVersions'
+        Deprecation:
+          $ref: '#/components/headers/Deprecation'
+        Sunset:
+          $ref: '#/components/headers/Sunset'
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+          examples:
+            notFound:
+              summary: The identifier is unknown
+              value:
+                type: https://rostomohannessian.github.io/full-ci-cd-pipeline/reference/error-catalog.html#not-found
+                title: The resource was not found.
+                status: 404
+                detail: No product has the identifier 0197f3a4-1b2c-7d3e-8f40-5a6b7c8d9e01.
+                instance: /api/v1/products/0197f3a4-1b2c-7d3e-8f40-5a6b7c8d9e01
+                traceId: 4bf92f3577b34da6a3ce929d0e0e4736
+    IdempotencyInProgress:
+      description: A request with the same `Idempotency-Key` is still running. Wait, then send the same request again.
+      headers:
+        api-supported-versions:
+          $ref: '#/components/headers/ApiSupportedVersions'
+        api-deprecated-versions:
+          $ref: '#/components/headers/ApiDeprecatedVersions'
+        Deprecation:
+          $ref: '#/components/headers/Deprecation'
+        Sunset:
+          $ref: '#/components/headers/Sunset'
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+          examples:
+            inProgress:
+              summary: The first request has not finished
+              value:
+                type: https://rostomohannessian.github.io/full-ci-cd-pipeline/reference/error-catalog.html#idempotency-request-in-progress
+                title: A request with this Idempotency-Key is still running.
+                status: 409
+                detail: Wait for the first request to finish, then send the same request again.
+                instance: /api/v1/categories
+                traceId: 4bf92f3577b34da6a3ce929d0e0e4736
+    ProductCreateConflict:
+      description: The SKU is already in use, or a request with the same `Idempotency-Key` is still running.
+      headers:
+        api-supported-versions:
+          $ref: '#/components/headers/ApiSupportedVersions'
+        api-deprecated-versions:
+          $ref: '#/components/headers/ApiDeprecatedVersions'
+        Deprecation:
+          $ref: '#/components/headers/Deprecation'
+        Sunset:
+          $ref: '#/components/headers/Sunset'
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+          examples:
+            skuAlreadyExists:
+              summary: Another product has this SKU
+              value:
+                type: https://rostomohannessian.github.io/full-ci-cd-pipeline/reference/error-catalog.html#sku-already-exists
+                title: The SKU is already in use.
+                status: 409
+                detail: A product with the SKU KB-100 already exists.
+                instance: /api/v1/products
+                traceId: 4bf92f3577b34da6a3ce929d0e0e4736
+            inProgress:
+              summary: The first request has not finished
+              value:
+                type: https://rostomohannessian.github.io/full-ci-cd-pipeline/reference/error-catalog.html#idempotency-request-in-progress
+                title: A request with this Idempotency-Key is still running.
+                status: 409
+                detail: Wait for the first request to finish, then send the same request again.
+                instance: /api/v1/products
+                traceId: 4bf92f3577b34da6a3ce929d0e0e4736
+    ProductDiscontinuedConflict:
+      description: The product is discontinued, and the change would alter its price or its category.
+      headers:
+        api-supported-versions:
+          $ref: '#/components/headers/ApiSupportedVersions'
+        api-deprecated-versions:
+          $ref: '#/components/headers/ApiDeprecatedVersions'
+        Deprecation:
+          $ref: '#/components/headers/Deprecation'
+        Sunset:
+          $ref: '#/components/headers/Sunset'
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+          examples:
+            productDiscontinued:
+              summary: The product is discontinued
+              value:
+                type: https://rostomohannessian.github.io/full-ci-cd-pipeline/reference/error-catalog.html#product-discontinued
+                title: A discontinued product cannot change its price or category.
+                status: 409
+                detail: The product is discontinued. Only its name and description can change.
+                instance: /api/v1/products/0197f3a4-2c3d-7e4f-9051-6b7c8d9e0f12
+                traceId: 4bf92f3577b34da6a3ce929d0e0e4736
+    PreconditionFailed:
+      description: The `If-Match` value does not match the current `ETag`, because the resource changed. Read it again and retry the change.
+      headers:
+        api-supported-versions:
+          $ref: '#/components/headers/ApiSupportedVersions'
+        api-deprecated-versions:
+          $ref: '#/components/headers/ApiDeprecatedVersions'
+        Deprecation:
+          $ref: '#/components/headers/Deprecation'
+        Sunset:
+          $ref: '#/components/headers/Sunset'
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+          examples:
+            preconditionFailed:
+              summary: The ETag is stale
+              value:
+                type: https://rostomohannessian.github.io/full-ci-cd-pipeline/reference/error-catalog.html#precondition-failed
+                title: The resource has changed.
+                status: 412
+                detail: The If-Match value does not match the current version. Get the resource again and retry.
+                instance: /api/v1/products/0197f3a4-1b2c-7d3e-8f40-5a6b7c8d9e01
+                traceId: 4bf92f3577b34da6a3ce929d0e0e4736
+    PreconditionRequired:
+      description: The request has no `If-Match` header. Send the `ETag` of the version that the change is based on.
+      headers:
+        api-supported-versions:
+          $ref: '#/components/headers/ApiSupportedVersions'
+        api-deprecated-versions:
+          $ref: '#/components/headers/ApiDeprecatedVersions'
+        Deprecation:
+          $ref: '#/components/headers/Deprecation'
+        Sunset:
+          $ref: '#/components/headers/Sunset'
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+          examples:
+            preconditionRequired:
+              summary: The If-Match header is missing
+              value:
+                type: https://rostomohannessian.github.io/full-ci-cd-pipeline/reference/error-catalog.html#precondition-required
+                title: An If-Match header is required.
+                status: 428
+                detail: Send the ETag of the current version in an If-Match header.
+                instance: /api/v1/products/0197f3a4-1b2c-7d3e-8f40-5a6b7c8d9e01
+                traceId: 4bf92f3577b34da6a3ce929d0e0e4736
+    PayloadTooLarge:
+      description: The request body is larger than the limit.
+      headers:
+        api-supported-versions:
+          $ref: '#/components/headers/ApiSupportedVersions'
+        api-deprecated-versions:
+          $ref: '#/components/headers/ApiDeprecatedVersions'
+        Deprecation:
+          $ref: '#/components/headers/Deprecation'
+        Sunset:
+          $ref: '#/components/headers/Sunset'
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+          examples:
+            payloadTooLarge:
+              summary: The body is too large
+              value:
+                type: https://rostomohannessian.github.io/full-ci-cd-pipeline/reference/error-catalog.html#payload-too-large
+                title: The request body is too large.
+                status: 413
+                detail: The request body must not be larger than 65536 bytes.
+                instance: /api/v1/products
+                traceId: 4bf92f3577b34da6a3ce929d0e0e4736
+    UnsupportedMediaType:
+      description: The request body is not `application/json`.
+      headers:
+        api-supported-versions:
+          $ref: '#/components/headers/ApiSupportedVersions'
+        api-deprecated-versions:
+          $ref: '#/components/headers/ApiDeprecatedVersions'
+        Deprecation:
+          $ref: '#/components/headers/Deprecation'
+        Sunset:
+          $ref: '#/components/headers/Sunset'
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+          examples:
+            unsupportedMediaType:
+              summary: The content type is not JSON
+              value:
+                type: https://rostomohannessian.github.io/full-ci-cd-pipeline/reference/error-catalog.html#unsupported-media-type
+                title: The request body must be application/json.
+                status: 415
+                detail: Send the body with the content type application/json.
+                instance: /api/v1/products
+                traceId: 4bf92f3577b34da6a3ce929d0e0e4736
+    IdempotencyKeyReused:
+      description: The `Idempotency-Key` was already used with a different request body. Use a new key for a different request.
+      headers:
+        api-supported-versions:
+          $ref: '#/components/headers/ApiSupportedVersions'
+        api-deprecated-versions:
+          $ref: '#/components/headers/ApiDeprecatedVersions'
+        Deprecation:
+          $ref: '#/components/headers/Deprecation'
+        Sunset:
+          $ref: '#/components/headers/Sunset'
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+          examples:
+            keyReused:
+              summary: The key belongs to another request
+              value:
+                type: https://rostomohannessian.github.io/full-ci-cd-pipeline/reference/error-catalog.html#idempotency-key-reused
+                title: The Idempotency-Key was used with a different request.
+                status: 422
+                detail: This key already belongs to a request with a different body. Use a new key for a different request.
+                instance: /api/v1/products
+                traceId: 4bf92f3577b34da6a3ce929d0e0e4736
+    TooManyRequests:
+      description: The caller sent too many requests. Wait for the number of seconds in `Retry-After`.
+      headers:
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        api-supported-versions:
+          $ref: '#/components/headers/ApiSupportedVersions'
+        api-deprecated-versions:
+          $ref: '#/components/headers/ApiDeprecatedVersions'
+        Deprecation:
+          $ref: '#/components/headers/Deprecation'
+        Sunset:
+          $ref: '#/components/headers/Sunset'
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+          examples:
+            rateLimited:
+              summary: The limit is reached
+              value:
+                type: https://rostomohannessian.github.io/full-ci-cd-pipeline/reference/error-catalog.html#rate-limited
+                title: Too many requests.
+                status: 429
+                detail: The request limit is reached. Retry after 30 seconds.
+                instance: /api/v1/products
+                traceId: 4bf92f3577b34da6a3ce929d0e0e4736
+    InternalServerError:
+      description: An unexpected error occurred. The detail is generic, and the `traceId` finds the cause in the logs.
+      headers:
+        api-supported-versions:
+          $ref: '#/components/headers/ApiSupportedVersions'
+        api-deprecated-versions:
+          $ref: '#/components/headers/ApiDeprecatedVersions'
+        Deprecation:
+          $ref: '#/components/headers/Deprecation'
+        Sunset:
+          $ref: '#/components/headers/Sunset'
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+          examples:
+            internalError:
+              summary: An unexpected failure
+              value:
+                type: https://rostomohannessian.github.io/full-ci-cd-pipeline/reference/error-catalog.html#internal-error
+                title: An unexpected error occurred.
+                status: 500
+                detail: The server could not complete the request. Quote the traceId when you report it.
+                instance: /api/v1/products
+                traceId: 4bf92f3577b34da6a3ce929d0e0e4736
+    ServiceUnavailable:
+      description: A dependency of the API is unavailable. Wait for the number of seconds in `Retry-After`, then retry.
+      headers:
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        api-supported-versions:
+          $ref: '#/components/headers/ApiSupportedVersions'
+        api-deprecated-versions:
+          $ref: '#/components/headers/ApiDeprecatedVersions'
+        Deprecation:
+          $ref: '#/components/headers/Deprecation'
+        Sunset:
+          $ref: '#/components/headers/Sunset'
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+          examples:
+            serviceUnavailable:
+              summary: The database is unreachable
+              value:
+                type: https://rostomohannessian.github.io/full-ci-cd-pipeline/reference/error-catalog.html#service-unavailable
+                title: The service is temporarily unavailable.
+                status: 503
+                detail: The service cannot reach a dependency. Retry after 30 seconds.
+                instance: /api/v1/products
+                traceId: 4bf92f3577b34da6a3ce929d0e0e4736

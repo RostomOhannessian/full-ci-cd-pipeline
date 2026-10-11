@@ -1,0 +1,233 @@
+# The ruleset for the authored OpenAPI contracts (WP1.5, ADR-0027). Spectral reads it, and `docker compose -f tools/lint/compose.yaml run --rm contract-lint`
+# runs it, so the command is the same on a developer machine and in CI. Each rule below turns a sentence of plan section 8.6 or 8.7 into a check,
+# and tools/ci/ContractRules.Tests.ps1 breaks the contract in one way per rule and expects that rule to fire, so every rule is shown to fail.
+#
+# The built-in `spectral:oas` rules find the common mistakes of any OpenAPI document, and they already report a wrong example as an error, because a client copies
+# the examples. The rules named `catalog-` hold what is specific to this API. Spectral resolves $ref first, so a rule sees the same document that a client sees.
+extends: [[spectral:oas, recommended]]
+
+rules:
+  catalog-paths-are-versioned:
+    description: Every path starts with /api/v1/, because the version is a path segment (plan section 8.6).
+    severity: error
+    given: $.paths
+    then:
+      field: '@key'
+      function: pattern
+      functionOptions:
+        match: ^/api/v1/
+
+  catalog-operation-ids-are-camel-case:
+    description: Every operation ID is lower camel case, so a generated client has idiomatic method names.
+    severity: error
+    given: $.paths[*][get,put,post,delete,patch]
+    then:
+      field: operationId
+      function: casing
+      functionOptions:
+        type: camel
+
+  catalog-operation-has-own-security:
+    description: Every operation declares its own security requirement with at least one scope, so no operation inherits a default by accident.
+    severity: error
+    given: $.paths[*][get,put,post,delete,patch]
+    then:
+      field: security
+      function: schema
+      functionOptions:
+        schema:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            minProperties: 1
+            additionalProperties:
+              type: array
+              minItems: 1
+
+  catalog-reads-need-the-read-scope:
+    description: Every GET requires exactly the catalog.read scope (plan section 8.7).
+    severity: error
+    given: $.paths[*].get
+    then:
+      field: security
+      function: schema
+      functionOptions:
+        schema:
+          type: array
+          items:
+            type: object
+            required: [oauth2]
+            properties:
+              oauth2:
+                const: [catalog.read]
+
+# <idempotency-rule>
+  catalog-create-requires-idempotency-key:
+    description: Every POST that creates a resource requires the Idempotency-Key header (plan section 8.4).
+    severity: error
+    given: $.paths[*][?(@property === 'post' && @.operationId.match(/^create/))]
+    then:
+      field: parameters
+      function: schema
+      functionOptions:
+        schema:
+          type: array
+          contains:
+            type: object
+            required: [name, in, required]
+            properties:
+              name: { const: Idempotency-Key }
+              in: { const: header }
+              required: { const: true }
+# </idempotency-rule>
+
+  catalog-create-answers-with-location:
+    description: Every create answers 201 with a Location header, so the client can find the new resource.
+    severity: error
+    given: $.paths[*][?(@property === 'post' && @.operationId.match(/^create/))].responses
+    then:
+      field: '201.headers'
+      function: schema
+      functionOptions:
+        schema:
+          type: object
+          required: [Location, ETag]
+
+  catalog-change-requires-if-match:
+    description: Every PUT and every discontinue action requires If-Match, and documents the 412 and 428 answers (plan section 8.4).
+    severity: error
+    given: $.paths[*][?((@property === 'put' || @property === 'post') && @.operationId.match(/^(update|discontinue)/))]
+    then:
+      - field: parameters
+        function: schema
+        functionOptions:
+          schema:
+            type: array
+            contains:
+              type: object
+              required: [name, in, required]
+              properties:
+                name: { const: If-Match }
+                in: { const: header }
+                required: { const: true }
+      - field: responses
+        function: schema
+        functionOptions:
+          schema:
+            type: object
+            required: ['412', '428']
+
+  catalog-single-resource-get-is-conditional:
+    description: Every GET of one resource accepts If-None-Match and documents the 304 answer (plan section 8.4).
+    severity: error
+    given: $.paths[?(@property.match(/\}$/))].get
+    then:
+      - field: parameters
+        function: schema
+        functionOptions:
+          schema:
+            type: array
+            contains:
+              type: object
+              required: [name, in]
+              properties:
+                name: { const: If-None-Match }
+                in: { const: header }
+      - field: responses
+        function: schema
+        functionOptions:
+          schema:
+            type: object
+            required: ['304']
+
+  catalog-single-resource-answers-carry-an-etag:
+    description: Every 200 or 201 answer for one resource carries the ETag header, because the next change needs it.
+    severity: error
+    given: $.paths[*][?(@property !== 'parameters' && @.operationId.match(/^(get|update|discontinue|create)/))].responses[?(@property === '200' || @property === '201')]
+    then:
+      field: headers
+      function: schema
+      functionOptions:
+        schema:
+          type: object
+          required: [ETag]
+
+  catalog-collections-paginate:
+    description: Every list takes pageSize and cursor, and its 200 answer can carry a Link header (plan section 8.6).
+    severity: error
+    given: $.paths[*][?(@property === 'get' && @.operationId.match(/^list/))]
+    then:
+      - field: parameters
+        function: schema
+        functionOptions:
+          schema:
+            type: array
+            allOf:
+              - contains: { type: object, required: [name], properties: { name: { const: pageSize } } }
+              - contains: { type: object, required: [name], properties: { name: { const: cursor } } }
+      - field: responses.200.headers
+        function: schema
+        functionOptions:
+          schema:
+            type: object
+            required: [Link]
+
+  catalog-requests-reject-unknown-properties:
+    description: Every request body schema sets additionalProperties to false, because the API rejects an unknown property with a 400 (plan section 8.6).
+    severity: error
+    given: $.paths[*][*].requestBody.content[*].schema
+    then:
+      field: additionalProperties
+      function: schema
+      functionOptions:
+        schema:
+          const: false
+
+  catalog-errors-are-problem-json:
+    description: Every answer with a status of 400 or more has an application/problem+json body and no other body (RFC 9457).
+    severity: error
+    given: $.paths[*][*].responses[?(@property >= 400)]
+    then:
+      field: content
+      function: schema
+      functionOptions:
+        schema:
+          type: object
+          required: [application/problem+json]
+          propertyNames:
+            const: application/problem+json
+
+  catalog-responses-send-api-version:
+    description: Every answer sends the api-supported-versions header (plan section 8.6).
+    severity: error
+    given: $.paths[*][*].responses[*]
+    then:
+      field: headers.api-supported-versions
+      function: truthy
+
+  catalog-responses-carry-the-deprecation-headers:
+    description: Every answer documents the Deprecation and Sunset headers, so a client learns of a deprecation on any response (RFC 9745 and RFC 8594).
+    severity: error
+    given: $.paths[*][*].responses[*]
+    then:
+      field: headers
+      function: schema
+      functionOptions:
+        schema:
+          type: object
+          required: [Deprecation, Sunset, api-deprecated-versions]
+
+  catalog-media-types-have-examples:
+    description: Every body that a response or a request describes has an example, because the examples are the first documentation that a reader sees.
+    severity: error
+    given:
+      - $.paths[*][*].responses[*].content[*]
+      - $.paths[*][*].requestBody.content[*]
+    then:
+      function: schema
+      functionOptions:
+        schema:
+          anyOf:
+            - required: [example]
+            - required: [examples]

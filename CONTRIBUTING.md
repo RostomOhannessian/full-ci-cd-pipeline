@@ -107,6 +107,10 @@ host against its profile, `./dev bootstrap` to install the pinned script tools a
 to a script, the Compose file, the realm, the Dev Container, or `tools/versions.yaml` needs the script tests, and a new developer tool needs a pin and a checksum in
 `tools/versions.yaml` and an entry in the tool inventory ([ADR-0024](docs/adr/0024-verified-tool-installer.md)).
 
+The API contract comes before the API ([ADR-0017](docs/adr/0017-contract-first-api-design.md)). A change to an operation starts in `contracts/openapi/catalog/v1/catalog.openapi.yaml`, and it needs
+`docker compose -f tools/lint/compose.yaml run --rm contract-lint`, the contract tests that `dotnet test` runs, and the update of [the API contract page](docs/reference/api-contract.md) and
+[the error catalog](docs/reference/error-catalog.md). [The API style guide](docs/reference/api-style-guide.md) lists the rules and the steps.
+
 ## Documentation standards
 
 - Every page starts with the front matter described in [docs/templates](docs/templates/tool-page-template.md) and carries a `last-verified` date.

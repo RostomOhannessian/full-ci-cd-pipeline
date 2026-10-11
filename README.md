@@ -144,6 +144,7 @@ The API itself arrives with WP1.10, and the full local platform arrives in Phase
 | Understand a concept | [Explanations](docs/explanation/index.md) |
 | Operate or recover something | [Runbooks](docs/runbooks/index.md) |
 | Look up a tool | [Tool inventory](docs/reference/tools/index.md) |
+| Look up an API operation, scope, header, or error | [API contract](docs/reference/api-contract.md), [API style guide](docs/reference/api-style-guide.md), and [error catalog](docs/reference/error-catalog.md) |
 | Understand how AI is used here | [AI skills and instructions](docs/governance/ai-skills.md) and [AGENTS.md](AGENTS.md) |
 
 ## Contributing

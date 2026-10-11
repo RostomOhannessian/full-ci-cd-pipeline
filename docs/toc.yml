@@ -9,6 +9,8 @@
   href: labs/index.md
 - name: Tool reference
   href: reference/tools/index.md
+- name: API contract
+  href: reference/api-contract.md
 - name: Explanation
   href: explanation/index.md
 - name: Decisions

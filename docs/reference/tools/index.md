@@ -2,7 +2,7 @@
 title: "Tool reference"
 description: "How tools are inventoried, tiered, and documented, and what every tool page must contain."
 audience: [learners, contributors, maintainers]
-last-verified: 2026-10-10
+last-verified: 2026-10-11
 owner: "@RostomOhannessian"
 ---
 
@@ -31,9 +31,12 @@ A page is named after its inventory ID. Tier C libraries are in [the dependency 
 | [Valkey](valkey.md) | A | The distributed cache and backplane, with an ACL user |
 | [Keycloak](keycloak.md) | A | The identity provider, with the catalog realm as code |
 | [grafana/otel-lgtm](otel-lgtm.md) | B | The local telemetry stack that receives OTLP |
+| [OpenAPI](openapi.md) | A | The format of the authored contract that the API must follow |
+| [Spectral](spectral.md) | B | Lints the contract with the repository's own rules |
+| [oasdiff](oasdiff.md) | B | Compares a served document with the contract |
 
 Eighteen tools that are in use have no page yet, and WP1.13 owes them. The audit reports each as a note, and it fails when WP1.13 is completed and a page is still missing. The Tier C entries for the Dev Container
-features, its base image, and the `devcontainers/ci` action are in [the dependency catalog](dependency-catalog.md).
+features, its base image, the `devcontainers/ci` action, and the two Microsoft.OpenApi packages are in [the dependency catalog](dependency-catalog.md).
 
 ## What a tool page contains
 

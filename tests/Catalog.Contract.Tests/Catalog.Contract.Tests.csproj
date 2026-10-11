@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Tests of the authored OpenAPI contract and of the documents that must agree with it (WP1.5, ADR-0027). Each test is tagged with the
+       requirement it proves, and `governance trace` reads the tags. Microsoft.OpenApi is the library that ASP.NET Core 10 generates its own
+       document with, so the tests read the contract with the same model that the conformance check will compare it against. -->
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.OpenApi" />
+    <PackageReference Include="Microsoft.OpenApi.YamlReader" />
+  </ItemGroup>
+
+  <!-- Parallelism is declared per assembly in this file (plan section 10.3). -->
+  <ItemGroup>
+    <Content Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>
