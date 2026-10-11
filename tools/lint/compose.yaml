@@ -1,6 +1,6 @@
 # Repository hygiene checks for documentation and history.
 #
-# CI (.github/workflows/docs.yml) and local development run exactly these commands from the repository root:
+# CI (.github/workflows/docs.yml, and .github/workflows/ci.yml for contract-lint) and local development run exactly these commands from the repository root:
 #
 #   docker compose -f tools/lint/compose.yaml run --rm markdownlint
 #   docker compose -f tools/lint/compose.yaml run --rm links
@@ -8,6 +8,9 @@
 #   docker compose -f tools/lint/compose.yaml run --rm diagrams
 #   docker compose -f tools/lint/compose.yaml run --rm secrets
 #   docker compose -f tools/lint/compose.yaml run --rm secrets-worktree
+#   docker compose -f tools/lint/compose.yaml run --rm contract-lint
+#
+# The contract-conformance service compares a served OpenAPI document with the contract through tools/ci/Test-ContractConformance.ps1.
 #
 # The nightly workflow also runs the external link check, which needs the network:
 #
@@ -62,6 +65,32 @@ services:
     tmpfs:
       - /tmp:rw,mode=1777
     entrypoint: ["/bin/sh", "/data/tools/lint/check-diagrams.sh"]
+
+  # Lints the authored OpenAPI contracts with Spectral and the ruleset in contracts/openapi/spectral.yaml (ADR-0027). A warning fails the
+  # check, so a contract stays free of both. The image runs as an unprivileged user, and the mount is read-only.
+  contract-lint:
+    image: stoplight/spectral:6.17.0@sha256:c8ffae6ee561b70e80402f1ea669e8b37c74fee48a3dbe2147b71359ed987239
+    working_dir: /workdir
+    volumes:
+      - ../..:/workdir:ro
+    environment:
+      # Spectral runs on Node, and one of its dependencies prints a deprecation notice that is not about this repository.
+      NODE_NO_WARNINGS: "1"
+      # The image sends one anonymous usage request on every start unless it is told not to (checked 2026-10-11). The lint needs no network, so it has none.
+      DO_NOT_TRACK: "1"
+      SCARF_NO_ANALYTICS: "true"
+    network_mode: none
+    command: ["lint", "--ruleset", "contracts/openapi/spectral.yaml", "--fail-severity", "warn", "--format", "stylish", "contracts/**/*.openapi.yaml"]
+
+  # Compares two OpenAPI documents with oasdiff, for the conformance check of the served contract (ADR-0017). The command is not fixed here,
+  # because tools/ci/Test-ContractConformance.ps1 passes the two files and the list of elements to ignore. The comparison reads local files only, so it has no network.
+  contract-conformance:
+    image: tufin/oasdiff:v1.33.0@sha256:6263a96dd2ef0726c54e21fea9b8e1607eac4841add0079324b424c1f52b819c
+    working_dir: /workdir
+    volumes:
+      - ../..:/workdir:ro
+    network_mode: none
+    command: ["--help"]
 
   # Secret scan over the complete Git history. Findings are redacted in the output.
   secrets: &gitleaks

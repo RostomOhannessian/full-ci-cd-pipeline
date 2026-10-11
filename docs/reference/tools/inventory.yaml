@@ -79,19 +79,20 @@ entries:
     category: api-contract
     tier: C
     lifecycle: adopt
-    usage: planned
+    usage: in-use
     introduced: phase-1
-    purpose: Supplies the OpenAPI object model that the ASP.NET Core toolchain and conformance checks build on.
+    purpose: Supplies the OpenAPI object model that the ASP.NET Core toolchain and the contract tests build on.
     license: MIT
-    license-source: https://www.nuget.org/packages/Microsoft.OpenApi/3.10.2/license
-    version: "3.10.2"
+    license-source: https://www.nuget.org/packages/Microsoft.OpenApi/2.12.2/license
+    version: "2.12.2"
     repo: https://github.com/Microsoft/OpenAPI.NET
     sources:
       - https://github.com/Microsoft/OpenAPI.NET
       - https://www.nuget.org/packages/Microsoft.OpenApi
-      - https://github.com/Microsoft/OpenAPI.NET/releases/tag/v3.10.2
-    adrs: ["0017"]
-    notes: The latest package release is 3.10.2, but the plan pins the 2.x line because ASP.NET Core 10 uses it internally.
+      - https://github.com/Microsoft/OpenAPI.NET/releases/tag/v2.12.2
+    adrs: ["0017", "0027"]
+    notes: The latest package release is 3.10.2 (checked 2026-10-11), and the repository pins 2.12.2, because Microsoft.AspNetCore.OpenApi 10.0.12 depends on Microsoft.OpenApi from 2.12.0 and below 3.0.0, and the conformance check compares documents that this library wrote. Only the contract test project references it today, and WP1.10 adds the API's own reference.
+    detect: ["nuget:Microsoft.OpenApi"]
   - id: nswag
     name: NSwag
     category: api-contract
@@ -115,7 +116,7 @@ entries:
     category: api-contract
     tier: B
     lifecycle: adopt
-    usage: planned
+    usage: in-use
     introduced: phase-1
     purpose: Enforces API conformance and later blocks breaking contract changes between releases.
     license: Apache-2.0
@@ -126,23 +127,47 @@ entries:
       - https://github.com/oasdiff/oasdiff
       - https://github.com/oasdiff/oasdiff/releases/tag/v1.33.0
       - https://www.oasdiff.com/
-    adrs: ["0017"]
-  - id: openapi-linter
-    name: OpenAPI linter (decision deferred)
+    adrs: ["0017", "0027"]
+    notes: WP1.5 runs it as the digest-pinned tufin/oasdiff:v1.33.0 container of the contract-conformance service in tools/lint/compose.yaml. tools/ci/Test-ContractConformance.ps1 compares a served document with the authored contract and ignores descriptions, examples, and summaries, and its tests show that a changed constraint, a missing response, a renamed header, and a renamed endpoint all fail (checked 2026-10-11). WP1.10 generates the served document, and WP4.1 adds the breaking-change comparison with the last released contract.
+    detect: ["image:tufin/oasdiff"]
+  - id: spectral
+    name: Spectral
     category: api-contract
     tier: B
-    lifecycle: assess
-    usage: planned
+    lifecycle: adopt
+    usage: in-use
     introduced: phase-1
-    purpose: Will lint the authored OpenAPI document once Phase 1 chooses a concrete linter.
-    license: n/a
-    license-source: https://docs.github.com/en/copilot/concepts/prompting/response-customization
-    version: n/a
+    purpose: Lints the authored OpenAPI contract with the repository's own rules, and fails a pull request that breaks one.
+    license: Apache-2.0
+    license-source: https://github.com/stoplightio/spectral/blob/develop/LICENSE
+    version: "6.17.0"
+    repo: https://github.com/stoplightio/spectral
     sources:
-      - https://www.openapis.org/
-      - https://learn.microsoft.com/en-us/aspnet/core/fundamentals/openapi/aspnetcore-openapi?view=aspnetcore-10.0
-    adrs: ["0017"]
-    notes: Placeholder canonical ID for a deferred choice among Redocly CLI, Spectral, or vacuum; no product is selected yet.
+      - https://github.com/stoplightio/spectral
+      - https://github.com/stoplightio/spectral/releases/tag/v6.17.0
+      - https://docs.stoplight.io/docs/spectral/9ffa04e052cc1-spectral-cli
+      - https://docs.stoplight.io/docs/spectral/e5b9616d6d50c-rulesets
+    adrs: ["0017", "0027"]
+    notes: WP1.5 runs it as the digest-pinned stoplight/spectral:6.17.0 container of the contract-lint service in tools/lint/compose.yaml, with the ruleset in contracts/openapi/spectral.yaml. Redocly CLI and vacuum were compared on the same contract and rules, and ADR-0027 records why Spectral won (checked 2026-10-11).
+    detect: ["image:stoplight/spectral"]
+  - id: microsoft-openapi-yamlreader
+    name: Microsoft.OpenApi.YamlReader
+    category: api-contract
+    tier: C
+    lifecycle: adopt
+    usage: in-use
+    introduced: phase-1
+    purpose: Reads the authored YAML contract into the OpenAPI object model for the contract tests.
+    license: MIT
+    license-source: https://www.nuget.org/packages/Microsoft.OpenApi.YamlReader/2.12.2/license
+    version: "2.12.2"
+    repo: https://github.com/Microsoft/OpenAPI.NET
+    sources:
+      - https://github.com/Microsoft/OpenAPI.NET
+      - https://www.nuget.org/packages/Microsoft.OpenApi.YamlReader/2.12.2
+    adrs: ["0017", "0027"]
+    notes: It pulls in SharpYaml 2.1.5 (MIT, checked 2026-10-11) as a transitive package. Only the contract test project references it, and no production project does.
+    detect: ["nuget:Microsoft.OpenApi.YamlReader"]
   - id: scalar
     name: Scalar
     category: api-contract
@@ -1826,18 +1851,20 @@ entries:
     category: standard
     tier: A
     lifecycle: adopt
-    usage: planned
+    usage: in-use
     introduced: phase-1
     purpose: Defines the contract-first HTTP API that the repository authors, tests, and versions.
     license: Apache-2.0
     license-source: https://github.com/OAI/OpenAPI-Specification
-    version: n/a
+    version: "3.1.0"
     repo: https://github.com/OAI/OpenAPI-Specification
     sources:
       - https://github.com/OAI/OpenAPI-Specification
-      - https://spec.openapis.org/oas/latest.html
+      - https://spec.openapis.org/oas/v3.1.0.html
       - https://learn.microsoft.com/en-us/aspnet/core/fundamentals/openapi/aspnetcore-openapi?view=aspnetcore-10.0
-    adrs: ["0017"]
+    adrs: ["0017", "0027", "0028"]
+    notes: The contract in contracts/openapi/catalog/v1 is written as OpenAPI 3.1.0, because Spectral, oasdiff, Microsoft.OpenApi 2.x, and the planned Kiota client all read 3.1 (checked 2026-10-11). Authoring a later minor version is a decision for its own ADR.
+    detect: ["file:contracts/openapi/**/*.openapi.yaml"]
   - id: openvex
     name: OpenVEX
     category: standard

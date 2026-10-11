@@ -1,14 +1,14 @@
 ---
 title: "ADR-0017: Design the API contract first and enforce conformance"
 description: "Author the OpenAPI contract first and keep code conformant to it so the repository can teach deliberate API design and enforce compatibility."
-status: proposed
+status: accepted
 date: 2026-10-04
 decision-makers: ["@RostomOhannessian"]
 accepted-in: "WP1.5"
 supersedes: []
 superseded-by: []
-tools: [openapi, oasdiff, kiota, nswag, microsoft-openapi, openapi-linter, aspnet-core, asp-versioning, pactnet, scalar]
-related-adrs: ["0018"]
+tools: [openapi, oasdiff, kiota, nswag, microsoft-openapi, spectral, aspnet-core, asp-versioning, pactnet, scalar]
+related-adrs: ["0018", "0027", "0028"]
 evidence:
   - docs/research/2026-10-04-dotnet-ecosystem-verification.md
   - docs/research/spikes/1.a-pactnet-kestrel.md
@@ -48,7 +48,7 @@ Chosen option: **Author the contract first, hand-write versioned DTOs, and enfor
 
 - Good: HTTP semantics, examples, scopes, and error shapes become visible and reviewable before implementation details accumulate.
 - Bad: the repository now maintains both the authored YAML contract and the implementation-facing DTOs. Mitigation: make oasdiff conformance blocking in Phase 1 and add the breaking-change gate in Phase 4.
-- Neutral: this ADR does not choose the contract linter. WP1.5 still selects Redocly CLI, Spectral, or vacuum separately.
+- Neutral: this ADR does not choose the contract linter. [ADR-0027](0027-contract-linter-and-conformance-tooling.md) chose Spectral in WP1.5, and [ADR-0028](0028-http-api-conventions-of-v1.md) fixes the HTTP conventions that the contract holds.
 
 ### Confirmation
 
@@ -64,6 +64,15 @@ from the production composition. This supports the Pact leg of the contract work
 `UseKestrel()` without an argument binds the fixed port 5000, so tests should pass `0`, and that `ServerAddress` does not exist in
 `Microsoft.AspNetCore.Mvc.Testing` 10.0.12, so tests read the bound address from `IServerAddressesFeature`. PactNet is still dormant
 and has no `win-arm64` or musl native library, and only `win-x64` was exercised. The decision stays proposed, and WP1.5 still accepts it.
+
+Execution record (WP1.5, 2026-10-11): WP1.5 accepts this decision and delivers the first two steps of the contract workflow. The authored contract is
+`contracts/openapi/catalog/v1/catalog.openapi.yaml`, an OpenAPI 3.1.0 document with the 10 operations of plan section 8.6, Problem Details for every error, the headers
+of plan sections 8.4 and 8.6, the three OAuth scopes, and a valid example for every body. Spectral lints it with the ruleset in `contracts/openapi/spectral.yaml`, and
+a test breaks the contract once for each rule and expects the rule to fire. 86 contract tests read it with Microsoft.OpenApi 2.12.2 and check it against the permission
+matrix and the error catalog. `tools/ci/Test-ContractConformance.ps1` compares a served document with the authored one through oasdiff 1.33.0 and ignores descriptions, examples,
+and summaries, and its tests show wording changes passing and seven kinds of structural change failing. The served document, the DTOs, and the blocking comparison
+arrive with WP1.10, and the breaking-change gate with WP4.1. Authoring first paid off at once: writing the contract settled 17 error types, the status code for each failure,
+the format of the idempotency key, and the shape of money, and each was a one-line decision in a YAML file and not a refactor of code ([ADR-0028](0028-http-api-conventions-of-v1.md)).
 
 ## Pros and cons of the options
 

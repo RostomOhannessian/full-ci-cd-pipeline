@@ -42,6 +42,7 @@ jobs:
       unclassified-count: ${{ steps.blast-radius.outputs.unclassified-count }}
       run-build-test: ${{ steps.blast-radius.outputs.run-build-test }}
       run-script-tests: ${{ steps.blast-radius.outputs.run-script-tests }}
+      run-contract: ${{ steps.blast-radius.outputs.run-contract }}
       run-format: ${{ steps.blast-radius.outputs.run-format }}
       run-license: ${{ steps.blast-radius.outputs.run-license }}
       run-pr-title: ${{ steps.blast-radius.outputs.run-pr-title }}

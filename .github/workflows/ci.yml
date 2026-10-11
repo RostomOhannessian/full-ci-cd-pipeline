@@ -83,6 +83,24 @@ jobs:
         run: ./scripts/Invoke-ScriptTests.ps1
       # </script-tests>
 
+  contract:
+    name: Contract lint
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # Spectral runs in a digest-pinned container with the ruleset in contracts/openapi/spectral.yaml, and a warning fails it (ADR-0027). The tests of the
+      # contract live in the build and test job, and the tests that break the contract on purpose, to prove that each rule can fail, run in the script tests.
+      # <contract-lint>
+      - name: Lint the OpenAPI contract
+        run: docker compose -f tools/lint/compose.yaml run --rm contract-lint
+      # </contract-lint>
+
   format:
     name: Format verification
     runs-on: ubuntu-24.04

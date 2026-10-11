@@ -248,7 +248,8 @@ requirements:
   - integration
   - docs
   evidence: OpenAPI contract and endpoint integration tests
-  status: planned
+  status: in_progress
+  notes: WP1.5 authors the 10 operations with their filters, pages, and scopes in the contract, and contract tests compare them with the permission matrix of the API contract page. The endpoints and their integration tests arrive in WP1.10.
 - id: REQ-API-002
   title: Responses advertise API versions and deprecation
   statement: Versioned responses send api-supported-versions and use the Deprecation header from RFC 9745 plus the Sunset header from RFC 8594 when a version enters its documented support window.
@@ -260,7 +261,8 @@ requirements:
   - contract
   - integration
   evidence: header assertions and API versioning tests
-  status: planned
+  status: in_progress
+  notes: The contract documents api-supported-versions, api-deprecated-versions, Deprecation, and Sunset on every response, tests check their formats, and the style guide sets the 180-day support window. Asp.Versioning sends them from WP1.10, and the first deprecation arrives with WP4.1.
 - id: REQ-API-003
   title: Conditional requests enforce strong ETags
   statement: GET supports If-None-Match with 304, and update or discontinue operations require If-Match so a missing header returns 428 and a stale header returns 412.
@@ -272,7 +274,8 @@ requirements:
   - integration
   - contract
   evidence: 412, 428, and 304 API cases
-  status: planned
+  status: in_progress
+  notes: The contract requires If-Match on every change with the 412 and 428 answers, and If-None-Match with the 304 answer on every read of one item. The linter and the contract tests hold them. The API cases arrive in WP1.10.
 - id: REQ-API-004
   title: POST creates require an Idempotency-Key
   statement: Product-creation POST requests require an Idempotency-Key header, and reusing a key with a different payload returns 422 while concurrent use returns 409.
@@ -285,7 +288,8 @@ requirements:
   - integration
   - contract
   evidence: idempotency replay and conflict cases
-  status: planned
+  status: in_progress
+  notes: The contract requires the Idempotency-Key header on both creates, with the 400, 409, and 422 answers, and tests check the format of the key. The idempotency store arrives in WP1.8, and the replay and conflict cases in WP1.10.
 - id: REQ-API-005
   title: Errors use RFC 9457 Problem Details
   statement: Errors are returned as application/problem+json with RFC 9457 Problem Details whose type URIs resolve to the published error catalog and whose payloads include traceId and per-field validation messages when relevant.
@@ -298,7 +302,8 @@ requirements:
   - integration
   - contract
   evidence: Problem Details snapshots
-  status: planned
+  status: in_progress
+  notes: The contract and the error catalog define 17 error types and agree on each status and title, and a test fails when they disagree. The Problem Details snapshots and the mapping of application errors arrive in WP1.7 and WP1.10.
 - id: REQ-API-006
   title: JSON input is strict and bounded
   statement: The API rejects unknown JSON properties with 400 and enforces the configured body-size and depth limits for request payloads.
@@ -1277,7 +1282,8 @@ requirements:
   - contract
   - docs
   evidence: catalog.openapi.yaml
-  status: planned
+  status: verified
+  notes: WP1.5 delivers the whole requirement, because it is the only work package that delivers it. The authored OpenAPI 3.1 document defines the operations, the schemas, Problem Details, the headers, the scopes, and an example for every body, the Spectral ruleset holds it, and contract tests compare it with the documents that describe it.
 - id: REQ-CON-002
   title: Served and authored contracts stay structurally equal
   statement: The build generates the served OpenAPI JSON document and blocks on oasdiff unless it is structurally equal to the authored contract after ignoring descriptions, examples, and summaries.
@@ -1289,7 +1295,8 @@ requirements:
   - contract
   - snapshot
   evidence: oasdiff conformance output
-  status: planned
+  status: in_progress
+  notes: WP1.5 delivers the comparison, which runs oasdiff and ignores descriptions, examples, and summaries, and tests that show wording changes passing and seven kinds of structural change failing. The served document and the blocking run arrive in WP1.10.
 - id: REQ-CON-003
   title: Breaking v1 contract changes are blocked before merge
   statement: From WP4.1 onward, every pull request compares the candidate v1 contract to the last released contract and blocks any breaking change.

@@ -9,6 +9,7 @@ description: Maps repository paths to layers, areas, required jobs, documentatio
 jobs:
   build-test: { workflow: ci.yml, name: Build and test }
   script-tests: { workflow: ci.yml, name: Script tests }
+  contract: { workflow: ci.yml, name: Contract lint }
   format: { workflow: ci.yml, name: Format verification }
   license: { workflow: ci.yml, name: License gate }
   pr-title: { workflow: ci.yml, name: Conventional Commit title }
@@ -198,7 +199,7 @@ rules:
     paths: ['contracts/**']
     layer: Contracts
     area: api-contract
-    jobs: [build-test]
+    jobs: [contract, build-test, script-tests, docs-site]
     reviews: [codeowners, contract-review]
     flags: [contract-change]
     docs: [contract-docs, adr, changelog]

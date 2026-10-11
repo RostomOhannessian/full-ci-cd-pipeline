@@ -22,4 +22,11 @@
     <PackageVersion Include="YamlDotNet" Version="18.1.0" />
   </ItemGroup>
 
+  <!-- Catalog.Contract.Tests (ADR-0027). Both packages are MIT licensed. They stay on the 2.x line, because Microsoft.AspNetCore.OpenApi 10.0
+       depends on Microsoft.OpenApi 2.x, and the conformance check will compare documents that this library wrote. Versions were checked on 2026-10-11. -->
+  <ItemGroup>
+    <PackageVersion Include="Microsoft.OpenApi" Version="2.12.2" />
+    <PackageVersion Include="Microsoft.OpenApi.YamlReader" Version="2.12.2" />
+  </ItemGroup>
+
 </Project>

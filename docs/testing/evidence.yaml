@@ -2,7 +2,7 @@
 # carrying its ID, so they need no entry here. Each entry names a file that must exist. `governance trace` reads this file, checks every
 # path, and renders docs/testing/traceability.md. The schema is evidence.schema.json, and ADR-0022 explains the rules.
 schema-version: 1
-last-verified: '2026-10-10'
+last-verified: '2026-10-11'
 entries:
   - requirements: [REQ-GOV-001]
     kind: docs
@@ -99,3 +99,23 @@ entries:
     path: identity/keycloak/realms/catalog-realm.json
     summary: The catalog realm is one file with environment placeholders, and the Compose stack imports it. The Pester realm tests check the placeholders, and the Testcontainers import arrives in WP1.10.
     recorded: '2026-10-10'
+  - requirements: [REQ-CON-001, REQ-API-001]
+    kind: contract
+    path: contracts/openapi/catalog/v1/catalog.openapi.yaml
+    summary: The authored OpenAPI 3.1 contract defines the 10 operations, the schemas, Problem Details, the headers, the three scopes, and a valid example for every body, and Spectral and the contract tests hold it.
+    recorded: '2026-10-11'
+  - requirements: [REQ-API-001, REQ-CON-001]
+    kind: docs
+    path: docs/reference/api-contract.md
+    summary: The API contract page lists the operations, the permission matrix, the headers, and the rules for conditional requests, idempotent creates, and pages, and a test compares its matrix with the contract.
+    recorded: '2026-10-11'
+  - requirements: [REQ-API-005]
+    kind: docs
+    path: docs/reference/error-catalog.md
+    summary: The error catalog describes the 17 error types of the API with their status, title, cause, and remedy, and a test fails when its entries and the examples of the contract disagree.
+    recorded: '2026-10-11'
+  - requirements: [REQ-API-002, REQ-API-004]
+    kind: docs
+    path: docs/reference/api-style-guide.md
+    summary: The API style guide sets the versioning and deprecation rules with a 180-day support window and the format of the idempotency key, and tests check the window against the decision record.
+    recorded: '2026-10-11'
