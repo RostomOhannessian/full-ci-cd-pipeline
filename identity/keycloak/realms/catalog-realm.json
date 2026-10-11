@@ -1,0 +1,278 @@
+{
+  "realm": "catalog",
+  "displayName": "Product catalog",
+  "enabled": true,
+  "sslRequired": "external",
+  "registrationAllowed": false,
+  "resetPasswordAllowed": false,
+  "rememberMe": false,
+  "loginWithEmailAllowed": false,
+  "duplicateEmailsAllowed": false,
+  "bruteForceProtected": true,
+  "failureFactor": 5,
+  "defaultSignatureAlgorithm": "RS256",
+  "accessTokenLifespan": 300,
+  "ssoSessionIdleTimeout": 1800,
+  "ssoSessionMaxLifespan": 36000,
+  "roles": {
+    "realm": [
+      {
+        "name": "catalog-reader",
+        "description": "Reads the catalog. Granted the catalog.read scope."
+      },
+      {
+        "name": "catalog-editor",
+        "description": "Reads, creates, and updates products. Granted catalog.read and catalog.write.",
+        "composite": true,
+        "composites": { "realm": ["catalog-reader"] }
+      },
+      {
+        "name": "catalog-admin",
+        "description": "Everything an editor does, plus discontinuing products and writing categories. Granted all three catalog scopes.",
+        "composite": true,
+        "composites": { "realm": ["catalog-editor"] }
+      }
+    ]
+  },
+  "clientScopes": [
+    {
+      "name": "basic",
+      "description": "The subject and the authentication time, which every token carries.",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "false",
+        "display.on.consent.screen": "false"
+      },
+      "protocolMappers": [
+        {
+          "name": "sub",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-sub-mapper",
+          "consentRequired": false,
+          "config": {
+            "access.token.claim": "true",
+            "introspection.token.claim": "true"
+          }
+        },
+        {
+          "name": "auth_time",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usersessionmodel-note-mapper",
+          "consentRequired": false,
+          "config": {
+            "user.session.note": "AUTH_TIME",
+            "claim.name": "auth_time",
+            "jsonType.label": "long",
+            "access.token.claim": "true",
+            "id.token.claim": "true",
+            "introspection.token.claim": "true"
+          }
+        },
+        {
+          "name": "realm roles",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "consentRequired": false,
+          "config": {
+            "multivalued": "true",
+            "claim.name": "realm_access.roles",
+            "jsonType.label": "String",
+            "access.token.claim": "true",
+            "id.token.claim": "false",
+            "introspection.token.claim": "true"
+          }
+        }
+      ]
+    },
+    {
+      "name": "catalog.read",
+      "description": "Read products and categories. Granted only to a principal that has the catalog-reader role.",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "true",
+        "consent.screen.text": "Read the product catalog"
+      },
+      "protocolMappers": [
+        {
+          "name": "catalog-api-audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "catalog-api",
+            "access.token.claim": "true",
+            "id.token.claim": "false",
+            "introspection.token.claim": "true"
+          }
+        }
+      ]
+    },
+    {
+      "name": "catalog.write",
+      "description": "Create and update products. Granted only to a principal that has the catalog-editor role.",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "true",
+        "consent.screen.text": "Create and update products"
+      },
+      "protocolMappers": [
+        {
+          "name": "catalog-api-audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "catalog-api",
+            "access.token.claim": "true",
+            "id.token.claim": "false",
+            "introspection.token.claim": "true"
+          }
+        }
+      ]
+    },
+    {
+      "name": "catalog.admin",
+      "description": "Discontinue products and write categories. Granted only to a principal that has the catalog-admin role.",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "true",
+        "consent.screen.text": "Administer the product catalog"
+      },
+      "protocolMappers": [
+        {
+          "name": "catalog-api-audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "catalog-api",
+            "access.token.claim": "true",
+            "id.token.claim": "false",
+            "introspection.token.claim": "true"
+          }
+        }
+      ]
+    }
+  ],
+  "scopeMappings": [
+    { "clientScope": "catalog.read", "roles": ["catalog-reader"] },
+    { "clientScope": "catalog.write", "roles": ["catalog-editor"] },
+    { "clientScope": "catalog.admin", "roles": ["catalog-admin"] }
+  ],
+  "clients": [
+    {
+      "clientId": "catalog-api",
+      "name": "Catalog API",
+      "description": "The resource server. It validates tokens and never asks for one.",
+      "enabled": true,
+      "bearerOnly": true,
+      "publicClient": false,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "fullScopeAllowed": false,
+      "defaultClientScopes": [],
+      "optionalClientScopes": []
+    },
+    {
+      "clientId": "catalog-cli",
+      "name": "Catalog command line and labs",
+      "description": "A public client for people. It uses the authorization code flow with PKCE (S256) or the device flow, and it never holds a secret.",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "fullScopeAllowed": false,
+      "redirectUris": ["http://127.0.0.1/*", "http://localhost/*"],
+      "webOrigins": [],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "oauth2.device.authorization.grant.enabled": "true"
+      },
+      "defaultClientScopes": ["basic"],
+      "optionalClientScopes": ["catalog.read", "catalog.write", "catalog.admin"]
+    },
+    {
+      "clientId": "synthetic-shopper",
+      "name": "Synthetic shopper",
+      "description": "The consumer workload that generates traffic. A confidential client with client credentials, and read access only.",
+      "enabled": true,
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "${CATALOG_SYNTHETIC_SHOPPER_SECRET}",
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true,
+      "fullScopeAllowed": false,
+      "defaultClientScopes": ["basic", "catalog.read"],
+      "optionalClientScopes": []
+    },
+    {
+      "clientId": "smoke-tests",
+      "name": "Smoke tests",
+      "description": "Post-deployment checks. A confidential client with client credentials, and every catalog scope, because the checks exercise every operation.",
+      "enabled": true,
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "${CATALOG_SMOKE_TESTS_SECRET}",
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true,
+      "fullScopeAllowed": false,
+      "defaultClientScopes": ["basic", "catalog.read", "catalog.write", "catalog.admin"],
+      "optionalClientScopes": []
+    }
+  ],
+  "users": [
+    {
+      "username": "service-account-synthetic-shopper",
+      "enabled": true,
+      "serviceAccountClientId": "synthetic-shopper",
+      "realmRoles": ["catalog-reader"]
+    },
+    {
+      "username": "service-account-smoke-tests",
+      "enabled": true,
+      "serviceAccountClientId": "smoke-tests",
+      "realmRoles": ["catalog-admin"]
+    },
+    {
+      "username": "reader",
+      "enabled": true,
+      "email": "reader@catalog.example",
+      "emailVerified": true,
+      "firstName": "Demo",
+      "lastName": "Reader",
+      "credentials": [{ "type": "password", "value": "${CATALOG_READER_PASSWORD}", "temporary": false }],
+      "realmRoles": ["catalog-reader"]
+    },
+    {
+      "username": "editor",
+      "enabled": true,
+      "email": "editor@catalog.example",
+      "emailVerified": true,
+      "firstName": "Demo",
+      "lastName": "Editor",
+      "credentials": [{ "type": "password", "value": "${CATALOG_EDITOR_PASSWORD}", "temporary": false }],
+      "realmRoles": ["catalog-editor"]
+    },
+    {
+      "username": "admin",
+      "enabled": true,
+      "email": "admin@catalog.example",
+      "emailVerified": true,
+      "firstName": "Demo",
+      "lastName": "Admin",
+      "credentials": [{ "type": "password", "value": "${CATALOG_ADMIN_PASSWORD}", "temporary": false }],
+      "realmRoles": ["catalog-admin"]
+    }
+  ]
+}

@@ -52,6 +52,7 @@ jobs:
       run-diagrams: ${{ steps.blast-radius.outputs.run-diagrams }}
       run-docs-site: ${{ steps.blast-radius.outputs.run-docs-site }}
       run-docs-audit: ${{ steps.blast-radius.outputs.run-docs-audit }}
+      run-devcontainer: ${{ steps.blast-radius.outputs.run-devcontainer }}
     steps:
       # The auditors read the Git history of the pull request, so the checkout needs all of it.
       - name: Check out with full history

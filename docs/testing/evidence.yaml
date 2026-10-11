@@ -2,7 +2,7 @@
 # carrying its ID, so they need no entry here. Each entry names a file that must exist. `governance trace` reads this file, checks every
 # path, and renders docs/testing/traceability.md. The schema is evidence.schema.json, and ADR-0022 explains the rules.
 schema-version: 1
-last-verified: '2026-10-08'
+last-verified: '2026-10-10'
 entries:
   - requirements: [REQ-GOV-001]
     kind: docs
@@ -74,3 +74,28 @@ entries:
     path: docs/governance/ai-skills.md
     summary: The six-step external skill review, the approval rule, and the review results are written down, and the repository installs no external skill.
     recorded: '2026-10-08'
+  - requirements: [REQ-DX-001, REQ-DX-002, REQ-DX-005, REQ-IDN-001, REQ-GOV-003]
+    kind: manual
+    path: docs/testing/evidence/2026-10-10-dev-container-quick-start.md
+    summary: A fresh clone built the Dev Container with a frozen lock file, ran dev bootstrap and dev doctor on creation, then built the solution, ran the unit tests, and ran Lab 1 against the API-only stack inside it. The record also holds the native Windows run and the role-matrix check.
+    recorded: '2026-10-10'
+  - requirements: [REQ-DX-002]
+    kind: docs
+    path: docs/tutorials/native-setup.md
+    summary: The native setup guide lists the three prerequisites (Git, Docker, and the .NET SDK), the install steps for Windows, Linux, and macOS, and the doctor output that proves them, and it notes that the macOS path is untested.
+    recorded: '2026-10-10'
+  - requirements: [REQ-DX-005]
+    kind: docs
+    path: docs/runbooks/machine-migration.md
+    summary: The machine-migration runbook moves work to a new machine without copying secrets or state, and records the rehearsal with its limits.
+    recorded: '2026-10-10'
+  - requirements: [REQ-DX-005]
+    kind: docs
+    path: docs/reference/host-support.md
+    summary: The host support matrix names the supported hosts, the resource budgets of the profiles, and the ports that the stack uses, all of them above 1024 and bound to the loopback interface.
+    recorded: '2026-10-10'
+  - requirements: [REQ-IDN-005]
+    kind: docs
+    path: identity/keycloak/realms/catalog-realm.json
+    summary: The catalog realm is one file with environment placeholders, and the Compose stack imports it. The Pester realm tests check the placeholders, and the Testcontainers import arrives in WP1.10.
+    recorded: '2026-10-10'

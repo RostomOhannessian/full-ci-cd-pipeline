@@ -3,7 +3,7 @@ title: "Labs"
 description: "What a lab looks like in this repository and which hands-on exercises each phase plans to add."
 audience: [learners, contributors, maintainers]
 type: reference
-last-verified: 2026-10-04
+last-verified: 2026-10-10
 owner: "@RostomOhannessian"
 ---
 
@@ -25,7 +25,7 @@ Every lab follows the same teaching contract from the template and [plan section
 
 | Phase | Lab | Work package | Learning objective | Status |
 | --- | --- | --- | --- | --- |
-| 1 | Quick start: the API-only stack | WP1.4, WP1.10, WP1.13 | Bring up the first runnable local slice and call the API successfully. | planned |
+| 1 | Quick start: the API-only stack | WP1.4, WP1.10, WP1.13 | Bring up the first runnable local slice and call the API successfully. | [Lab 1](quick-start-api-stack.md) covers the stack and its identity, and the API calls arrive with WP1.10 |
 | 1 | Walk the boundaries: break an architecture rule and watch the tests fail | WP1.1, WP1.13 | See Clean Architecture rules enforced as executable tests. | planned |
 | 1 | Create a product through CQRS and watch the outbox deliver | WP1.7, WP1.8, WP1.13 | Follow one write through handlers, persistence, and event delivery. | planned |
 | 1 | Prove L1/L2 caching and cross-node invalidation | WP1.9, WP1.13 | Observe cache layers, tags, and cross-node invalidation. | planned |

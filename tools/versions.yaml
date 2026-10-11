@@ -1,0 +1,30 @@
+# The single manifest of developer tools that `dev bootstrap` installs and verifies (plan sections 12 and 17, ADR-0024).
+#
+# Each entry pins one exact version and the SHA-256 of the file that is downloaded, so a changed or tampered download is refused and a
+# new version is a reviewed change to this file. The installer reads this file with a strict subset of YAML (scripts/modules/Dev.Yaml.psm1),
+# and the documentation auditor reads it as a source of tools, so every entry needs an inventory entry with a `psmodule:` detect rule.
+#
+# Fields:
+#   id        the tool's inventory ID
+#   kind      powershell-module (the only kind today; a work package that adds a kind extends the installer and the auditor together)
+#   name      the module name on the PowerShell Gallery
+#   version   an exact release, never a range
+#   url       the canonical download URL, which the installer checks against the name and the version
+#   sha256    the SHA-256 of the downloaded .nupkg, lower case. The Gallery's SHA-512 for the package was cross-checked on 2026-10-10.
+#
+# To update an entry: download the new .nupkg, compare the SHA-512 with the Gallery's PackageHash, compute the SHA-256, edit the three
+# values together, and update the inventory entry (docs/reference/tools/pester.md and psscriptanalyzer.md say how).
+schema-version: 1
+tools:
+  - id: pester
+    kind: powershell-module
+    name: Pester
+    version: 5.9.0
+    url: https://www.powershellgallery.com/api/v2/package/Pester/5.9.0
+    sha256: 5a0fd80b361600bf4bbd4c307c1fd01b17f11668bab19e657add41b00ad22ab9
+  - id: psscriptanalyzer
+    kind: powershell-module
+    name: PSScriptAnalyzer
+    version: 1.25.0
+    url: https://www.powershellgallery.com/api/v2/package/PSScriptAnalyzer/1.25.0
+    sha256: 14e634c828eb98efb9f40b2918ba90f139ed5eccdf663a2a747736d996995d60

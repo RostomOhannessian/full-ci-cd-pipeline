@@ -135,6 +135,13 @@ tests, and keeps the inventory rules in a place that only documentation changes 
 - **WP1.4, WP3.1, WP3.6, and WP3.8** add the scanners for the formats that each introduces, and remove the matching unsupported source.
 - **WP1.12** reviews the auditor depth, and **WP2.2** consumes the job selection that the blast-radius map describes.
 
+Execution record (WP1.4, 2026-10-10): WP1.4 added the scanners for the Dev Container and for `tools/versions.yaml`, and removed their two unsupported
+sources. The Dev Container scanner reads the base image and the features of `.devcontainer/devcontainer.json` (a JSON file that may hold comments) and checks the
+configuration against its lock file in both directions: a feature that the lock lacks, a lock entry that no feature uses, and a locked feature without a
+digest each fail. A feature reference without its tag is a new `detect` kind, `feature:`, and a PowerShell module in `tools/versions.yaml` is another, `psmodule:`. The manifest scanner stops at
+a tool of a kind that it cannot read, so a new kind of tool cannot hide in the file. The policy also excludes `.dev/**`, where `dev bootstrap` installs downloaded tools that Git ignores.
+The two kinds are in the inventory schema, the tool reference, and the `tool-doc-author` skill, and 16 tests show each rule failing on a violating fixture.
+
 ## Pros and cons of the options
 
 ### A separate first-party .NET command line

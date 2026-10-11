@@ -593,7 +593,8 @@ requirements:
   - contract
   - integration
   evidence: realm file and JWT assertions
-  status: planned
+  status: in_progress
+  notes: WP1.4 delivers the realm file and proves the scopes, the audience, and the role matrix with Pester tests and with `dev compose check` against a live Keycloak. Keycloak 26.8.0 grants a requested scope to a user without the mapped role, so the realm also emits the user's roles (ADR-0026, risk R21). The API's own checks arrive in WP1.10, and the platform realm in WP3.5.
 - id: REQ-IDN-002
   title: Catalog permissions map scopes to endpoint behavior
   statement: catalog.read grants all GET operations, catalog.write grants product create and update operations, and catalog.admin grants discontinue plus all category write operations.
@@ -643,7 +644,8 @@ requirements:
   - integration
   - docs
   evidence: shared realm files and import tests
-  status: planned
+  status: in_progress
+  notes: The catalog realm file under identity/keycloak/realms with ${ENV} placeholders feeds the Compose stack, and a test checks the placeholders and that no secret is a literal. The Testcontainers import arrives in WP1.10 and the keycloak-config-cli reconciliation in WP3.5.
 - id: REQ-IDN-006
   title: Workload identity uses bound GitHub OIDC and Kubernetes claims
   statement: Vault JWT auth binds GitHub OIDC tokens to the expected repository, workflow ref, ref, event, and audience claims, and Vault Kubernetes auth binds workloads to the exact namespace and service account pairs that are documented for them.
@@ -894,6 +896,7 @@ requirements:
   - docs
   evidence: docs and devcontainer workflow runs
   status: in_progress
+  notes: The docs workflow (WP1.3) and the devcontainer workflow (WP1.4) exist, and Pester tests check the triggers (pull requests that touch the Dev Container, every week, and by hand). The release trigger arrives with the release workflow in WP2.2 and WP2.7.
 - id: REQ-SUP-001
   title: The production image is built by a multi-stage Dockerfile
   statement: The production image is built through a multi-stage Dockerfile with digest-pinned SDK and runtime bases, deterministic publish settings, a chiseled non-root runtime, no shell or build tools, and a read-only-filesystem-compatible startup path.
@@ -1459,7 +1462,8 @@ requirements:
   - docs
   - ci
   evidence: devcontainers/ci run
-  status: planned
+  status: verified
+  notes: The Dev Container has a digest-pinned base image, a committed feature lock file, docker-in-docker, and a postCreateCommand that runs dev doctor, all checked by Pester tests and by the documentation auditor. It was built and run end to end from a fresh clone on a developer machine (evidence record of 2026-10-10), and the hosted devcontainers/ci run of the WP1.4 pull request passed in 3 minutes 28 seconds (run 38093435177).
 - id: REQ-DX-002
   title: Native setup stays limited to Git Docker and .NET 10
   statement: The native setup for Windows, Linux, and macOS requires only Git, Docker, and the .NET 10 SDK, restores PowerShell 7 as a local .NET tool, and exposes thin dev and dev.cmd shims that invoke scripts/dev.ps1.
@@ -1473,7 +1477,8 @@ requirements:
   - script
   - manual
   evidence: doctor output and native setup guide
-  status: planned
+  status: in_progress
+  notes: The native setup guide, the shims, and the PowerShell local tool exist, and the author ran the native path on Windows and the shim path in a Linux Dev Container. Nobody has run it on macOS yet, so the host support matrix marks that path as untested.
 - id: REQ-DX-003
   title: The dev command is the single local entry point
   statement: The dev command is the single local entry point for setup, build and test, docs, compose, platform, Terraform, data and demos, and housekeeping tasks, and its behavior is covered by Pester and PSScriptAnalyzer.
@@ -1485,7 +1490,8 @@ requirements:
   - script
   - ci
   evidence: Pester suite for dev.ps1
-  status: planned
+  status: in_progress
+  notes: The Pester suite and PSScriptAnalyzer cover every module, and the ci workflow runs both on every pull request. The platform, Terraform, data, and demo commands arrive with WP3.8 and the work packages that own them, and the command prints which work package delivers a command that does not exist yet.
 - id: REQ-DX-004
   title: Resource profiles define budgets and host support boundaries
   statement: The api profile targets about 4 to 5 GB RAM and 2 or more vCPU, lite targets about 10 GB RAM and 4 or more vCPU on a 16 GB host, full targets about 16 to 18 GB RAM and 8 vCPU on a 32 GB host, ci stays within 4 vCPU and 16 GB, and Apple Silicon and Windows on Arm fall back to the documented x86-64 paths when SQL Server container support is unavailable.
@@ -1513,7 +1519,8 @@ requirements:
   - script
   - manual
   evidence: doctor checks, port mapping config, and machine-migration runbook
-  status: planned
+  status: in_progress
+  notes: The Compose stack binds only high loopback ports, a test enforces that, doctor checks the ports, and the machine-migration runbook says that secrets never move between machines. Ports 8080 and 8443, the localtest.me fallback, the local CA, and the registry caches belong to the platform in WP3.1 and WP3.10.
 - id: REQ-GOV-001
   title: Planning and progress artifacts live in the repository
   statement: The repository keeps the implementation plan, phase plans, status source, status page, requirements register, traceability report, risk register, research records, and retrospectives under version control so work can continue on another machine.
@@ -1558,7 +1565,7 @@ requirements:
   - docs
   evidence: fresh-clone resume transcript
   status: in_progress
-  notes: The status page is generated and a fresh clone resumes from it (see the evidence record). The dev doctor step arrives with WP1.4, and until then the resume protocol uses the quality-gate commands in AGENTS.md.
+  notes: The status page is generated and a fresh clone resumes from it (see the evidence records). The dev doctor step arrived with WP1.4 and ran in a fresh clone and in a Dev Container (record of 2026-10-10). The status moves to verified when a person other than the author follows the protocol on a second machine, which the Phase 1 retrospective asks for.
 - id: REQ-GOV-004
   title: Definition of Ready and Done govern every work package
   statement: Every work package requires an issue with scope, non-goals, acceptance criteria, requirement IDs, planned test cases, documentation deliverables, size, and dependencies before it starts, and must satisfy all nine Done criteria before it merges.

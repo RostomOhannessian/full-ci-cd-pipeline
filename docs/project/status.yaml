@@ -2,7 +2,7 @@
 # STATUS.md is generated from this file by `governance status render` (WP1.2). Never edit it by hand.
 # Update this file in the same commit as the change it records, then validate and render (see the end-of-session protocol in AGENTS.md).
 schema-version: 1
-updated: "2026-10-08"
+updated: "2026-10-10"
 project:
   name: "Secure Product Catalog Platform"
   repository: "RostomOhannessian/full-ci-cd-pipeline"
@@ -13,11 +13,12 @@ current:
   work-package: null
   branch: "phase/1-api-core"
 resume:
-  last-completed: "WP1.3 is complete: the documentation toolchain. DocFX (modern template, warnings as errors) builds the site with a pull request preview artifact, docs.yml (renamed from docs-quality.yml, with the three required job names unchanged) adds spelling, Mermaid rendering, the site build, and the documentation auditor to every pull request plus a nightly external link check, and tools/Documentation.Auditor discovers the tools that the repository uses and enforces the inventory, the ADR-0004 license-note rule, the tool-page sections by tier, front-matter freshness, and the illustrative-block policy from governance/policies/documentation-policy.yaml. The /documentation-auditor skill, ADR-0023, six tool pages, and a catalog page are new, and 18 tool pages are owed until WP1.13. 673 tests pass, the build has zero warnings, and the format, license, coverage-threshold, Pester, and governance gates pass. Each docs gate was shown to fail on a planted defect. The work landed through pull request 20 into phase/1-api-core. WP1.0, WP1.1, and WP1.2 landed earlier through pull requests 17, 18, and 19."
-  next-action: "Start WP1.4, Developer environment (Issue 6): create wp/1.4-developer-environment from phase/1-api-core. It adds the Dev Container, the dev command, dev doctor, and the Keycloak realm files, and it supplies the scanners that the documentation auditor lists as unsupported until then (Compose and Dev Container formats). The owner has decisions waiting. First, close Issues 2, 3, and 4, which github-sync shows as the only drift (run it as a dry run, and pass --apply only with the maintainer's approval). Second, whether to add the ci jobs (Build and test, Script tests, Format verification, License gate, Conventional Commit title), the Governance auditors job, and the four new documentation jobs (Spelling, Diagrams, Documentation site, Documentation auditor) as required checks in the master and phase rulesets, which is a settings change that needs the owner's approval, and which the plan expects from WP1.2 on. Third, whether to add tools/Governance.Auditor/ and tools/Documentation.Auditor/ to CODEOWNERS, because each auditor is built from the pull request it audits (risk R20). Fourth, whether to correct the cache ACL patterns in plan section 8.5, as proposed in spike 1.b. Fifth, the Testcontainers evidence for Linux is expected from WP1.8, because no work package before it has container tests."
+  last-completed: "WP1.4 is complete: the developer environment. The dev command (doctor, bootstrap, build, test, docs, compose, and lab) starts from thin dev and dev.cmd shims on Windows, Linux, macOS, and the Dev Container. A verified installer pins Pester and PSScriptAnalyzer in tools/versions.yaml by version and SHA-256 (ADR-0024). The Dev Container has a digest-pinned base image, a locked feature file, and docker-in-docker, and its post-create command runs dev bootstrap and dev doctor (ADR-0025). compose.yaml runs the API-only stack of SQL Server, Valkey with an ACL user, Keycloak with the catalog realm, and the Grafana LGTM stack, all digest-pinned, bound to 127.0.0.1, and limited in memory, and dev compose check proves the logins, the ACL, the token claims, and the role matrix (ADR-0026). The documentation auditor gained scanners for the Dev Container and tools/versions.yaml, the devcontainer workflow runs the onboarding path on a hosted runner, and Lab 1, the machine-migration runbook, the native setup guide, the host support matrix, seven tool pages, and risks R21 and R22 are new. Keycloak 26.8.0 grants a requested scope to a user who lacks the mapped role, so the realm emits roles and the API must check the role as well as the scope. 689 .NET tests and 305 Pester tests pass (1 skipped), the build has zero warnings, and the format, license, coverage-threshold, and governance gates pass. Each new gate was shown to fail on a planted defect. A fresh clone built the Dev Container and ran Lab 1 inside it (docs/testing/evidence/2026-10-10-dev-container-quick-start.md), and the hosted devcontainer workflow passed on the pull request in 3 minutes 28 seconds. The work landed through pull request 21 into phase/1-api-core. WP1.0 to WP1.3 landed earlier through pull requests 17 to 20."
+  next-action: "Start WP1.5, Contract v1 design (Issue 7): create wp/1.5-contract-v1-design from phase/1-api-core. It authors the OpenAPI 3.1 contract, the error catalog, the contract linter decision, and the API style guide. The owner has decisions waiting. First, close Issues 2, 3, and 4, which github-sync shows as the only drift (run it as a dry run, and pass --apply only with the maintainer's approval). Second, whether to add the ci jobs (Build and test, Script tests, Format verification, License gate, Conventional Commit title), the Governance auditors job, the four documentation jobs (Spelling, Diagrams, Documentation site, Documentation auditor), and the new Dev Container onboarding job as required checks in the master and phase rulesets, which is a settings change that needs the owner's approval. Third, whether to add tools/Governance.Auditor/ and tools/Documentation.Auditor/ to CODEOWNERS, because each auditor is built from the pull request it audits (risk R20). Fourth, whether to correct the cache ACL patterns in plan section 8.5, as proposed in spike 1.b. Fifth, whether to amend plan section 8.7, because Keycloak 26.8.0 does not withhold a requested scope from a user without the mapped role, so the API must authorize on the roles claim as well as the scope (ADR-0026, risk R21). Sixth, the Testcontainers evidence for Linux is expected from WP1.8, because no work package before it has container tests."
   open-pull-requests: []
   environment-notes:
-    - "Until the Dev Container arrives in WP1.4, Phase 1 work needs Git, Docker (running), the GitHub CLI, the .NET SDK 10.0.401, and PowerShell 7 with Pester 5 for the script tests. Run the documentation gate with the docker compose commands (markdownlint, links, spelling, diagrams, secrets, secrets-worktree), the documentation auditor with `dotnet run --project tools/Documentation.Auditor -- audit`, the site build with `pwsh tools/ci/Invoke-DocFx.ps1 -Command build`, the .NET gate with the dotnet commands in AGENTS.md, and the governance checks with `dotnet run --project tools/Governance.Auditor -- <command>`."
+    - "Open the Dev Container, or install Git, Docker (running), and the .NET SDK 10.0.401 and follow docs/tutorials/native-setup.md. Run `./dev doctor` first (on Windows, `./dev` in PowerShell or `.\\dev` in cmd.exe), then `./dev bootstrap` to install the pinned script tools and create .env, and `./dev test scripts` for the Pester tests. The documentation gate runs through the docker compose commands (markdownlint, links, spelling, diagrams, secrets, secrets-worktree), the documentation auditor through `dotnet run --project tools/Documentation.Auditor -- audit`, the site build through `pwsh tools/ci/Invoke-DocFx.ps1 -Command build`, the .NET gate through the dotnet commands in AGENTS.md, and the governance checks through `dotnet run --project tools/Governance.Auditor -- <command>`."
+    - "The local stack is `./dev compose up`, `./dev compose check`, and `./dev compose down`. It needs about 3 GB of Docker memory, binds 127.0.0.1 only, and keeps its secrets in the git-ignored .env, which never moves between machines. Delete _site and .docfx before the working-tree secret scan, because the site build output triggers false findings."
     - "A tool that you add to the repository needs a tool-inventory entry with a `detect` rule, and the documentation auditor fails when the files and the inventory disagree. Use the tool-doc-author skill, then run the audit."
     - "`STATUS.md` and `docs/testing/traceability.md` are generated. After you change `status.yaml`, run `status validate` and `status render`, and after you change tests or evidence, run `trace`. Never edit the pages by hand."
     - "Use the repository-local noreply Git identity described in ADR-0006 and never set a personal email in this repository."
@@ -250,12 +251,31 @@ phases:
       - id: "WP1.4"
         title: "Developer environment"
         size: L
-        state: planned
-        branch: null
+        state: completed
+        branch: "wp/1.4-developer-environment"
         issue: 6
-        pull-request: null
+        pull-request: 21
         depends-on: ["WP1.1"]
-        evidence: []
+        evidence:
+          - ".devcontainer/"
+          - "dev"
+          - "dev.cmd"
+          - "scripts/"
+          - "tools/versions.yaml"
+          - "compose.yaml"
+          - ".env.example"
+          - "identity/keycloak/realms/catalog-realm.json"
+          - ".github/workflows/devcontainer.yml"
+          - "tools/lint/gitleaks-worktree.toml"
+          - "tools/Documentation.Auditor/Discovery/Scanners.cs"
+          - "docs/testing/evidence/2026-10-10-dev-container-quick-start.md"
+          - "docs/labs/quick-start-api-stack.md"
+          - "docs/runbooks/machine-migration.md"
+          - "docs/tutorials/native-setup.md"
+          - "docs/reference/host-support.md"
+          - "docs/adr/0024-verified-tool-installer.md"
+          - "docs/adr/0025-dev-command-and-dev-container.md"
+          - "docs/adr/0026-api-only-compose-stack-and-catalog-realm.md"
         blockers: []
       - id: "WP1.5"
         title: "Contract v1 design"

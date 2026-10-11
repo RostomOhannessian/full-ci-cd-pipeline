@@ -1,0 +1,13 @@
+# Configuration for the working-tree secret scan only (docker compose -f tools/lint/compose.yaml run --rm secrets-worktree).
+#
+# gitleaks reads every file in the folder it scans and does not read .gitignore. The .env file that "dev bootstrap" creates holds random passwords for
+# the local Compose stack, and Git ignores it, so the scan would fail on every machine that has run the command. This file keeps the default rules and
+# allows that one path. The full-history scan (the `secrets` service) does not read this file, so a committed .env would still fail it.
+title = "gitleaks configuration for the working-tree scan"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "The git-ignored local environment file at the repository root, which dev bootstrap generates with random local passwords."
+paths = ['''^/repo/\.env$''']

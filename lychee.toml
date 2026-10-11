@@ -8,6 +8,6 @@ no_progress = true
 # Also read Markdown under dot-directories such as .github/skills and .github/instructions.
 hidden = true
 
-# Templates contain {{placeholders}} instead of real link targets. The Git directory holds no documentation, and the DocFX site and its cache
-# are build output that a local documentation build leaves in the working tree.
-exclude_path = ['^docs/templates/', '^\.git/', '^_site/', '^\.docfx/']
+# Templates contain {{placeholders}} instead of real link targets. The Git directory holds no documentation, the DocFX site and its cache
+# are build output that a local documentation build leaves in the working tree, and .dev holds the tools that "dev bootstrap" downloads.
+exclude_path = ['^docs/templates/', '^\.git/', '^_site/', '^\.docfx/', '^\.dev/']

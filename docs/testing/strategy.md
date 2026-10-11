@@ -2,7 +2,7 @@
 title: "Testing strategy"
 description: "How the project tests itself: the suites, what each proves, how requirements trace to evidence, and the rules that keep tests deterministic."
 audience: [maintainers, contributors, learners]
-last-verified: 2026-10-08
+last-verified: 2026-10-10
 owner: "@RostomOhannessian"
 ---
 
@@ -108,14 +108,15 @@ each completed work package.
 
 | Where | What runs |
 | --- | --- |
-| Local, through the `dev` command (from WP1.4) | Any suite, with the same containers as CI. Until then, the commands in [AGENTS.md](../../AGENTS.md) |
-| Pull request CI | The `ci` workflow: restore from lock files, build with warnings as errors, the unit and architecture tests with coverage, the coverage thresholds, the script tests, the format check, the license gate, and the pull-request title check. The `governance` workflow: the status files, the generated pages, requirements traceability, the security auditor, and the blast-radius evaluator. The `docs` workflow: Markdown style, relative links and anchors, spelling, Mermaid diagrams, the documentation site build with warnings as errors, the documentation auditor, and a full-history secret scan. All three workflows still run every job. The blast-radius outputs that select jobs are published by the `governance` workflow, and the selection arrives with WP2.2 |
-| `master` and nightly | The comprehensive suites, mutation, the external link check (the `docs` workflow runs it nightly), image re-scans |
+| Local, through the `dev` command (from WP1.4) | Any suite that exists, through `dev test [unit\|architecture\|scripts\|docs\|all]`, with the same commands as CI. The integration suites use the same containers as CI from WP1.8 |
+| Pull request CI | The `ci` workflow: restore from lock files, build with warnings as errors, the unit and architecture tests with coverage, the coverage thresholds, the script tests (the `dev` command's Pester tests and the analyzer, from `scripts/Invoke-ScriptTests.ps1`), the format check, the license gate, and the pull-request title check. The `governance` workflow: the status files, the generated pages, requirements traceability, the security auditor, and the blast-radius evaluator. The `docs` workflow: Markdown style, relative links and anchors, spelling, Mermaid diagrams, the documentation site build with warnings as errors, the documentation auditor, and a full-history secret scan. The `devcontainer` workflow, for a change that touches the Dev Container, the `dev` command, the Compose stack, or the tool manifest: it builds the Dev Container and runs `dev doctor`, the build, and the unit tests inside it. All four workflows still run every job. The blast-radius outputs that select jobs are published by the `governance` workflow, and the selection arrives with WP2.2 |
+| `master` and nightly | The comprehensive suites, mutation, the external link check (the `docs` workflow runs it nightly), image re-scans, and a weekly run of the Dev Container onboarding check |
 | Release | Performance, onboarding, rollback drills, and every gate above |
 
 Phase 0 has no application code, so its tests are checks on content, history, and settings. They are listed in the
 [Phase 0 test plan](../plans/phases/phase-0-foundation.md). Phase 1 starts the code suites. WP1.1 delivers the architecture, reference, and
 dependency tests in `tests/Catalog.Architecture.Tests`, WP1.2 delivers the tests of the governance tool in
-`tests/Governance.Auditor.Tests`, and WP1.3 delivers the tests of the documentation auditor in `tests/Documentation.Auditor.Tests`, with the
-Pester tests of the DocFX wrapper in `tools/ci`. The unit, integration, snapshot, and API suites arrive with the work packages that
+`tests/Governance.Auditor.Tests`, WP1.3 delivers the tests of the documentation auditor in `tests/Documentation.Auditor.Tests`, with the
+Pester tests of the DocFX wrapper in `tools/ci`, and WP1.4 delivers the Pester tests of the `dev` command, the installer, the Compose stack, and the realm
+in `scripts/tests`, with the Dev Container onboarding check in CI. The unit, integration, snapshot, and API suites arrive with the work packages that
 build the code they test.

@@ -72,6 +72,12 @@ accepts it. Three follow-ups carry into WP1.9: configure the circuit breakers, c
 match), and assert a latency bound on the first call after an outage begins, because the spike saw a one to two second delay on
 one host that it did not explain.
 
+Execution record (WP1.4, 2026-10-10): `compose.yaml` runs Valkey 8.1 at digest `sha256:640c5e62…` with the default user off and an application user
+that starts from `-@all` and adds the command list that spike 1.b measured. The key patterns cover both `~v2:catalog:dev:*` and `~catalog:dev:*`, and the
+channel patterns cover `&catalog:dev.Backplane:v2` and `&catalog:dev:*`, so the stack works with either answer to the plan section 8.5 correction, which the
+maintainer has not decided ([ADR-0026](0026-api-only-compose-stack-and-catalog-realm.md)). `dev compose check` proves that the application user can write and read its own
+hash key, publish to its backplane channel, and nothing else. WP1.9 still fixes the key scheme, narrows the patterns to it, and accepts this ADR.
+
 ## Pros and cons of the options
 
 ### Build a custom cache layer directly over `IMemoryCache` and `IDistributedCache`

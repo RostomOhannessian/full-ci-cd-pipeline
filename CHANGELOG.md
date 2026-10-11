@@ -41,6 +41,12 @@ Conventional Commits and attached to each release together with its evidence bun
 - `Documentation.Auditor` in `tools/Documentation.Auditor`: a command line that discovers the tools that the repository uses and compares them with the tool inventory in both directions, requires a license note for a non-permissive tool, checks the front matter and the sections of each tool page by tier, warns about a stale `last-verified` date, requires tested or `illustrative` command blocks, verifies includes and diagram accessibility text, and lists the 18 tool pages that are owed until WP1.13. Its rules are data in `governance/policies/documentation-policy.yaml`, and it has 249 tests tagged with requirement IDs.
 - The `/documentation-auditor` skill, which wraps the audit with a read-only scope, and ADR-0023 on the auditor's design.
 - Six tool pages (DocFX, cspell, Mermaid CLI, lychee, markdownlint-cli2, and the documentation auditor), a catalog page for System.CommandLine and YamlDotNet, the tool inventory schema with a `detect` field, and `detect` rules for the tools in use.
+- WP1.4 developer environment: the `dev` command (`doctor`, `bootstrap`, `build`, `test`, `docs`, `compose`, and `lab`) behind `dev` and `dev.cmd` shims, written in PowerShell with a restricted YAML reader and Pester tests, and a verified tool installer that pins each developer tool to a version and a SHA-256 in `tools/versions.yaml` ([ADR-0024](docs/adr/0024-verified-tool-installer.md), [ADR-0025](docs/adr/0025-dev-command-and-dev-container.md)).
+- The Dev Container (a digest-pinned .NET base image, locked docker-in-docker and GitHub CLI features, and the `dev doctor` check on creation) and the `devcontainer` workflow, which builds it and runs the onboarding path on a hosted runner.
+- The API-only Compose stack: SQL Server, Valkey with an ACL user, Keycloak with the imported catalog realm, and the Grafana LGTM telemetry stack, all digest-pinned, bound to `127.0.0.1`, and limited in memory, with a generated `.env`. `dev compose check` proves the logins, the ACL, the token claims, and the role matrix ([ADR-0026](docs/adr/0026-api-only-compose-stack-and-catalog-realm.md)).
+- Documentation auditor scanners for the Dev Container (features and lock file) and `tools/versions.yaml`, with `feature` and `psmodule` detect kinds, and the unsupported-source entries for both removed.
+- Lab 1 (quick start), the machine-migration runbook, the native setup tutorial, the host support matrix, and tool pages for the Dev Containers, PowerShell, the `dev` command, SQL Server, Valkey, Keycloak, and the telemetry stack.
+- A narrow allowance in `tools/lint/gitleaks-worktree.toml` for the git-ignored `.env`, used only by the `secrets-worktree` working-tree scan. The full-history `secrets` scan is unchanged.
 
 ### Changed
 
@@ -56,6 +62,11 @@ Conventional Commits and attached to each release together with its evidence bun
 - The architecture tests treat `tools/` as a project root.
 - Requirements GOV-002 and GOV-004 are verified, and GOV-003 is in progress until `dev doctor` arrives in WP1.4.
 - The tool inventory marks markdownlint-cli2, lychee, gitleaks, Docker Compose, cspell, DocFX, Mermaid CLI, and the repository instruction files as `in-use`, and the documentation workflow is `docs.yml`. Requirement DOC-003 is verified, and CI-005, DOC-002, DOC-004, and DOC-005 are in progress until their later work packages.
+- AGENTS.md, CONTRIBUTING.md, the README, the testing strategy, and the threat model describe the `dev` command and the local stack. The planned-commands table lists only the Phase 3 commands.
+- The `ci` workflow runs the script tests through `scripts/Invoke-ScriptTests.ps1`, which installs the pinned and checksum-verified Pester and PSScriptAnalyzer instead of whatever the runner image carries. Dependabot also watches `/.devcontainer`.
+- The blast-radius map has a `devcontainer` job and a `tool-manifest` rule, and `governance.yml` publishes `run-devcontainer`. The tool inventory marks the Dev Containers, PowerShell, Pester, PSScriptAnalyzer, SQL Server, Valkey, Keycloak, and the telemetry stack as `in-use`, mise as `hold`, and Codespaces stays planned.
+- The threat model has a developer-environment boundary (TB2a), and the risk register has R21 (the Keycloak scope and role finding) and R22 (the privileged Dev Container).
+- The documentation site build leaves out `.env` and `.dev/`, because it copies every repository file that it does not exclude (the working-tree secret scan found a copy of a generated `.env` in `_site` before the exclusion). The link, spelling, and Markdown checks skip `.dev/`, where `dev bootstrap` installs downloaded tools.
 
 ### Fixed
 

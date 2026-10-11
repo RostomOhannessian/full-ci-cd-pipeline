@@ -75,20 +75,13 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      # Pester and PSScriptAnalyzer ship on the runner image. WP1.4 pins them in tools/versions.yaml.
-      - name: Analyze the scripts
+      # Pester and PSScriptAnalyzer are the versions that tools/versions.yaml pins. The script installs them after checking their SHA-256, runs the
+      # analyzer over scripts and tools/ci, and then runs every Pester file there (ADR-0024). "dev test scripts" runs the same script.
+      # <script-tests>
+      - name: Analyze and test the scripts with the pinned tools
         shell: pwsh
-        run: |
-          $findings = Invoke-ScriptAnalyzer -Path tools/ci -Recurse -Severity Warning, Error
-          $findings | Format-Table RuleName, Severity, ScriptName, Line -AutoSize
-          if ($findings) { exit 1 }
-      - name: Run the script tests
-        shell: pwsh
-        run: |
-          $configuration = New-PesterConfiguration
-          $configuration.Run.Path = 'tools/ci'
-          $configuration.Run.Exit = $true
-          Invoke-Pester -Configuration $configuration
+        run: ./scripts/Invoke-ScriptTests.ps1
+      # </script-tests>
 
   format:
     name: Format verification

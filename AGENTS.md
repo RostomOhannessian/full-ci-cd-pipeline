@@ -30,7 +30,7 @@ These steps come from plan section 6.
 4. Run `dev doctor`.
 5. Continue with the next action.
 
-The Dev Container and `dev doctor` arrive with WP1.4. Until then, install Git, Docker, the GitHub CLI, the .NET SDK 10.0.401 (`global.json` pins it), and PowerShell 7 with Pester 5 for the script tests, skip step 1, and replace step 4 with the quality-gate commands under [Commands that run today](#commands-that-run-today).
+The Dev Container and `dev doctor` arrived with WP1.4. Open the Dev Container, or install only Git, Docker, and the .NET SDK 10.0.401 (`global.json` pins it) and follow [the native setup guide](docs/tutorials/native-setup.md). PowerShell 7 comes from `dotnet tool restore`, and the `dev` shims start it. On Windows, `./dev` in PowerShell and `.\dev` in cmd.exe both run `dev.cmd`.
 
 ## End-of-session protocol
 
@@ -66,10 +66,15 @@ These steps come from plan section 6.
 | `src/` | Six server projects under Clean Architecture boundaries. They hold almost no code yet: the domain, application, and API layers arrive in WP1.6, WP1.7, and WP1.10 | Maintainer | exists (WP1.1) |
 | `tests/Catalog.Architecture.Tests/` | The architecture, reference, and dependency rules, with fixtures that prove each rule can fail | Maintainer | exists (WP1.1) |
 | `tests/Governance.Auditor.Tests/` | The tests of the governance tool, including each security rule against a conforming and a violating fixture | Maintainer | exists (WP1.2) |
-| `tools/ci/` | The coverage threshold gate and its Pester tests | Maintainer | exists (WP1.1) |
+| `tools/ci/` | The coverage threshold gate, the DocFX wrapper, and their Pester tests | Maintainer | exists (WP1.1, WP1.3) |
 | `tools/Governance.Auditor/` | The deterministic governance CLI: status, trace, test-summary, github-sync, security, and blast-radius | Maintainer | exists (WP1.2) |
-| `tools/Documentation.Auditor/` | The documentation and inventory auditor | Maintainer | planned in WP1.3 |
-| `.devcontainer/`, `scripts/`, `identity/keycloak/` | Portable environment, the `dev` command, and the Keycloak realm files | Maintainer | planned in WP1.4 |
+| `tools/Documentation.Auditor/` | The documentation and inventory auditor | Maintainer | exists (WP1.3) |
+| `.devcontainer/` | The Dev Container: a pinned base image, locked features, and docker-in-docker | Maintainer | exists (WP1.4) |
+| `dev`, `dev.cmd`, `scripts/` | The `dev` command: thin shims, the PowerShell entry point and its modules, the script test runner, and the Pester tests | Maintainer | exists (WP1.4) |
+| `tools/versions.yaml` | The manifest of developer tools that `dev bootstrap` installs, each pinned to a version and a SHA-256 | Maintainer | exists (WP1.4) |
+| `compose.yaml`, `.env.example` | The API-only stack (SQL Server, Valkey, Keycloak, and the telemetry stack) and the variables it reads | Maintainer | exists (WP1.4) |
+| `identity/keycloak/` | The Keycloak realm files, with `${ENV}` placeholders. The catalog realm exists, and the platform realm arrives in WP3.5 | Maintainer | exists (WP1.4) |
+| `docs/runbooks/`, `docs/labs/` | Operational procedures and hands-on labs. Machine migration and Lab 1 exist | Maintainer | exists (WP1.4) |
 | `contracts/` | Authored OpenAPI contracts | Maintainer | planned in WP1.5 |
 | `infra/` | Terraform modules and stacks | Maintainer | planned in WP3.1 |
 | `policies/kyverno/` | Kyverno policies, exceptions, and tests | Maintainer | planned in WP3.6 |
@@ -141,10 +146,11 @@ dotnet nuget-license -i ProductCatalog.slnx -t -a governance/policies/license-po
 
 After you add or change a package, run `dotnet restore ProductCatalog.slnx` without the locked mode and commit every changed
 `packages.lock.json`. A Dependabot pull request that fails the locked restore needs `dotnet restore --force-evaluate`
-([ADR-0020](docs/adr/0020-dependency-intake-controls.md)). The script tests need PowerShell 7 and Pester 5:
+([ADR-0020](docs/adr/0020-dependency-intake-controls.md)). The script tests run through one script that installs the pinned Pester and
+PSScriptAnalyzer after checking their checksums ([ADR-0024](docs/adr/0024-verified-tool-installer.md)), analyzes `scripts` and `tools/ci`, and runs every Pester file there:
 
 ```text
-pwsh -NoProfile -Command "Invoke-Pester -Path tools/ci -CI"
+pwsh -NoProfile -File scripts/Invoke-ScriptTests.ps1
 ```
 
 On a Windows host that enforces Smart App Control, a locally built unsigned assembly can fail to load. The architecture tests read
@@ -169,21 +175,25 @@ dotnet run --project tools/Governance.Auditor -- github-sync
 CI does. `github-sync` is a dry run until you pass `--apply`, which needs the maintainer's approval and refuses to run in GitHub Actions.
 Run each command with `--help` for its options.
 
-### Planned commands
+### The dev command
 
-| Command | Purpose | Arrives in |
+`dev` is the single local entry point ([ADR-0025](docs/adr/0025-dev-command-and-dev-container.md)). It wraps the commands above, so a local result is the CI result. Run `./dev help` for the full list. The exit codes are
+0 for success, 1 for a failed check or step, and 2 for wrong usage or a command that does not exist yet.
+
+| Command | Purpose | State |
 | --- | --- | --- |
-| `dev doctor` | Validate host prerequisites and profile budgets | WP1.4 |
-| `dev bootstrap` | Prepare the local development environment | WP1.4 |
-| `dev build` | Restore and build the solution | WP1.4 |
-| `dev test [suite]` | Run targeted or full test suites | WP1.4 |
-| `dev docs [serve]` | Build or serve the documentation site | WP1.3 |
-| `dev compose up\|down\|reset` | Run or reset the API-only local stack | WP1.4 |
-| `dev platform create\|destroy\|status\|unseal\|credentials` | Manage the local kind platform | Phase 3 |
-| `dev tf plan\|apply <stack>` | Run Terraform plans and applies | Phase 3 |
+| `dev doctor` | Validate host prerequisites and profile budgets | runs today (WP1.4) |
+| `dev bootstrap` | Install the pinned script tools and create `.env` with random local secrets | runs today (WP1.4) |
+| `dev build` | Build the solution | runs today (WP1.4) |
+| `dev test [suite]` | Run targeted or full test suites: unit, architecture, scripts, docs, or all | runs today (WP1.4) |
+| `dev docs [serve]` | Build or serve the documentation site | runs today (WP1.4) |
+| `dev compose up\|down\|reset\|ps\|logs\|check` | Run, reset, and check the API-only local stack | runs today (WP1.4) |
+| `dev lab <id> setup\|run\|cleanup` | Set up, run, or clean up a lab. Lab 1 is the quick start | runs today (WP1.4) |
+| `dev platform create\|destroy\|status\|unseal\|credentials` | Manage the local kind platform | planned for Phase 3 |
+| `dev tf plan\|apply <stack>` | Run Terraform plans and applies | planned for Phase 3 |
 
-The plan also names `dev seed`, `dev demo`, `dev lab <id>`, and `dev clean` without assigning a work package. They arrive with the features they serve.
-The plan names the governance commands `governance <command>`. Until the `dev` command arrives in WP1.4, the `dotnet run` lines above are how to run them.
+The plan also names `dev seed`, `dev demo`, and `dev clean` without assigning a work package. They arrive with the features they serve, and `dev` prints that when you run one.
+The plan names the governance commands `governance <command>`. They run through the `dotnet run` lines above until a later work package adds them to `dev`.
 
 ## Definition of Ready and Definition of Done
 

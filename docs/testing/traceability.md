@@ -3,7 +3,7 @@ title: "Requirements traceability"
 description: "A generated map from every requirement to the tests and evidence that prove it, and to the work packages that deliver it."
 type: reference
 audience: [maintainers, contributors, learners]
-last-verified: 2026-10-08
+last-verified: 2026-10-10
 owner: "@RostomOhannessian"
 ---
 
@@ -18,10 +18,10 @@ A requirement is in scope once every work package that delivers it is completed,
 | Measure | Requirements |
 | --- | --- |
 | Requirements | 121 |
-| In scope and covered | 8 |
+| In scope and covered | 10 |
 | In scope and missing proof | 0 |
-| Covered before they are due | 17 |
-| Not yet due | 96 |
+| Covered before they are due | 21 |
+| Not yet due | 90 |
 | Deferred or withdrawn | 0 |
 
 ## AI: AI enablement
@@ -82,7 +82,7 @@ A requirement is in scope once every work package that delivers it is completed,
 | `REQ-CI-002` | Every pull request runs the governance auditors | WP1.2, WP1.12 | Covered | [RepositoryPolicyTests.cs](../../tests/Governance.Auditor.Tests/RepositoryPolicyTests.cs), [RepositorySelfCheckTests.cs](../../tests/Governance.Auditor.Tests/RepositorySelfCheckTests.cs) | None |
 | `REQ-CI-003` | Reusable workflows build once and publish only from trusted refs | WP2.2, WP2.5 | Not yet due | None | None |
 | `REQ-CI-004` | Job selection caches timeouts and retention are explicit | WP1.2, WP2.2 | Covered | [BlastRadiusCommandTests.cs](../../tests/Governance.Auditor.Tests/BlastRadiusCommandTests.cs), [BlastRadiusTests.cs](../../tests/Governance.Auditor.Tests/BlastRadiusTests.cs), [RepositoryPolicyTests.cs](../../tests/Governance.Auditor.Tests/RepositoryPolicyTests.cs), and 2 more | None |
-| `REQ-CI-005` | Docs and onboarding checks run on the intended events | WP1.3, WP1.4, WP2.2, WP2.7 | Covered | [WorkflowTests.cs](../../tests/Documentation.Auditor.Tests/WorkflowTests.cs) | None |
+| `REQ-CI-005` | Docs and onboarding checks run on the intended events | WP1.3, WP1.4, WP2.2, WP2.7 | Covered | [DevContainer.Tests.ps1](../../scripts/tests/DevContainer.Tests.ps1), [WorkflowTests.cs](../../tests/Documentation.Auditor.Tests/WorkflowTests.cs) | None |
 
 ## CON: Contracts and consumer testing
 
@@ -134,11 +134,11 @@ A requirement is in scope once every work package that delivers it is completed,
 
 | Requirement | Title | Delivered by | State | Tests | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| `REQ-DX-001` | The primary development environment is a pinned Dev Container | WP1.4 | Not yet due | None | None |
-| `REQ-DX-002` | Native setup stays limited to Git Docker and .NET 10 | WP1.4 | Not yet due | None | None |
-| `REQ-DX-003` | The dev command is the single local entry point | WP1.4, WP3.8 | Not yet due | None | None |
+| `REQ-DX-001` | The primary development environment is a pinned Dev Container | WP1.4 | Covered | [DevContainer.Tests.ps1](../../scripts/tests/DevContainer.Tests.ps1), [DiscoveryTests.cs](../../tests/Documentation.Auditor.Tests/DiscoveryTests.cs) | manual: [2026-10-10-dev-container-quick-start.md](evidence/2026-10-10-dev-container-quick-start.md) |
+| `REQ-DX-002` | Native setup stays limited to Git Docker and .NET 10 | WP1.4 | Covered | [Dev.Commands.Tests.ps1](../../scripts/tests/Dev.Commands.Tests.ps1), [DevContainer.Tests.ps1](../../scripts/tests/DevContainer.Tests.ps1), [DevEnvironment.Tests.ps1](../../scripts/tests/DevEnvironment.Tests.ps1) | manual: [2026-10-10-dev-container-quick-start.md](evidence/2026-10-10-dev-container-quick-start.md), docs: [native-setup.md](../tutorials/native-setup.md) |
+| `REQ-DX-003` | The dev command is the single local entry point | WP1.4, WP3.8 | Covered | [Dev.Commands.Tests.ps1](../../scripts/tests/Dev.Commands.Tests.ps1), [Dev.Common.Tests.ps1](../../scripts/tests/Dev.Common.Tests.ps1), [Dev.Compose.Tests.ps1](../../scripts/tests/Dev.Compose.Tests.ps1), and 5 more | None |
 | `REQ-DX-004` | Resource profiles define budgets and host support boundaries | WP3.0, WP3.10 | Not yet due | None | None |
-| `REQ-DX-005` | Local platform ergonomics avoid privileged host requirements | WP1.4, WP3.1, WP3.10 | Not yet due | None | None |
+| `REQ-DX-005` | Local platform ergonomics avoid privileged host requirements | WP1.4, WP3.1, WP3.10 | Covered | [Dev.Doctor.Tests.ps1](../../scripts/tests/Dev.Doctor.Tests.ps1), [Dev.Env.Tests.ps1](../../scripts/tests/Dev.Env.Tests.ps1), [DevEnvironment.Tests.ps1](../../scripts/tests/DevEnvironment.Tests.ps1) | docs: [host-support.md](../reference/host-support.md), docs: [machine-migration.md](../runbooks/machine-migration.md), manual: [2026-10-10-dev-container-quick-start.md](evidence/2026-10-10-dev-container-quick-start.md) |
 
 ## GIT: GitOps and delivery
 
@@ -157,7 +157,7 @@ A requirement is in scope once every work package that delivers it is completed,
 | --- | --- | --- | --- | --- | --- |
 | `REQ-GOV-001` | Planning and progress artifacts live in the repository | WP0.2 | Covered | None | docs: [phase-0-retrospective.md](../journal/phase-0-retrospective.md), docs: [implementation-plan.md](../plans/implementation-plan.md), docs: [risk-register.md](../project/risk-register.md), docs: [status.yaml](../project/status.yaml), docs: [requirements.yaml](../requirements/requirements.yaml) |
 | `REQ-GOV-002` | Status is tracked in status.yaml and rendered as STATUS.md | WP0.2, WP1.2 | Covered | [GitHubSyncCommandTests.cs](../../tests/Governance.Auditor.Tests/GitHubSyncCommandTests.cs), [GitHubSyncPlannerTests.cs](../../tests/Governance.Auditor.Tests/GitHubSyncPlannerTests.cs), [JsonSchemaValidatorTests.cs](../../tests/Governance.Auditor.Tests/JsonSchemaValidatorTests.cs), and 5 more | None |
-| `REQ-GOV-003` | The resume protocol works from a fresh clone on another machine | WP0.2, WP0.5, WP0.7, WP1.2 | Covered | [RepositorySelfCheckTests.cs](../../tests/Governance.Auditor.Tests/RepositorySelfCheckTests.cs), [StatusRenderTests.cs](../../tests/Governance.Auditor.Tests/StatusRenderTests.cs), [StatusValidatorTests.cs](../../tests/Governance.Auditor.Tests/StatusValidatorTests.cs) | manual: [2026-10-08-fresh-clone-resume.md](evidence/2026-10-08-fresh-clone-resume.md) |
+| `REQ-GOV-003` | The resume protocol works from a fresh clone on another machine | WP0.2, WP0.5, WP0.7, WP1.2 | Covered | [Dev.Doctor.Tests.ps1](../../scripts/tests/Dev.Doctor.Tests.ps1), [RepositorySelfCheckTests.cs](../../tests/Governance.Auditor.Tests/RepositorySelfCheckTests.cs), [StatusRenderTests.cs](../../tests/Governance.Auditor.Tests/StatusRenderTests.cs), and 1 more | manual: [2026-10-08-fresh-clone-resume.md](evidence/2026-10-08-fresh-clone-resume.md), manual: [2026-10-10-dev-container-quick-start.md](evidence/2026-10-10-dev-container-quick-start.md) |
 | `REQ-GOV-004` | Definition of Ready and Done govern every work package | WP0.3, WP1.2 | Covered | [RepositoryPolicyTests.cs](../../tests/Governance.Auditor.Tests/RepositoryPolicyTests.cs), [StatusValidatorTests.cs](../../tests/Governance.Auditor.Tests/StatusValidatorTests.cs) | None |
 | `REQ-GOV-005` | Every significant decision becomes an ADR with recorded evidence | WP0.4, WP1.8, WP2.5, WP3.3, WP4.3 | Not yet due | None | None |
 | `REQ-GOV-006` | The repository is public after Phase 0 and clearly marked WIP | WP0.3, WP0.7, WP4.7, LAUNCH | Not yet due | None | None |
@@ -167,11 +167,11 @@ A requirement is in scope once every work package that delivers it is completed,
 
 | Requirement | Title | Delivered by | State | Tests | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| `REQ-IDN-001` | The catalog realm defines the API audience and scopes | WP1.4, WP1.10, WP3.5 | Not yet due | None | None |
+| `REQ-IDN-001` | The catalog realm defines the API audience and scopes | WP1.4, WP1.10, WP3.5 | Covered | [Dev.Compose.Tests.ps1](../../scripts/tests/Dev.Compose.Tests.ps1), [Realm.Tests.ps1](../../scripts/tests/Realm.Tests.ps1) | manual: [2026-10-10-dev-container-quick-start.md](evidence/2026-10-10-dev-container-quick-start.md) |
 | `REQ-IDN-002` | Catalog permissions map scopes to endpoint behavior | WP1.7, WP1.10, WP3.5 | Not yet due | None | None |
 | `REQ-IDN-003` | JWT validation checks issuer audience algorithms and clock skew | WP1.10 | Not yet due | None | None |
 | `REQ-IDN-004` | Platform UIs use the platform realm and remove local admins | WP3.5, WP4.3 | Not yet due | None | None |
-| `REQ-IDN-005` | Realm files are the single source across environments | WP1.4, WP1.10, WP3.5 | Not yet due | None | None |
+| `REQ-IDN-005` | Realm files are the single source across environments | WP1.4, WP1.10, WP3.5 | Covered | [DevEnvironment.Tests.ps1](../../scripts/tests/DevEnvironment.Tests.ps1), [Realm.Tests.ps1](../../scripts/tests/Realm.Tests.ps1) | docs: [catalog-realm.json](../../identity/keycloak/realms/catalog-realm.json) |
 | `REQ-IDN-006` | Workload identity uses bound GitHub OIDC and Kubernetes claims | WP3.3 | Not yet due | None | None |
 
 ## INF: Infrastructure as code and platform

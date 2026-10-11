@@ -71,3 +71,6 @@ desktop.ini
 # Scratch directories used by local experiments and probes
 .tmp*/
 /tmp/
+
+# The pinned developer tools that "dev bootstrap" installs (tools/versions.yaml, ADR-0024)
+/.dev/

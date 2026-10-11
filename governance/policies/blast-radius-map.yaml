@@ -19,6 +19,7 @@ jobs:
   diagrams: { workflow: docs.yml, name: Diagrams }
   docs-site: { workflow: docs.yml, name: Documentation site }
   docs-audit: { workflow: docs.yml, name: Documentation auditor }
+  devcontainer: { workflow: devcontainer.yml, name: Dev Container onboarding }
 
 # Jobs that run for every change, because they are required checks.
 always: [pr-title, markdown, links, secrets]
@@ -123,15 +124,22 @@ rules:
     flags: [auditor-change]
     docs: [adr, tool-inventory, changelog, status]
   - id: scripts
-    description: PowerShell scripts and their Pester tests.
-    paths: ['tools/ci/**', 'scripts/**']
+    description: PowerShell scripts, their Pester tests, and the lab scripts. The Dev Container runs them, so a change here also runs the onboarding.
+    paths: ['tools/ci/**', 'scripts/**', 'docs/labs/scripts/**']
     layer: Tooling
     area: scripts
-    jobs: [script-tests, docs-site]
+    jobs: [script-tests, docs-site, devcontainer]
     docs: [tests, changelog]
+  - id: tool-manifest
+    description: The manifest of developer tools that the installer verifies and installs, and the pins that the dev shims depend on.
+    paths: ['tools/versions.yaml', '.config/dotnet-tools.json', 'global.json']
+    layer: Tooling
+    area: ci-configuration
+    jobs: [script-tests, devcontainer]
+    docs: [tool-inventory, changelog]
   - id: lint-tooling
     description: The documentation lint containers, and the script that checks Mermaid diagrams.
-    paths: ['tools/lint/**', 'tools/versions.yaml']
+    paths: ['tools/lint/**']
     layer: Tooling
     area: ci-configuration
     jobs: [script-tests, spelling, diagrams]
@@ -202,18 +210,18 @@ rules:
     flags: [infrastructure-change]
     docs: [adr, threat-model, runbook, changelog]
   - id: identity
-    description: Keycloak realm files.
+    description: Keycloak realm files. Compose imports them, so a change here also runs the onboarding.
     paths: ['identity/**']
     area: identity
-    jobs: [build-test]
+    jobs: [build-test, devcontainer]
     reviews: [security-review]
     flags: [identity-change]
     docs: [threat-model, adr, changelog]
   - id: developer-environment
-    description: The Dev Container, Compose files, and the container build.
-    paths: ['.devcontainer/**', 'compose.yaml', 'Dockerfile', '.dockerignore', '.env.example']
+    description: The Dev Container, the dev shims, Compose files, and the container build.
+    paths: ['.devcontainer/**', 'compose.yaml', 'Dockerfile', '.dockerignore', '.env.example', 'dev', 'dev.cmd']
     area: developer-environment
-    jobs: [script-tests]
+    jobs: [script-tests, devcontainer]
     reviews: [security-review]
     flags: [container-change]
     docs: [tool-inventory, runbook, changelog]

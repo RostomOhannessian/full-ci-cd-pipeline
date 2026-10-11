@@ -21,6 +21,8 @@
   "globs": ["**/*.md"],
   "ignores": [
     "node_modules/**",
+    // Tools that dev bootstrap downloads into .dev, which Git ignores.
+    ".dev/**",
     // Raw, verbatim research records. They are preserved as produced, so style rules are not applied.
     "docs/research/*-verification.md"
   ],

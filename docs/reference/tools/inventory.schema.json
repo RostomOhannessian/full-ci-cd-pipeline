@@ -104,11 +104,11 @@
           "minLength": 1
         },
         "detect": {
-          "description": "How the auditor finds the tool in the repository, each as kind:pattern. The kinds are nuget (a package ID), dotnet-tool (a tool package ID), action (owner/repo), image (a repository without its tag), and file (a glob). A trailing * matches any ending.",
+          "description": "How the auditor finds the tool in the repository, each as kind:pattern. The kinds are nuget (a package ID), dotnet-tool (a tool package ID), action (owner/repo), image (a repository without its tag), feature (a Dev Container feature, as its OCI reference without the tag), psmodule (a PowerShell module in tools/versions.yaml), and file (a glob). A trailing * matches any ending.",
           "type": "array",
           "minItems": 1,
           "uniqueItems": true,
-          "items": { "type": "string", "pattern": "^(?:nuget|dotnet-tool|action|image|file):\\S+$" }
+          "items": { "type": "string", "pattern": "^(?:nuget|dotnet-tool|action|image|feature|psmodule|file):\\S+$" }
         }
       }
     }

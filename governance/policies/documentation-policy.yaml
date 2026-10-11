@@ -77,19 +77,16 @@ tool-pages:
         - xunit-v3
 
 discovery:
-  # Build output and caches hold copies of repository files, not repository files.
+  # Build output and caches hold copies of repository files, not repository files. The .dev folder holds the tools that "dev bootstrap" installs
+  # (ADR-0024), which are downloads that Git ignores.
   exclude-paths:
     - '_site/**'
     - '.docfx/**'
+    - '.dev/**'
   # Files that hold tools the auditor cannot read yet. Each one fails the audit as soon as it exists, so the work package that adds the file
-  # also adds the scanner, and a tool cannot go undiscovered while the inventory looks complete.
+  # also adds the scanner, and a tool cannot go undiscovered while the inventory looks complete. WP1.4 added the scanners for the Dev Container and for
+  # tools/versions.yaml, and removed their entries.
   unsupported-sources:
-    - pattern: '.devcontainer/**'
-      owner: WP1.4
-      description: Dev Container features and base image
-    - pattern: 'tools/versions.yaml'
-      owner: WP1.4
-      description: the tool version manifest
     - pattern: '**/*.tf'
       owner: WP3.1
       description: Terraform providers and modules

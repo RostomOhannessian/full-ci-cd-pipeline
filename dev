@@ -1,0 +1,14 @@
+#!/usr/bin/env sh
+# The Linux, macOS, and Dev Container shim for the dev command. It needs only the .NET SDK, because PowerShell 7 is a local .NET tool
+# that "dotnet tool restore" installs from .config/dotnet-tools.json. Everything else is in scripts/dev.ps1.
+set -eu
+
+root=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
+
+if ! command -v dotnet >/dev/null 2>&1; then
+  echo "dev: the .NET SDK is not installed. Install the SDK that global.json pins, or open the Dev Container." >&2
+  exit 127
+fi
+
+dotnet tool restore --tool-manifest "$root/.config/dotnet-tools.json" >/dev/null
+exec dotnet pwsh -NoProfile -File "$root/scripts/dev.ps1" "$@"

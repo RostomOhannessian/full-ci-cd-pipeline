@@ -16,6 +16,7 @@ evidence:
   - docs/research/spikes/1.a-pactnet-kestrel.md
   - docs/research/spikes/1.c-mtp-coverage-stryker.md
   - docs/research/spikes/1.d-testcontainers-mssql.md
+  - docs/testing/evidence/2026-10-10-dev-container-quick-start.md
 ---
 
 # ADR-0019: Define resource profiles and an explicit host support matrix
@@ -82,6 +83,15 @@ Two further host limits surfaced. PactNet 5.0.1 ships no `win-arm64` native libr
 Smart App Control because of unsigned DLLs, so Windows contributors run mutation testing through Docker or the Dev Container
 ([spike 1.c](../research/spikes/1.c-mtp-coverage-stryker.md)). WP1.4 should also size the `api` profile from the container's cgroup memory
 rather than from SQL Server's own memory views, which overstate it inside a container. This ADR stays proposed and WP3.0 still accepts it.
+
+Execution record (WP1.4, 2026-10-10): the host support matrix, the Dev Container, `dev doctor`, and the Compose `api` path now exist
+([ADR-0025](0025-dev-command-and-dev-container.md), [ADR-0026](0026-api-only-compose-stack-and-catalog-realm.md), and
+[the host support reference](../reference/host-support.md)). Doctor checks Docker's memory and CPUs against the budgets of all four profiles, and
+only `api` can run until Phase 3. The idle `api` stack measured about 2.7 GiB by the containers' own memory counters (SQL Server 1.14 GiB,
+Keycloak 0.96 GiB, Grafana 0.52 GiB, Valkey 0.014 GiB, `docker stats`, one sample each on a Windows x86-64 host with Docker Desktop), and doctor warns
+below 4 GB and fails below 3 GB. These are single idle samples and not budgets, and WP3.0 still publishes the measured figures. The SQL Server memory limit
+that spike 1.d suggested is set (`MSSQL_MEMORY_LIMIT_MB=2048` and a 3 GB container limit). The hosts that remain unverified hands-on are Linux
+x86-64 outside the Dev Container, macOS, Apple Silicon, and Windows on Arm. The Dev Container proved Linux x86-64 with docker-in-docker.
 
 ## Pros and cons of the options
 

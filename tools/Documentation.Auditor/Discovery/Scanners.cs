@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using System.Xml;
@@ -8,7 +9,7 @@ using Governance.Auditor.Documents;
 namespace Documentation.Auditor.Discovery;
 
 /// <summary>A tool that a repository file uses, as the scanner read it.</summary>
-/// <param name="Kind">The kind of reference: <c>nuget</c>, <c>dotnet-tool</c>, <c>action</c>, or <c>image</c>.</param>
+/// <param name="Kind">The kind of reference: <c>nuget</c>, <c>dotnet-tool</c>, <c>action</c>, <c>image</c>, <c>feature</c> (a Dev Container feature), or <c>psmodule</c> (a PowerShell module in tools/versions.yaml).</param>
 /// <param name="Identifier">What names the tool: a package ID, a tool command package, an action as <c>owner/repo</c>, or an image without its tag.</param>
 /// <param name="Version">The version the file pins, when it pins one.</param>
 /// <param name="Path">The repository-relative path of the file that uses the tool.</param>
@@ -25,6 +26,8 @@ internal static class DiscoveryKinds
     public const string Action = "action";
     public const string Image = "image";
     public const string File = "file";
+    public const string Feature = "feature";
+    public const string PowerShellModule = "psmodule";
 }
 
 /// <summary>
@@ -69,6 +72,14 @@ internal static partial class Scanners
                 else if (string.Equals(name, "dotnet-tools.json", StringComparison.Ordinal))
                 {
                     tools.AddRange(ScanToolManifest(path, files.ReadAllText(path)));
+                }
+                else if (IsDevContainerConfig(path))
+                {
+                    tools.AddRange(ScanDevContainer(path, files.ReadAllText(path), LockFilePath(path) is { } lockPath && paths.Contains(lockPath, StringComparer.Ordinal) ? files.ReadAllText(lockPath) : null, findings));
+                }
+                else if (string.Equals(path, "tools/versions.yaml", StringComparison.Ordinal))
+                {
+                    tools.AddRange(ScanVersionsManifest(path, files.ReadAllText(path)));
                 }
                 else if (path.StartsWith(".github/workflows/", StringComparison.Ordinal) && (name.EndsWith(".yml", StringComparison.Ordinal) || name.EndsWith(".yaml", StringComparison.Ordinal)))
                 {
@@ -138,6 +149,127 @@ internal static partial class Scanners
             yield return new DiscoveredTool(DiscoveryKinds.DotnetTool, id, entry?["version"]?.GetValue<string>(), path, null);
         }
     }
+
+    /// <summary>A Dev Container configuration is <c>.devcontainer/devcontainer.json</c>, a <c>devcontainer.json</c> in a folder under it, or <c>.devcontainer.json</c>.</summary>
+    public static bool IsDevContainerConfig(string path) =>
+        string.Equals(path, ".devcontainer.json", StringComparison.Ordinal)
+        || (path.StartsWith(".devcontainer/", StringComparison.Ordinal) && string.Equals(System.IO.Path.GetFileName(path), "devcontainer.json", StringComparison.Ordinal));
+
+    /// <summary>The lock file that the Dev Containers specification names for a configuration, in the same folder.</summary>
+    public static string? LockFilePath(string configPath) =>
+        string.Equals(configPath, ".devcontainer.json", StringComparison.Ordinal)
+            ? ".devcontainer-lock.json"
+            : configPath[..^"devcontainer.json".Length] + "devcontainer-lock.json";
+
+    /// <summary>
+    /// Reads the base image and the features of a Dev Container, and checks the lock file against the features, because the lock file is what makes a
+    /// rebuild give the same tools (REQ-DX-001). A feature that the lock file lacks, a lock entry with no feature, and a locked feature with no digest
+    /// each fail. The configuration is JSON with comments, which the Dev Containers specification allows.
+    /// </summary>
+    public static IReadOnlyList<DiscoveredTool> ScanDevContainer(string path, string text, string? lockText, List<Finding> findings)
+    {
+        var options = new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip, AllowTrailingCommas = true };
+        var config = JsonNode.Parse(text, documentOptions: options) as JsonObject ?? throw new GovernanceException($"{path}: the Dev Container configuration is not a JSON object.");
+        var lockPath = LockFilePath(path)!;
+        List<DiscoveredTool> tools = [];
+
+        if (ReadString(config["image"]) is { } imageReference)
+        {
+            tools.Add(ReadImage(imageReference, path, null));
+        }
+
+        var features = config["features"] as JsonObject;
+        JsonObject? locked = null;
+
+        // A feature in a folder of this repository is repository content, and it needs no lock.
+        static bool IsLocal(string reference) => reference.StartsWith("./", StringComparison.Ordinal) || reference.StartsWith("../", StringComparison.Ordinal);
+        var remoteCount = features?.Count(feature => !IsLocal(feature.Key)) ?? 0;
+
+        if (lockText is not null)
+        {
+            var lockDocument = JsonNode.Parse(lockText, documentOptions: options) as JsonObject ?? throw new GovernanceException($"{lockPath}: the lock file is not a JSON object.");
+            locked = lockDocument["features"] as JsonObject ?? [];
+        }
+
+        if (remoteCount > 0 && locked is null)
+        {
+            findings.Add(Finding.Error(
+                "devcontainer-lock-missing",
+                $"This configuration uses {remoteCount} feature(s) and there is no {lockPath}. The lock file pins each feature to a version and a digest, so create it with the Dev Containers CLI (devcontainer upgrade) and commit it.",
+                path));
+        }
+
+        foreach (var (reference, _) in features ?? [])
+        {
+            if (IsLocal(reference))
+            {
+                continue;
+            }
+
+            var named = ReadImage(reference, path, null);
+            var version = named.Version;
+
+            if (locked is not null)
+            {
+                if (locked[reference] is JsonObject entry)
+                {
+                    version = ReadString(entry["version"]) ?? version;
+
+                    if (ReadString(entry["resolved"]) is not { } resolved || !resolved.Contains("@sha256:", StringComparison.Ordinal))
+                    {
+                        findings.Add(Finding.Error("devcontainer-lock-unpinned", $"The lock entry for the feature '{named.Identifier}' has no digest in 'resolved', so a rebuild could change it.", lockPath));
+                    }
+                }
+                else
+                {
+                    findings.Add(Finding.Error("devcontainer-lock-missing", $"The feature '{reference}' is in the configuration and not in {lockPath}. Run the Dev Containers CLI (devcontainer upgrade) and commit the lock file.", path));
+                }
+            }
+
+            tools.Add(new DiscoveredTool(DiscoveryKinds.Feature, named.Identifier, version, path, null));
+        }
+
+        foreach (var (reference, _) in locked ?? [])
+        {
+            if (features?.ContainsKey(reference) != true)
+            {
+                findings.Add(Finding.Error("devcontainer-lock-stale", $"{lockPath} locks the feature '{reference}', and the configuration does not use it. Run the Dev Containers CLI (devcontainer upgrade) and commit the lock file.", lockPath));
+            }
+        }
+
+        return tools;
+    }
+
+    /// <summary>
+    /// Reads tools/versions.yaml, the manifest of developer tools that <c>dev bootstrap</c> installs (ADR-0024). A tool of a kind the auditor cannot read
+    /// stops the scan of the file, so a new kind of tool cannot be added without a scanner for it.
+    /// </summary>
+    public static IEnumerable<DiscoveredTool> ScanVersionsManifest(string path, string text)
+    {
+        var root = YamlDocument.Parse(text, path) as JsonObject ?? throw new GovernanceException($"{path}: the tool manifest is not a mapping.");
+
+        if (root["tools"] is not JsonArray tools)
+        {
+            yield break;
+        }
+
+        foreach (var node in tools)
+        {
+            var entry = node as JsonObject ?? throw new GovernanceException($"{path}: every tool entry must be a mapping.");
+            var id = ReadString(entry["id"]) ?? throw new GovernanceException($"{path}: a tool entry has no id.");
+            var kind = ReadString(entry["kind"]);
+
+            if (!string.Equals(kind, "powershell-module", StringComparison.Ordinal))
+            {
+                throw new GovernanceException($"{path}: the tool '{id}' has the kind '{kind}', which the auditor cannot read. Add a scanner for the kind in tools/Documentation.Auditor in the same change.");
+            }
+
+            var name = ReadString(entry["name"]) ?? throw new GovernanceException($"{path}: the tool '{id}' has no name.");
+            yield return new DiscoveredTool(DiscoveryKinds.PowerShellModule, name, ReadString(entry["version"]), path, null);
+        }
+    }
+
+    private static string? ReadString(JsonNode? node) => node is JsonValue value && value.TryGetValue<string>(out var text) ? text : null;
 
     public static IEnumerable<DiscoveredTool> ScanWorkflow(string path, string text)
     {
