@@ -45,7 +45,7 @@ public sealed class GovernanceWorkflowTests
 
         Assert.Equal("Governance auditors", (string?)job["name"]);
 
-        foreach (var expected in new[] { "status validate", "status render --check", "trace --check", "security ", "blast-radius " })
+        foreach (var expected in new[] { "status validate", "status render --check", "trace --check", "usage validate", "usage render --check", "security ", "blast-radius " })
         {
             Assert.Contains(expected, commands, StringComparison.Ordinal);
         }
@@ -418,7 +418,99 @@ public sealed class SkillTests
         Assert.Contains("governance session", sections["Allowed tools"], StringComparison.Ordinal);
     }
 
+    [Fact]
+    [Trait("Requirement", "REQ-AI-005")]
+    public void The_handoff_skill_records_the_usage_of_the_session_before_the_boundary_check()
+    {
+        var sections = Sections(Body("session-handoff"));
+        var procedure = sections["Procedure"];
+
+        Assert.Contains("/ai-usage-recorder", procedure, StringComparison.Ordinal);
+        Assert.Contains("usage render", procedure, StringComparison.Ordinal);
+        Assert.Contains("usage render --check", procedure, StringComparison.Ordinal);
+        Assert.True(procedure.IndexOf("/ai-usage-recorder", StringComparison.Ordinal) < procedure.IndexOf("session --moment end", StringComparison.Ordinal), "The usage is recorded before the check that ends the session.");
+        Assert.Contains("ai-usage-recorder", sections["Allowed tools"], StringComparison.Ordinal);
+        Assert.Contains("AI-USAGE.md` is written only through `governance usage render`", Flat(sections["Read and write scope"]), StringComparison.Ordinal);
+        Assert.Contains("ai-usage.yaml", sections["Outputs"], StringComparison.Ordinal);
+    }
+
+    [Fact]
+    [Trait("Requirement", "REQ-AI-005")]
+    public void The_usage_recorder_reads_the_store_writes_only_its_own_entries_and_never_stores_personal_data()
+    {
+        var body = Body("ai-usage-recorder");
+        var sections = Sections(body);
+
+        foreach (var expected in new[] { "assistant_usage_events", "GROUP BY model", "agent_id IS NULL", "input_tokens - cache_read_tokens - cache_write_tokens", "total_nano_aiu", "usage validate", "usage render", "usage estimate" })
+        {
+            Assert.Contains(expected, body, StringComparison.Ordinal);
+        }
+
+        Assert.Contains("read-only", sections["Allowed tools"], StringComparison.Ordinal);
+        Assert.Contains("No Git write commands", sections["Allowed tools"], StringComparison.Ordinal);
+        Assert.Contains("no write to the session store", sections["Allowed tools"], StringComparison.Ordinal);
+        Assert.Contains("Never edit or delete an older record, and never write a record of another session", sections["Read and write scope"], StringComparison.Ordinal);
+        Assert.Contains("Never store prompt text", sections["Read and write scope"], StringComparison.Ordinal);
+        Assert.Contains("Never guess a window", sections["Failure behavior"], StringComparison.Ordinal);
+        Assert.Contains("never mark a guess `exact`", Flat(sections["Failure behavior"]), StringComparison.Ordinal);
+        Assert.Contains("untrusted", sections["Prompt-injection controls"], StringComparison.Ordinal);
+        Assert.Contains("write token", sections["Prompt-injection controls"], StringComparison.Ordinal);
+    }
+
+    [Fact]
+    [Trait("Requirement", "REQ-AI-005")]
+    public void The_usage_recorder_runs_only_usage_commands_that_exist_and_never_the_write_command()
+    {
+        var body = Body("ai-usage-recorder");
+        var root = GovernanceCli.Build(new CliContext(TextWriter.Null, TextWriter.Null, new FakeProcessRunner(), _ => null));
+        var usage = root.Subcommands.Single(command => command.Name == "usage").Subcommands.Select(command => command.Name).ToList();
+        var used = Regex.Matches(body, @"dotnet run --project tools/Governance\.Auditor -- (?<command>[a-z-]+) (?<sub>[a-z-]+)", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(1))
+            .Select(match => (Command: match.Groups["command"].Value, Sub: match.Groups["sub"].Value))
+            .Distinct()
+            .ToList();
+
+        Assert.NotEmpty(used);
+        Assert.All(used, pair => Assert.Equal("usage", pair.Command));
+        Assert.All(used, pair => Assert.Contains(pair.Sub, usage));
+        Assert.DoesNotContain("--apply", body, StringComparison.Ordinal);
+        Assert.DoesNotContain("github-sync", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    [Trait("Requirement", "REQ-AI-005")]
+    public void The_record_that_the_usage_recorder_shows_is_valid_against_the_ledger_schema_and_the_queries_name_every_field_of_it()
+    {
+        var body = Body("ai-usage-recorder");
+        var example = Regex.Match(body, @"```yaml\n(?<block>.*?)```", RegexOptions.Singleline | RegexOptions.CultureInvariant, TimeSpan.FromSeconds(1)).Groups["block"].Value;
+        var lines = example.Split('\n').Where(line => line.Length > 0).ToList();
+        var indent = lines.Min(line => line.Length - line.TrimStart().Length);
+        var ledger = "schema-version: 1\nupdated: 2026-10-12\nrecords:\n" + string.Join('\n', lines.Select(line => "  " + line[indent..])) + "\n";
+
+        var schema = JsonNode.Parse(File.ReadAllText(Path.Combine(RealRepository.Root, "docs", "project", "ai-usage.schema.json")))!;
+        var errors = JsonSchemaValidator.Create(schema, "ai-usage.schema.json").Validate(YamlDocument.Parse(ledger, "example"));
+
+        Assert.Empty(errors);
+
+        foreach (var column in new[] { "fresh_input_tokens", "cache_read_tokens", "cache_write_tokens", "output_tokens", "reasoning_tokens", "peak_context_tokens", "model_seconds", "request_multiplier", "user_turns", "compactions" })
+        {
+            Assert.Contains(column, body, StringComparison.Ordinal);
+        }
+    }
+
+    [Fact]
+    [Trait("Requirement", "REQ-AI-005")]
+    public void The_usage_recorder_is_listed_as_existing_in_the_ai_skills_record()
+    {
+        var record = File.ReadAllText(Path.Combine(RealRepository.Root, "docs", "governance", "ai-skills.md")).ReplaceLineEndings("\n");
+        var row = record.Split('\n').Single(line => line.StartsWith("| [`/ai-usage-recorder`]", StringComparison.Ordinal));
+
+        Assert.Contains("(../../.github/skills/ai-usage-recorder/SKILL.md)", row, StringComparison.Ordinal);
+        Assert.EndsWith("| exists |", row.TrimEnd(), StringComparison.Ordinal);
+    }
+
     private static string Body(string skill) => FrontMatter(skill).Text;
+
+    private static string Flat(string text) => string.Join(' ', text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
 
     private static (Dictionary<string, string> Keys, string Text) FrontMatter(string skill)
     {

@@ -28,7 +28,7 @@ internal static class GovernanceCli
 
     public static RootCommand Build(CliContext context)
     {
-        var root = new RootCommand("Deterministic governance checks for this repository: status, traceability, security, blast radius, session boundaries, and GitHub sync.");
+        var root = new RootCommand("Deterministic governance checks for this repository: status, traceability, security, blast radius, session boundaries, AI usage, and GitHub sync.");
         root.Options.Add(context.RootOption);
         root.Subcommands.Add(StatusCommands.Create(context));
         root.Subcommands.Add(TraceCommand.Create(context));
@@ -36,6 +36,7 @@ internal static class GovernanceCli
         root.Subcommands.Add(SecurityCommand.Create(context));
         root.Subcommands.Add(BlastRadiusCommand.Create(context));
         root.Subcommands.Add(SessionCommand.Create(context));
+        root.Subcommands.Add(UsageCommand.Create(context));
         root.Subcommands.Add(GitHubSyncCommand.Create(context));
         return root;
     }

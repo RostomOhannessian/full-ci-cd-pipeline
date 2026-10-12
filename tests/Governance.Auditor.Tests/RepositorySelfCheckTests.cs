@@ -1,4 +1,7 @@
+using Governance.Auditor.Common;
+using Governance.Auditor.Status;
 using Governance.Auditor.Tests.Support;
+using Governance.Auditor.Usage;
 using Xunit;
 
 namespace Governance.Auditor.Tests;
@@ -102,6 +105,63 @@ public sealed class RepositorySelfCheckTests
 
         Assert.Equal(0, result.ExitCode);
         Assert.DoesNotContain("blast-radius-unclassified", result.Output, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    [Trait("Requirement", "REQ-AI-005")]
+    public async Task The_ai_usage_ledger_is_valid_and_its_report_is_exactly_what_it_renders()
+    {
+        var validate = await CliRunner.RunOnRealRepositoryAsync("usage", "validate");
+        var render = await CliRunner.RunOnRealRepositoryAsync("usage", "render", "--check");
+
+        Assert.True(validate.ExitCode == 0, validate.Output + validate.Error);
+        Assert.True(render.ExitCode == 0, "Run 'governance usage render' and commit the page.\n" + render.Output + render.Error);
+    }
+
+    [Fact]
+    [Trait("Requirement", "REQ-AI-005")]
+    public void Every_completed_work_package_of_phase_1_and_the_phase_0_total_have_usage_in_the_ledger()
+    {
+        List<Finding> findings = [];
+        var status = StatusFile.Load(RealRepository.Files, findings)!;
+        var ledger = UsageFile.Load(RealRepository.Files, findings)!;
+
+        Assert.Empty(findings);
+
+        foreach (var workPackage in status.Phases.Single(phase => phase.Id.Value == "1").WorkPackages.Where(workPackage => workPackage.State == WorkState.Completed))
+        {
+            Assert.True(ledger.DeliveryOf(workPackage.Id).Any(), $"{workPackage.Id} is completed and has no usage in docs/project/ai-usage.yaml.");
+        }
+
+        Assert.Contains(ledger.Records, record => record.Phase.Value == "0" && record.Activity == UsageVocabulary.Delivery);
+        Assert.Contains(ledger.Waivers, waiver => waiver.Phase is { Value: "0" });
+    }
+
+    [Fact]
+    [Trait("Requirement", "REQ-AI-005")]
+    public async Task The_ai_usage_ledger_holds_opaque_ids_and_numbers_and_no_personal_data()
+    {
+        var text = await File.ReadAllTextAsync(Path.Combine(RealRepository.Root, "docs", "project", "ai-usage.yaml"), TestContext.Current.CancellationToken);
+
+        Assert.DoesNotContain('@', text);
+        Assert.DoesNotContain("RostomOhannessian", text, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("http", text, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotMatch(@"[A-Za-z]:\\", text);
+        Assert.DoesNotMatch(@"(?i)/(users|home)/", text);
+        Assert.DoesNotMatch(@"(?i)\b(?:prompt|branch|email|token|password)\b\s*:", text);
+    }
+
+    [Fact]
+    [Trait("Requirement", "REQ-AI-005")]
+    public async Task The_estimate_of_this_repository_prints_its_method_its_range_and_its_caveats()
+    {
+        var result = await CliRunner.RunOnRealRepositoryAsync("usage", "estimate");
+
+        Assert.True(result.ExitCode == 0, result.Output + result.Error);
+        Assert.Contains("  method:", result.Output, StringComparison.Ordinal);
+        Assert.Contains("  by size (observed AIU", result.Output, StringComparison.Ordinal);
+        Assert.Contains("  caveats:", result.Output, StringComparison.Ordinal);
+        Assert.DoesNotContain("[usage-", result.Output, StringComparison.Ordinal);
     }
 
     [Fact]

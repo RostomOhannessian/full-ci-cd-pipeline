@@ -8,7 +8,7 @@
 - Never suggest direct pushes to `master`, force-pushes, mirror pushes, visibility changes, or repository-settings changes without explicit approval.
 - Never suggest committing secrets, keys, tokens, personal email addresses, or workstation-specific absolute paths.
 - Never suggest weakening a gate just to make a build pass.
-- Every change, including the smallest bug fix, is made in an AI-paired session that starts and ends with the session boundary check, `governance session --moment start|end`. It says whether the next task belongs in a fresh session, and it prints the kickoff prompt. A bug fix is test-first on a `fix/<slug>` branch and meets the same Definition of Done as a feature.
+- Every change, including the smallest bug fix, is made in an AI-paired session that starts and ends with the session boundary check, `governance session --moment start|end`. It says whether the next task belongs in a fresh session, and it prints the kickoff prompt. A bug fix is test-first on a `fix/<slug>` branch and meets the same Definition of Done as a feature. Every session records what it cost with `/ai-usage-recorder` before it ends, and an older record in `docs/project/ai-usage.yaml` is never edited.
 
 ## Style and documentation
 
@@ -42,8 +42,8 @@ a Release build with warnings as errors, the tests with coverage, `tools/ci/Test
 the `nuget-license` gate.
 
 Run the governance checks too, with `dotnet run --project tools/Governance.Auditor -- <command>`: `status validate` and `status render` after a
-change to `status.yaml`, `trace` after a change to tests or evidence, `security --base <commit>` and `blast-radius --base <commit>` before you open a
-pull request. `STATUS.md` and `docs/testing/traceability.md` are generated, so never edit them by hand. At the end of a session, run
+change to `status.yaml`, `usage validate` and `usage render` after a change to `docs/project/ai-usage.yaml`, `trace` after a change to tests or evidence, `security --base <commit>` and `blast-radius --base <commit>` before you open a
+pull request. `STATUS.md`, `AI-USAGE.md`, and `docs/testing/traceability.md` are generated, so never edit them by hand. At the end of a session, run
 `session --moment end` after the work is committed and pushed, and give the maintainer the kickoff prompt that it prints.
 
 ## Do not suggest

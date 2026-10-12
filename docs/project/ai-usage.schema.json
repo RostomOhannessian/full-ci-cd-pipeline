@@ -1,0 +1,110 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AI usage ledger",
+  "description": "Schema for docs/project/ai-usage.yaml, the ledger of what the AI-paired sessions cost. AI-USAGE.md is the readable view of this file. The ledger holds opaque session IDs and numbers only: no prompt text, no file paths, and no account names.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema-version", "updated", "records"],
+  "properties": {
+    "schema-version": { "const": 1 },
+    "updated": { "$ref": "#/$defs/date" },
+    "waivers": {
+      "description": "Work that cannot be back-filled at work-package level. A phase waiver says that the phase is recorded at phase level, and a work-package waiver says that no usage can be recovered for the package.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["reason"],
+        "properties": {
+          "phase": { "$ref": "#/$defs/phaseId" },
+          "work-package": { "$ref": "#/$defs/workPackageId" },
+          "reason": { "type": "string", "minLength": 10, "maxLength": 400 }
+        },
+        "oneOf": [{ "required": ["phase"] }, { "required": ["work-package"] }]
+      }
+    },
+    "changes": {
+      "description": "The size of the change that the work produced, taken from its pull requests.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["pull-requests", "files", "additions", "deletions"],
+        "properties": {
+          "phase": { "$ref": "#/$defs/phaseId" },
+          "work-package": { "$ref": "#/$defs/workPackageId" },
+          "pull-requests": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "integer", "minimum": 1 } },
+          "files": { "type": "integer", "minimum": 0 },
+          "additions": { "type": "integer", "minimum": 0 },
+          "deletions": { "type": "integer", "minimum": 0 }
+        },
+        "oneOf": [{ "required": ["phase"] }, { "required": ["work-package"] }]
+      }
+    },
+    "records": {
+      "description": "One record for each slice of a session: a window of time that belongs to one phase or work package and one kind of activity.",
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/record" }
+    }
+  },
+  "$defs": {
+    "date": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+    "timestamp": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$" },
+    "phaseId": { "oneOf": [{ "type": "integer", "minimum": 0, "maximum": 4 }, { "const": "launch" }] },
+    "workPackageId": { "type": "string", "pattern": "^WP\\d+\\.\\d+$" },
+    "count": { "type": "integer", "minimum": 0 },
+    "record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["session", "phase", "activity", "confidence", "window", "user-turns", "compactions", "usage"],
+      "properties": {
+        "session": { "type": "string", "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$" },
+        "phase": { "$ref": "#/$defs/phaseId" },
+        "work-package": { "$ref": "#/$defs/workPackageId" },
+        "activity": { "enum": ["delivery", "fix", "planning", "coordination"] },
+        "confidence": { "enum": ["exact", "windowed"] },
+        "window": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["from", "to"],
+          "properties": {
+            "from": { "$ref": "#/$defs/timestamp" },
+            "to": { "$ref": "#/$defs/timestamp" }
+          }
+        },
+        "user-turns": { "type": "integer", "minimum": 1 },
+        "compactions": { "$ref": "#/$defs/count" },
+        "note": { "type": "string", "minLength": 5, "maxLength": 400 },
+        "usage": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/usageRow" }
+        }
+      }
+    },
+    "usageRow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "model", "reasoning-effort", "agent", "calls", "aiu", "fresh-input-tokens", "cache-read-tokens", "cache-write-tokens",
+        "output-tokens", "reasoning-tokens", "peak-context-tokens", "model-seconds"
+      ],
+      "properties": {
+        "model": { "type": "string", "pattern": "^[a-z0-9][a-z0-9.-]*$", "maxLength": 60 },
+        "reasoning-effort": { "enum": ["none", "low", "medium", "high", "xhigh", "max", "unspecified"] },
+        "agent": { "enum": ["main", "sub-agent"] },
+        "request-multiplier": { "type": "number", "minimum": 0 },
+        "calls": { "type": "integer", "minimum": 1 },
+        "aiu": { "type": "number", "minimum": 0 },
+        "fresh-input-tokens": { "$ref": "#/$defs/count" },
+        "cache-read-tokens": { "$ref": "#/$defs/count" },
+        "cache-write-tokens": { "$ref": "#/$defs/count" },
+        "output-tokens": { "$ref": "#/$defs/count" },
+        "reasoning-tokens": { "$ref": "#/$defs/count" },
+        "peak-context-tokens": { "$ref": "#/$defs/count" },
+        "model-seconds": { "$ref": "#/$defs/count" }
+      }
+    }
+  }
+}

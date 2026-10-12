@@ -55,6 +55,7 @@ The rules for writing them are in [ADR-0001](0001-record-architecture-decisions.
 | [0028](0028-http-api-conventions-of-v1.md) | Fix the HTTP conventions of the version 1 contract | accepted | Accepted 2026-10-11 in WP1.5 |
 | [0029](0029-domain-model-and-mutation-baseline.md) | Model the catalog with always-valid value objects, result values, and explicit events, and report mutation scores from Linux | accepted | Accepted 2026-10-12 in WP1.6 |
 | [0030](0030-session-boundaries-and-ai-paired-delivery.md) | Advise session boundaries with a deterministic check whose rules and prompts are data | accepted | Accepted 2026-10-12 in WP1.14 |
+| [0031](0031-ai-usage-ledger-and-estimate.md) | Record AI usage in a validated ledger and estimate the remaining work from it | accepted | Accepted 2026-10-12 in WP1.15 |
 
 The evidence behind these decisions is in the [research records](../research/README.md). The plan that ties them together is
 [the implementation plan](../plans/implementation-plan.md).

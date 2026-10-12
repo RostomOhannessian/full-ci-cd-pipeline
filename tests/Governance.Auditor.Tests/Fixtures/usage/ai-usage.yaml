@@ -1,0 +1,120 @@
+# The ledger of the sample project for the usage tests. Every violating test changes one fact of this valid ledger.
+schema-version: 1
+updated: 2026-01-10
+changes:
+  - work-package: "WP1.1"
+    pull-requests: [18]
+    files: 10
+    additions: 400
+    deletions: 50
+  - work-package: "WP1.2"
+    pull-requests: [19]
+    files: 30
+    additions: 1500
+    deletions: 500
+records:
+  - session: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"
+    phase: 1
+    work-package: "WP1.1"
+    activity: delivery
+    confidence: exact
+    window:
+      from: "2026-01-05T09:00:00.000Z"
+      to: "2026-01-05T11:00:00.000Z"
+    user-turns: 2
+    compactions: 0
+    note: "A session that held this work package alone."
+    usage:
+      - model: model-a
+        reasoning-effort: xhigh
+        agent: main
+        calls: 10
+        aiu: 100.0
+        fresh-input-tokens: 1000
+        cache-read-tokens: 80000
+        cache-write-tokens: 5000
+        output-tokens: 4000
+        reasoning-tokens: 1000
+        peak-context-tokens: 20000
+        model-seconds: 120
+      - model: model-b
+        reasoning-effort: medium
+        agent: sub-agent
+        request-multiplier: 2
+        calls: 4
+        aiu: 20.5
+        fresh-input-tokens: 4000
+        cache-read-tokens: 0
+        cache-write-tokens: 0
+        output-tokens: 800
+        reasoning-tokens: 100
+        peak-context-tokens: 1500
+        model-seconds: 30
+  - session: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"
+    phase: 1
+    work-package: "WP1.2"
+    activity: delivery
+    confidence: windowed
+    window:
+      from: "2026-01-06T09:00:00.000Z"
+      to: "2026-01-06T12:00:00.000Z"
+    user-turns: 3
+    compactions: 1
+    usage:
+      - model: model-a
+        reasoning-effort: xhigh
+        agent: main
+        calls: 30
+        aiu: 400.0
+        fresh-input-tokens: 3000
+        cache-read-tokens: 900000
+        cache-write-tokens: 40000
+        output-tokens: 20000
+        reasoning-tokens: 5000
+        peak-context-tokens: 60000
+        model-seconds: 600
+  - session: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"
+    phase: 1
+    activity: planning
+    confidence: windowed
+    window:
+      from: "2026-01-06T13:00:00.000Z"
+      to: "2026-01-06T14:00:00.000Z"
+    user-turns: 1
+    compactions: 0
+    usage:
+      - model: model-a
+        reasoning-effort: high
+        agent: main
+        calls: 5
+        aiu: 50.0
+        fresh-input-tokens: 500
+        cache-read-tokens: 100000
+        cache-write-tokens: 10000
+        output-tokens: 3000
+        reasoning-tokens: 500
+        peak-context-tokens: 30000
+        model-seconds: 60
+  - session: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"
+    phase: 1
+    work-package: "WP1.1"
+    activity: fix
+    confidence: windowed
+    window:
+      from: "2026-01-07T09:00:00.000Z"
+      to: "2026-01-07T09:30:00.000Z"
+    user-turns: 1
+    compactions: 0
+    usage:
+      - model: model-a
+        reasoning-effort: xhigh
+        agent: main
+        calls: 3
+        aiu: 30.0
+        fresh-input-tokens: 300
+        cache-read-tokens: 60000
+        cache-write-tokens: 2000
+        output-tokens: 1000
+        reasoning-tokens: 200
+        peak-context-tokens: 25000
+        model-seconds: 20

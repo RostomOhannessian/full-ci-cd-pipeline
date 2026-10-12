@@ -1,7 +1,8 @@
 name: governance
 
-# Runs the governance auditors on every change: the status files, requirements traceability, the security auditor, and the blast-radius
-# evaluator. They are the same commands a person runs locally (see AGENTS.md, "Commands that run today"), and ADR-0021 records the design.
+# Runs the governance auditors on every change: the status files, the AI usage ledger, requirements traceability, the security auditor, and
+# the blast-radius evaluator. They are the same commands a person runs locally (see AGENTS.md, "Commands that run today"), and ADR-0021
+# records the design.
 #
 # The job also publishes the blast-radius result as job outputs. Nothing consumes them yet: ci.yml and docs.yml still run every job.
 # Job selection driven by these outputs arrives with the workflow architecture in WP2.2.
@@ -75,6 +76,10 @@ jobs:
         run: dotnet "$GOVERNANCE" status render --check --summary "$GITHUB_STEP_SUMMARY"
       - name: Check requirements traceability
         run: dotnet "$GOVERNANCE" trace --check --summary "$GITHUB_STEP_SUMMARY"
+      - name: Check the AI usage ledger
+        run: dotnet "$GOVERNANCE" usage validate --summary "$GITHUB_STEP_SUMMARY"
+      - name: Check that AI-USAGE.md is generated from the ledger
+        run: dotnet "$GOVERNANCE" usage render --check --summary "$GITHUB_STEP_SUMMARY"
       # The commit range and the title-like values reach the script only through environment variables. The base is empty or all zeros
       # when GitHub has no previous commit, as on a new branch or a manual run, and then no commit range is checked.
       - name: Run the security auditor

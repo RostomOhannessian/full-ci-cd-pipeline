@@ -74,6 +74,11 @@ entries:
     path: docs/governance/ai-skills.md
     summary: The six-step external skill review, the approval rule, and the review results are written down, and the repository installs no external skill.
     recorded: '2026-10-08'
+  - requirements: [REQ-AI-005]
+    kind: docs
+    path: docs/project/AI-USAGE.md
+    summary: The generated report shows what each phase and each completed work package cost in AI units, with the model, the effort, the peak context, and the size of the change, and the observed AIU of each size class that the estimate is built from. CI fails when the page differs from what the ledger renders.
+    recorded: '2026-10-12'
   - requirements: [REQ-DX-001, REQ-DX-002, REQ-DX-005, REQ-IDN-001, REQ-GOV-003]
     kind: manual
     path: docs/testing/evidence/2026-10-10-dev-container-quick-start.md
