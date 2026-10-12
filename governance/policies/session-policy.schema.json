@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Session policy",
+  "description": "Schema for governance/policies/session-policy.yaml, the rules and the kickoff prompt templates that governance session applies (ADR-0030). The tool checks more than this schema can express: every rule must be reachable, every combination of facts must match a rule, and every placeholder of a prompt must exist.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema-version", "rules", "prompts"],
+  "properties": {
+    "schema-version": { "const": 1 },
+    "description": { "type": "string" },
+    "rules": {
+      "description": "Evaluated in order. The first rule whose conditions all hold decides the advice. The last rule has no conditions, so every case has an answer.",
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/rule" }
+    },
+    "prompts": {
+      "description": "One kickoff prompt template for each kind of task. A placeholder is a lowercase word in braces that the tool fills from status.yaml.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["work-package", "pull-request", "bug-fix"],
+      "properties": {
+        "work-package": { "$ref": "#/$defs/prompt" },
+        "pull-request": { "$ref": "#/$defs/prompt" },
+        "bug-fix": { "$ref": "#/$defs/prompt" }
+      }
+    }
+  },
+  "$defs": {
+    "prompt": { "type": "string", "minLength": 200 },
+    "rule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "advice", "reason"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+        "description": { "type": "string" },
+        "when": { "$ref": "#/$defs/conditions" },
+        "advice": { "enum": ["continue", "fresh", "finish-handoff", "stop"] },
+        "reason": { "type": "string", "minLength": 20 }
+      }
+    },
+    "conditions": {
+      "description": "Each condition names one fact and the one value it must have. A condition that is not listed matches any value.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "moment": { "enum": ["start", "end"] },
+        "handoff": { "enum": ["complete", "incomplete"] },
+        "context": { "enum": ["fresh", "used", "compacted"] },
+        "boundary": { "enum": ["package", "phase"] },
+        "task": { "enum": ["work-package", "pull-request", "bug-fix"] }
+      }
+    }
+  }
+}

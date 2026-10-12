@@ -1,0 +1,72 @@
+# The status file of a small sample project at the moment a session ends. The fixture test of the session-boundary-advisor skill runs
+# `governance session` against it. WP1.2 has just been completed, the maintainer chose WP1.4 to start next, and WP1.3 is also ready.
+schema-version: 1
+updated: "2026-10-12"
+project:
+  name: "Sample platform"
+  repository: "owner/name"
+  plan: "docs/plans/plan.md"
+  plan-version: "1.0.0"
+current:
+  phase: 1
+  work-package: null
+  branch: "phase/1-sample"
+resume:
+  last-completed: "WP1.2 is complete: the sample feature landed through pull request 12."
+  next-action: "Start a fresh session for WP1.4, and then WP1.3."
+  next-work-package: "WP1.4"
+  open-pull-requests: []
+  environment-notes:
+    - "Use the repository noreply identity."
+phases:
+  - id: 1
+    name: "Sample phase"
+    state: in_progress
+    branch: "phase/1-sample"
+    plan: "docs/plans/phases/phase-1-sample.md"
+    milestone: "Phase 1: Sample"
+    milestone-url: "https://github.com/owner/name/milestone/2"
+    release: "v0.1.0"
+    issue: null
+    pull-request: null
+    work-packages:
+      - id: "WP1.1"
+        title: "Foundation"
+        size: S
+        state: completed
+        branch: "wp/1.1-foundation"
+        issue: 3
+        pull-request: 10
+        depends-on: []
+        evidence: ["docs/evidence/first.md"]
+        blockers: []
+      - id: "WP1.2"
+        title: "Sample feature"
+        size: M
+        state: completed
+        branch: "wp/1.2-sample-feature"
+        issue: 4
+        pull-request: 12
+        depends-on: ["WP1.1"]
+        evidence: ["docs/evidence/first.md"]
+        blockers: []
+      - id: "WP1.3"
+        title: "Reporting"
+        size: M
+        state: planned
+        branch: null
+        issue: 5
+        pull-request: null
+        depends-on: ["WP1.2"]
+        evidence: []
+        blockers: []
+      - id: "WP1.4"
+        title: "Developer tooling"
+        size: S
+        state: planned
+        branch: null
+        issue: 6
+        pull-request: null
+        depends-on: ["WP1.1"]
+        evidence: []
+        blockers: []

@@ -20,8 +20,8 @@ A requirement is in scope once every work package that delivers it is completed,
 | Requirements | 123 |
 | In scope and covered | 13 |
 | In scope and missing proof | 0 |
-| Covered before they are due | 31 |
-| Not yet due | 79 |
+| Covered before they are due | 32 |
+| Not yet due | 78 |
 | Deferred or withdrawn | 0 |
 
 ## AI: AI enablement
@@ -31,7 +31,7 @@ A requirement is in scope once every work package that delivers it is completed,
 | `REQ-AI-001` | Repository instructions travel with the codebase | WP0.5 | Covered | None | docs: [copilot-instructions.md](../../.github/copilot-instructions.md), docs: `.github/instructions/`, docs: [AGENTS.md](../../AGENTS.md), docs: [REVIEW.md](../../REVIEW.md) |
 | `REQ-AI-002` | Repository skills wrap deterministic tooling with safe scopes | WP0.5, WP1.2, WP1.3, WP1.12 | Covered | [SkillTests.cs](../../tests/Documentation.Auditor.Tests/SkillTests.cs), [RepositoryPolicyTests.cs](../../tests/Governance.Auditor.Tests/RepositoryPolicyTests.cs) | None |
 | `REQ-AI-003` | External skills require recorded review pinning and approval | WP0.5 | Covered | None | docs: [ai-skills.md](../governance/ai-skills.md), docs: [2026-10-04-external-skill-review.md](../research/2026-10-04-external-skill-review.md) |
-| `REQ-AI-004` | Session boundaries are advised by a deterministic check | WP1.14 | Not yet due | None | None |
+| `REQ-AI-004` | Session boundaries are advised by a deterministic check | WP1.14 | Covered | [RepositoryPolicyTests.cs](../../tests/Governance.Auditor.Tests/RepositoryPolicyTests.cs), [SessionCommandTests.cs](../../tests/Governance.Auditor.Tests/SessionCommandTests.cs), [SessionPolicyTests.cs](../../tests/Governance.Auditor.Tests/SessionPolicyTests.cs), and 2 more | None |
 | `REQ-AI-005` | AI usage is recorded for every session and estimated for the work that remains | WP1.15 | Not yet due | None | None |
 
 ## API: HTTP API and contract
