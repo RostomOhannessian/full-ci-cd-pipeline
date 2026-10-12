@@ -2,7 +2,7 @@
 title: "Architecture decision records"
 description: "Index of every architecture, tool, and process decision, with its status and the work package that accepts it."
 audience: [learners, contributors, maintainers]
-last-verified: 2026-10-10
+last-verified: 2026-10-12
 owner: "@RostomOhannessian"
 ---
 
@@ -54,6 +54,7 @@ The rules for writing them are in [ADR-0001](0001-record-architecture-decisions.
 | [0027](0027-contract-linter-and-conformance-tooling.md) | Lint the contract with Spectral, test it with Microsoft.OpenApi, and compare documents with oasdiff | accepted | Accepted 2026-10-11 in WP1.5 |
 | [0028](0028-http-api-conventions-of-v1.md) | Fix the HTTP conventions of the version 1 contract | accepted | Accepted 2026-10-11 in WP1.5 |
 | [0029](0029-domain-model-and-mutation-baseline.md) | Model the catalog with always-valid value objects, result values, and explicit events, and report mutation scores from Linux | accepted | Accepted 2026-10-12 in WP1.6 |
+| [0030](0030-session-boundaries-and-ai-paired-delivery.md) | Advise session boundaries with a deterministic check whose rules and prompts are data | accepted | Accepted 2026-10-12 in WP1.14 |
 
 The evidence behind these decisions is in the [research records](../research/README.md). The plan that ties them together is
 [the implementation plan](../plans/implementation-plan.md).
