@@ -52,8 +52,8 @@ entries:
     sources:
       - https://docs.github.com/en/copilot/how-tos/copilot-sdk/features/skills
       - https://docs.github.com/en/copilot/tutorials/customization-library/prompt-files
-    adrs: ["0021", "0023", "0030"]
-    notes: Seven repository skills exist under .github/skills. WP0.5 added adr-assistant, tool-doc-author, and session-handoff, WP1.2 added advanced-security-auditor and blast-radius-evaluator, which wrap the governance CLI, WP1.3 added documentation-auditor, which wraps the documentation CLI, and WP1.14 added session-boundary-advisor, which wraps governance session and is also run by session-handoff. The CLI-backed skills hold no write scope and have fixtures that the tests run. The test-plan-evaluator skill arrives in WP1.12, and the ai-usage-recorder skill arrives in WP1.15.
+    adrs: ["0021", "0023", "0030", "0031"]
+    notes: Eight repository skills exist under .github/skills. WP0.5 added adr-assistant, tool-doc-author, and session-handoff, WP1.2 added advanced-security-auditor and blast-radius-evaluator, which wrap the governance CLI, WP1.3 added documentation-auditor, which wraps the documentation CLI, WP1.14 added session-boundary-advisor, which wraps governance session and is also run by session-handoff, and WP1.15 added ai-usage-recorder, which reads the local session store, appends the records of its own session to the AI usage ledger, and runs governance usage. The CLI-backed skills hold no write scope except the usage recorder, which writes only the ledger, and they have fixtures or checks that the tests run. The test-plan-evaluator skill arrives in WP1.12.
     detect: ["file:.github/skills/*/SKILL.md"]
 
   # API contracts
@@ -1732,15 +1732,15 @@ entries:
     lifecycle: adopt
     usage: in-use
     introduced: phase-1
-    purpose: Runs the repository's deterministic governance checks, which are status validation and rendering, requirements traceability, TRX test summaries, GitHub sync, the security auditor, the blast-radius evaluator, and the session boundary check.
+    purpose: Runs the repository's deterministic governance checks, which are status validation and rendering, requirements traceability, TRX test summaries, GitHub sync, the security auditor, the blast-radius evaluator, the session boundary check, and the AI usage ledger validation, report, and estimate.
     license: Apache-2.0
     license-source: https://github.com/RostomOhannessian/full-ci-cd-pipeline/blob/master/LICENSE
     version: n/a
     repo: https://github.com/RostomOhannessian/full-ci-cd-pipeline
     sources:
       - https://github.com/RostomOhannessian/full-ci-cd-pipeline/tree/master/tools
-    adrs: ["0021", "0022", "0030"]
-    notes: First-party code in tools/Governance.Auditor, built as the governance command from the repository's own source, so a pull request that changes it is audited by the changed tool. The blast-radius map flags such a change for a close human read, and the threat model records the residual risk. The policies it enforces are governance/policies/security-policy.yaml, governance/policies/blast-radius-map.yaml, and, from WP1.14, governance/policies/session-policy.yaml, and it reads the license, forbidden-package, and coverage policy files from WP1.1. The Dockerfile, infrastructure, and manifest rules arrive in WP1.12, and the usage ledger commands arrive in WP1.15.
+    adrs: ["0021", "0022", "0030", "0031"]
+    notes: First-party code in tools/Governance.Auditor, built as the governance command from the repository's own source, so a pull request that changes it is audited by the changed tool. The blast-radius map flags such a change for a close human read, and the threat model records the residual risk. The policies it enforces are governance/policies/security-policy.yaml, governance/policies/blast-radius-map.yaml, and, from WP1.14, governance/policies/session-policy.yaml, and it reads the license, forbidden-package, and coverage policy files from WP1.1. From WP1.15 it validates docs/project/ai-usage.yaml against its schema, renders docs/project/AI-USAGE.md, and estimates the AI units of the remaining work, and it never reads the session store, which only the ai-usage-recorder skill does. The Dockerfile, infrastructure, and manifest rules arrive in WP1.12.
     detect: ["file:tools/Governance.Auditor/Governance.Auditor.csproj"]
   - id: tfsec
     name: tfsec

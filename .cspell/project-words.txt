@@ -40,6 +40,7 @@ httpapi
 hybridcache
 inotify
 inspectable
+julianday
 kargo
 kindnet
 kiota
@@ -114,6 +115,7 @@ unreviewed
 valkey
 winget
 worklist
+xhigh
 xunit
 yamldotnet
 yamlreader

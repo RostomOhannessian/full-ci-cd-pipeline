@@ -43,7 +43,8 @@ These steps come from plan section 6.
 2. Regenerate `STATUS.md` with `dotnet run --project tools/Governance.Auditor -- status render`. The page is generated, so never edit it by hand.
 3. Commit and push, with the maintainer's approval for the push.
 4. Keep the draft PR current.
-5. Run the session boundary check, `dotnet run --project tools/Governance.Auditor -- session --moment end`, and give the maintainer the kickoff prompt of the next session. The `/session-handoff` skill does this step. The check finds the handoff open until the work is committed and pushed, so run it again after the push. Pass `--context compacted` when the conversation of this session was summarized, and `--task pull-request` or `--task bug-fix` when the next task is not a work package.
+5. Record the AI usage of the session with the `/ai-usage-recorder` skill. It appends the records of this session to `docs/project/ai-usage.yaml`, runs `dotnet run --project tools/Governance.Auditor -- usage validate`, and regenerates the page with `usage render`. The page is generated, so never edit it by hand, and never edit an older record. The change is two files, so commit them and push with the maintainer's approval.
+6. Run the session boundary check, `dotnet run --project tools/Governance.Auditor -- session --moment end`, and give the maintainer the kickoff prompt of the next session. The `/session-handoff` skill does steps 5 and 6. The check finds the handoff open until the work is committed and pushed, so run it again after the push. Pass `--context compacted` when the conversation of this session was summarized, and `--task pull-request` or `--task bug-fix` when the next task is not a work package.
 
 ## Repository map
 
@@ -52,7 +53,7 @@ These steps come from plan section 6.
 | `docs/plans/` | Plan of record and one plan per phase | Maintainer | exists |
 | `docs/adr/` | Decision records and their index | Maintainer | exists |
 | `docs/research/` | Verification records and spike reports | Maintainer | exists |
-| `docs/project/` | `status.yaml`, its schema, the generated `STATUS.md` with **Resume here**, and the risk register | Maintainer | exists |
+| `docs/project/` | `status.yaml`, its schema, the generated `STATUS.md` with **Resume here**, the AI usage ledger `ai-usage.yaml` with its schema and the generated `AI-USAGE.md`, and the risk register | Maintainer | exists (WP1.15) |
 | `docs/requirements/` | `requirements.yaml`, its schema, and the brief traceability map | Maintainer | exists |
 | `docs/testing/` | The testing strategy, the evidence register and its schema, and the generated traceability report | Maintainer | exists (WP1.2) |
 | `docs/reference/tools/inventory.yaml` | Tool inventory and lifecycle record | Maintainer | exists |
@@ -71,9 +72,9 @@ These steps come from plan section 6.
 | `src/` | Six server projects under Clean Architecture boundaries. `Catalog.Domain` holds the domain model (WP1.6), which references the base class library only, and the application, persistence, and API layers hold almost no code until WP1.7, WP1.8, and WP1.10 | Maintainer | exists (WP1.1, WP1.6) |
 | `tests/Catalog.Architecture.Tests/` | The architecture, reference, and dependency rules, with fixtures that prove each rule can fail, and the check that the Domain references the base class library only | Maintainer | exists (WP1.1, WP1.6) |
 | `tests/Catalog.Domain.Tests/` | The example tests and the CsCheck property tests of the domain model, with the Stryker.NET configuration for the mutation baseline | Maintainer | exists (WP1.6) |
-| `tests/Governance.Auditor.Tests/` | The tests of the governance tool, including each security rule against a conforming and a violating fixture, and the session policy rules on facts that match and facts that do not | Maintainer | exists (WP1.2, WP1.14) |
+| `tests/Governance.Auditor.Tests/` | The tests of the governance tool, including each security rule against a conforming and a violating fixture, the session policy rules on facts that match and facts that do not, and each rule of the AI usage ledger against a valid and a violating ledger | Maintainer | exists (WP1.2, WP1.14, WP1.15) |
 | `tools/ci/` | The coverage threshold gate, the DocFX wrapper, the contract conformance script, and their Pester tests, including the tests that break the contract once for each lint rule | Maintainer | exists (WP1.1, WP1.3, WP1.5) |
-| `tools/Governance.Auditor/` | The deterministic governance CLI: status, trace, test-summary, github-sync, security, blast-radius, and session | Maintainer | exists (WP1.2, WP1.14) |
+| `tools/Governance.Auditor/` | The deterministic governance CLI: status, trace, test-summary, github-sync, security, blast-radius, session, and usage | Maintainer | exists (WP1.2, WP1.14, WP1.15) |
 | `tools/Documentation.Auditor/` | The documentation and inventory auditor | Maintainer | exists (WP1.3) |
 | `.devcontainer/` | The Dev Container: a pinned base image, locked features, and docker-in-docker | Maintainer | exists (WP1.4) |
 | `dev`, `dev.cmd`, `scripts/` | The `dev` command: thin shims, the PowerShell entry point and its modules, the script test runner, and the Pester tests | Maintainer | exists (WP1.4) |
@@ -191,14 +192,17 @@ dotnet run --project tools/Governance.Auditor -- security --base origin/phase/1-
 dotnet run --project tools/Governance.Auditor -- blast-radius --base origin/phase/1-api-core
 dotnet run --project tools/Governance.Auditor -- session --moment start --context fresh
 dotnet run --project tools/Governance.Auditor -- session --moment end
+dotnet run --project tools/Governance.Auditor -- usage validate
+dotnet run --project tools/Governance.Auditor -- usage render
+dotnet run --project tools/Governance.Auditor -- usage estimate
 dotnet run --project tools/Governance.Auditor -- test-summary --results TestResults
 dotnet run --project tools/Governance.Auditor -- github-sync
 ```
 
-`status render` and `trace` write `docs/project/STATUS.md` and `docs/testing/traceability.md`. Add `--check` to compare without writing, as
+`status render` and `trace` write `docs/project/STATUS.md` and `docs/testing/traceability.md`, and `usage render` writes `docs/project/AI-USAGE.md`. Add `--check` to compare without writing, as
 CI does. `github-sync` is a dry run until you pass `--apply`, which needs the maintainer's approval and refuses to run in GitHub Actions.
 `session` is advice and not a check that CI runs: it reads `status.yaml` and the local Git state, and it exits with 1 when the advice is `finish-handoff` or `stop`, which
-means the handoff is open (and for a mistyped option, like every governance command, without any advice on standard output). Run each command with `--help` for its options.
+means the handoff is open (and for a mistyped option, like every governance command, without any advice on standard output). `usage validate` and `usage render --check` run in CI on every pull request, so a completed work package without usage in the ledger, or a stale `AI-USAGE.md`, fails the `governance` job. `usage estimate` informs planning and never blocks a merge, and `usage` never reads the session store: the `/ai-usage-recorder` skill does. Run each command with `--help` for its options.
 
 ### The dev command
 
