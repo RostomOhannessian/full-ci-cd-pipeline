@@ -1,0 +1,604 @@
+# The ledger of what the AI-paired sessions of this project cost: AI units (AIU), calls, tokens, peak context, and model time, for each
+# slice of a session. Plan section 5.8, WP1.15, and ADR-0031 say why. docs/explanation/ai-usage-statistics.md says how to read it.
+#
+# - The numbers come from the Copilot session store through the /ai-usage-recorder skill. `governance usage validate` checks this file,
+#   and `governance usage render` writes AI-USAGE.md from it, so never edit that page by hand.
+# - A slice is a window of one session that belongs to one phase or work package and one kind of activity. Every call is in one slice.
+# - An older record is never edited. A new session adds its own records.
+# - The ledger holds opaque session IDs and numbers only: no prompt text, no file paths, and no account names.
+schema-version: 1
+updated: 2026-10-12
+waivers:
+  - phase: 0
+    reason: "Phase 0 was built in one session before work packages were tracked one by one, so its usage is recorded at phase level. WP0.1 to WP0.7 have no records of their own."
+changes:
+  - phase: 0
+    pull-requests: [1, 16]
+    files: 112
+    additions: 14527
+    deletions: 97
+  - work-package: "WP1.0"
+    pull-requests: [17]
+    files: 18
+    additions: 694
+    deletions: 32
+  - work-package: "WP1.1"
+    pull-requests: [18]
+    files: 65
+    additions: 2734
+    deletions: 72
+  - work-package: "WP1.2"
+    pull-requests: [19]
+    files: 109
+    additions: 10724
+    deletions: 125
+  - work-package: "WP1.3"
+    pull-requests: [20]
+    files: 88
+    additions: 7025
+    deletions: 197
+  - work-package: "WP1.4"
+    pull-requests: [21]
+    files: 90
+    additions: 8272
+    deletions: 169
+  - work-package: "WP1.5"
+    pull-requests: [22]
+    files: 48
+    additions: 4852
+    deletions: 74
+  - work-package: "WP1.6"
+    pull-requests: [23]
+    files: 83
+    additions: 4950
+    deletions: 91
+  - work-package: "WP1.14"
+    pull-requests: [26]
+    files: 43
+    additions: 3327
+    deletions: 65
+records:
+  - session: "e3240907-63f4-4ea8-90b3-b216afd27084"
+    phase: 0
+    activity: planning
+    confidence: windowed
+    window:
+      from: "2026-08-22T18:02:15.710Z"
+      to: "2026-08-22T18:39:56.028Z"
+    user-turns: 3
+    compactions: 0
+    note: "The first draft of the plan, written by one model at maximum effort."
+    usage:
+      - model: gpt-5.6-sol
+        reasoning-effort: max
+        agent: main
+        request-multiplier: 1.0
+        calls: 39
+        aiu: 89.649
+        fresh-input-tokens: 117
+        cache-read-tokens: 1895008
+        cache-write-tokens: 178240
+        output-tokens: 45586
+        reasoning-tokens: 20939
+        peak-context-tokens: 89715
+        model-seconds: 815
+  - session: "e3240907-63f4-4ea8-90b3-b216afd27084"
+    phase: 0
+    activity: planning
+    confidence: windowed
+    window:
+      from: "2026-10-04T18:07:30.458Z"
+      to: "2026-10-04T20:11:06.686Z"
+    user-turns: 1
+    compactions: 0
+    note: "The deep review and amendment of the plan before Phase 0 started. Review sub-agents made most of the calls."
+    usage:
+      - model: claude-opus-5.5
+        reasoning-effort: max
+        agent: main
+        request-multiplier: 15.0
+        calls: 47
+        aiu: 1919.871
+        fresh-input-tokens: 100
+        cache-read-tokens: 13431481
+        cache-write-tokens: 2055935
+        output-tokens: 311617
+        reasoning-tokens: 178379
+        peak-context-tokens: 482245
+        model-seconds: 3002
+      - model: claude-sonnet-5
+        reasoning-effort: max
+        agent: sub-agent
+        request-multiplier: 1.0
+        calls: 228
+        aiu: 1979.446
+        fresh-input-tokens: 456
+        cache-read-tokens: 33911498
+        cache-write-tokens: 2424933
+        output-tokens: 694892
+        reasoning-tokens: 420606
+        peak-context-tokens: 313852
+        model-seconds: 6537
+  - session: "e3240907-63f4-4ea8-90b3-b216afd27084"
+    phase: 0
+    activity: delivery
+    confidence: windowed
+    window:
+      from: "2026-10-04T20:22:20.794Z"
+      to: "2026-10-04T23:59:16.663Z"
+    user-turns: 3
+    compactions: 1
+    note: "Phase 0 was built in one session, so it is recorded at phase level and WP0.1 to WP0.7 are not split."
+    usage:
+      - model: claude-opus-5.5
+        reasoning-effort: high
+        agent: main
+        request-multiplier: 15.0
+        calls: 1
+        aiu: 249.071
+        fresh-input-tokens: 4
+        cache-read-tokens: 0
+        cache-write-tokens: 483866
+        output-tokens: 3568
+        reasoning-tokens: 69
+        peak-context-tokens: 483870
+        model-seconds: 34
+      - model: claude-sonnet-5.5
+        reasoning-effort: max
+        agent: main
+        request-multiplier: 1.0
+        calls: 267
+        aiu: 3285.865
+        fresh-input-tokens: 540
+        cache-read-tokens: 109560772
+        cache-write-tokens: 1694395
+        output-tokens: 670943
+        reasoning-tokens: 359068
+        peak-context-tokens: 650786
+        model-seconds: 4801
+      - model: claude-sonnet-5.5
+        reasoning-effort: medium
+        agent: main
+        request-multiplier: 1.0
+        calls: 1
+        aiu: 110.799
+        fresh-input-tokens: 4
+        cache-read-tokens: 0
+        cache-write-tokens: 440039
+        output-tokens: 788
+        reasoning-tokens: 0
+        peak-context-tokens: 440043
+        model-seconds: 9
+      - model: claude-sonnet-5.5
+        reasoning-effort: unspecified
+        agent: main
+        calls: 1
+        aiu: 24.581
+        fresh-input-tokens: 4
+        cache-read-tokens: 623891
+        cache-write-tokens: 13421
+        output-tokens: 8747
+        reasoning-tokens: 0
+        peak-context-tokens: 637316
+        model-seconds: 63
+      - model: gpt-5.4
+        reasoning-effort: medium
+        agent: sub-agent
+        request-multiplier: 1.0
+        calls: 261
+        aiu: 1462.594
+        fresh-input-tokens: 1336349
+        cache-read-tokens: 25492480
+        cache-write-tokens: 0
+        output-tokens: 327463
+        reasoning-tokens: 127820
+        peak-context-tokens: 196002
+        model-seconds: 3447
+  - session: "e3240907-63f4-4ea8-90b3-b216afd27084"
+    phase: 1
+    activity: coordination
+    confidence: windowed
+    window:
+      from: "2026-10-09T00:24:23.339Z"
+      to: "2026-10-12T19:14:44.391Z"
+    user-turns: 8
+    compactions: 0
+    note: "Status syncs after the session became the monitor of the plan panel. The first call after each idle period rewrites the cache of the whole context, at about 100 AIU for a context of 450,000 tokens, and the calls after it read the cache at about 5 AIU."
+    usage:
+      - model: claude-sonnet-5.5
+        reasoning-effort: medium
+        agent: main
+        request-multiplier: 1.0
+        calls: 29
+        aiu: 888.373
+        fresh-input-tokens: 80
+        cache-read-tokens: 10239327
+        cache-write-tokens: 3104732
+        output-tokens: 9781
+        reasoning-tokens: 214
+        peak-context-tokens: 472452
+        model-seconds: 95
+  - session: "c88a7f9b-90f9-4cf3-84ae-569457e97b24"
+    phase: 1
+    work-package: "WP1.0"
+    activity: delivery
+    confidence: windowed
+    window:
+      from: "2026-10-07T01:47:20.905Z"
+      to: "2026-10-08T23:25:15.066Z"
+    user-turns: 3
+    compactions: 0
+    note: "The five spikes and their reports, up to the push of the pull request."
+    usage:
+      - model: claude-sonnet-5.5
+        reasoning-effort: xhigh
+        agent: main
+        request-multiplier: 1.0
+        calls: 179
+        aiu: 1336.91
+        fresh-input-tokens: 370
+        cache-read-tokens: 42417626
+        cache-write-tokens: 1032361
+        output-tokens: 261070
+        reasoning-tokens: 107484
+        peak-context-tokens: 421089
+        model-seconds: 1908
+  - session: "c88a7f9b-90f9-4cf3-84ae-569457e97b24"
+    phase: 1
+    work-package: "WP1.1"
+    activity: delivery
+    confidence: windowed
+    window:
+      from: "2026-10-08T23:35:25.088Z"
+      to: "2026-10-09T00:27:48.859Z"
+    user-turns: 3
+    compactions: 1
+    note: "WP1.1, and the start of the session for WP1.2 at the end. One compaction."
+    usage:
+      - model: claude-sonnet-5.5
+        reasoning-effort: unspecified
+        agent: main
+        calls: 1
+        aiu: 15.618
+        fresh-input-tokens: 4
+        cache-read-tokens: 747457
+        cache-write-tokens: 3139
+        output-tokens: 7358
+        reasoning-tokens: 0
+        peak-context-tokens: 750600
+        model-seconds: 50
+      - model: claude-sonnet-5.5
+        reasoning-effort: xhigh
+        agent: main
+        request-multiplier: 1.0
+        calls: 162
+        aiu: 1339.251
+        fresh-input-tokens: 330
+        cache-read-tokens: 82745154
+        cache-write-tokens: 844510
+        output-tokens: 300606
+        reasoning-tokens: 132893
+        peak-context-tokens: 755467
+        model-seconds: 2021
+  - session: "c88a7f9b-90f9-4cf3-84ae-569457e97b24"
+    phase: 1
+    activity: coordination
+    confidence: windowed
+    window:
+      from: "2026-10-09T01:42:52.466Z"
+      to: "2026-10-09T01:47:32.753Z"
+    user-turns: 2
+    compactions: 0
+    note: "Checking the session for WP1.2 and starting the session for WP1.3."
+    usage:
+      - model: claude-sonnet-5.5
+        reasoning-effort: xhigh
+        agent: main
+        request-multiplier: 1.0
+        calls: 6
+        aiu: 39.041
+        fresh-input-tokens: 16
+        cache-read-tokens: 523185
+        cache-write-tokens: 110819
+        output-tokens: 6101
+        reasoning-tokens: 707
+        peak-context-tokens: 110821
+        model-seconds: 37
+  - session: "5c881a32-571f-4f88-a3d6-c3669fdcdc7e"
+    phase: 1
+    work-package: "WP1.2"
+    activity: delivery
+    confidence: exact
+    window:
+      from: "2026-10-09T00:27:49.442Z"
+      to: "2026-10-09T01:39:45.670Z"
+    user-turns: 1
+    compactions: 1
+    note: "A session that the maintainer started for this work package alone, so it owns the whole window. One compaction."
+    usage:
+      - model: claude-sonnet-5.5
+        reasoning-effort: unspecified
+        agent: main
+        calls: 1
+        aiu: 16.021
+        fresh-input-tokens: 4
+        cache-read-tokens: 748598
+        cache-write-tokens: 2039
+        output-tokens: 8024
+        reasoning-tokens: 0
+        peak-context-tokens: 750641
+        model-seconds: 49
+      - model: claude-sonnet-5.5
+        reasoning-effort: xhigh
+        agent: main
+        request-multiplier: 1.0
+        calls: 281
+        aiu: 1872.664
+        fresh-input-tokens: 566
+        cache-read-tokens: 111843343
+        cache-write-tokens: 964035
+        output-tokens: 513109
+        reasoning-tokens: 170925
+        peak-context-tokens: 758942
+        model-seconds: 3109
+  - session: "1667626f-c8ad-42c4-9a0c-190407cbf610"
+    phase: 1
+    work-package: "WP1.3"
+    activity: delivery
+    confidence: exact
+    window:
+      from: "2026-10-09T01:47:33.798Z"
+      to: "2026-10-10T18:51:22.005Z"
+    user-turns: 1
+    compactions: 1
+    note: "A session that the maintainer started for this work package alone. The last calls, a day later, started the session for WP1.4. One compaction."
+    usage:
+      - model: claude-sonnet-5.5
+        reasoning-effort: unspecified
+        agent: main
+        calls: 1
+        aiu: 17.242
+        fresh-input-tokens: 4
+        cache-read-tokens: 747401
+        cache-write-tokens: 5355
+        output-tokens: 8428
+        reasoning-tokens: 0
+        peak-context-tokens: 752760
+        model-seconds: 51
+      - model: claude-sonnet-5.5
+        reasoning-effort: xhigh
+        agent: main
+        request-multiplier: 1.0
+        calls: 294
+        aiu: 1917.103
+        fresh-input-tokens: 594
+        cache-read-tokens: 111320480
+        cache-write-tokens: 1368266
+        output-tokens: 461713
+        reasoning-tokens: 189495
+        peak-context-tokens: 760572
+        model-seconds: 2991
+  - session: "dcf73ed7-8ac6-4e88-b532-aebe5b9b7df8"
+    phase: 1
+    work-package: "WP1.4"
+    activity: delivery
+    confidence: windowed
+    window:
+      from: "2026-10-10T18:51:19.691Z"
+      to: "2026-10-11T00:03:23.630Z"
+    user-turns: 1
+    compactions: 1
+    note: "The first four bursts of the session, up to the idle night. One compaction."
+    usage:
+      - model: claude-sonnet-5.5
+        reasoning-effort: unspecified
+        agent: main
+        calls: 1
+        aiu: 18.494
+        fresh-input-tokens: 4
+        cache-read-tokens: 696546
+        cache-write-tokens: 5004
+        output-tokens: 10277
+        reasoning-tokens: 0
+        peak-context-tokens: 701554
+        model-seconds: 68
+      - model: claude-sonnet-5.5
+        reasoning-effort: xhigh
+        agent: main
+        request-multiplier: 1.0
+        calls: 384
+        aiu: 2476.298
+        fresh-input-tokens: 772
+        cache-read-tokens: 127672013
+        cache-write-tokens: 2672762
+        output-tokens: 531233
+        reasoning-tokens: 180051
+        peak-context-tokens: 721597
+        model-seconds: 3680
+      - model: claude-sonnet-5.5
+        reasoning-effort: xhigh
+        agent: sub-agent
+        request-multiplier: 1.0
+        calls: 168
+        aiu: 776.622
+        fresh-input-tokens: 340
+        cache-read-tokens: 37243056
+        cache-write-tokens: 693867
+        output-tokens: 230657
+        reasoning-tokens: 132408
+        peak-context-tokens: 391428
+        model-seconds: 1632
+  - session: "dcf73ed7-8ac6-4e88-b532-aebe5b9b7df8"
+    phase: 1
+    work-package: "WP1.5"
+    activity: delivery
+    confidence: windowed
+    window:
+      from: "2026-10-11T12:04:12.251Z"
+      to: "2026-10-11T12:55:41.801Z"
+    user-turns: 2
+    compactions: 0
+    note: "From the first burst after the idle night to the merge of the WP1.5 pull request. The contract files were first touched at 12:11, so the window is mostly WP1.5, but its first minutes could be follow-up of WP1.4, whose pull request merged at 12:51."
+    usage:
+      - model: claude-sonnet-5.5
+        reasoning-effort: xhigh
+        agent: main
+        request-multiplier: 1.0
+        calls: 149
+        aiu: 1380.941
+        fresh-input-tokens: 304
+        cache-read-tokens: 77660402
+        cache-write-tokens: 1277908
+        output-tokens: 284799
+        reasoning-tokens: 95362
+        peak-context-tokens: 670069
+        model-seconds: 1941
+      - model: claude-sonnet-5.5
+        reasoning-effort: xhigh
+        agent: sub-agent
+        request-multiplier: 1.0
+        calls: 135
+        aiu: 553.216
+        fresh-input-tokens: 274
+        cache-read-tokens: 24406828
+        cache-write-tokens: 535277
+        output-tokens: 175274
+        reasoning-tokens: 100366
+        peak-context-tokens: 279409
+        model-seconds: 1240
+  - session: "dcf73ed7-8ac6-4e88-b532-aebe5b9b7df8"
+    phase: 1
+    work-package: "WP1.6"
+    activity: delivery
+    confidence: windowed
+    window:
+      from: "2026-10-11T12:59:35.491Z"
+      to: "2026-10-12T18:52:51.289Z"
+    user-turns: 4
+    compactions: 1
+    note: "From the turn after WP1.5 merged to the end of the turn that opened the WP1.6 pull request. One compaction."
+    usage:
+      - model: claude-sonnet-5.5
+        reasoning-effort: unspecified
+        agent: main
+        calls: 1
+        aiu: 19.095
+        fresh-input-tokens: 4
+        cache-read-tokens: 672160
+        cache-write-tokens: 7479
+        output-tokens: 10503
+        reasoning-tokens: 0
+        peak-context-tokens: 679643
+        model-seconds: 68
+      - model: claude-sonnet-5.5
+        reasoning-effort: xhigh
+        agent: main
+        request-multiplier: 1.0
+        calls: 251
+        aiu: 1560.283
+        fresh-input-tokens: 514
+        cache-read-tokens: 87813854
+        cache-write-tokens: 1280835
+        output-tokens: 361833
+        reasoning-tokens: 147409
+        peak-context-tokens: 687304
+        model-seconds: 2493
+      - model: claude-sonnet-5.5
+        reasoning-effort: xhigh
+        agent: sub-agent
+        request-multiplier: 1.0
+        calls: 84
+        aiu: 309.243
+        fresh-input-tokens: 176
+        cache-read-tokens: 9459476
+        cache-write-tokens: 455783
+        output-tokens: 100667
+        reasoning-tokens: 51132
+        peak-context-tokens: 167564
+        model-seconds: 715
+  - session: "dcf73ed7-8ac6-4e88-b532-aebe5b9b7df8"
+    phase: 1
+    activity: planning
+    confidence: windowed
+    window:
+      from: "2026-10-12T18:53:43.420Z"
+      to: "2026-10-12T19:11:00.513Z"
+    user-turns: 2
+    compactions: 0
+    note: "Plan amendment 2.1.0: the optional extensions, WP1.14, and WP1.15."
+    usage:
+      - model: claude-sonnet-5.5
+        reasoning-effort: xhigh
+        agent: main
+        request-multiplier: 1.0
+        calls: 53
+        aiu: 405.844
+        fresh-input-tokens: 110
+        cache-read-tokens: 30213925
+        cache-write-tokens: 112581
+        output-tokens: 75538
+        reasoning-tokens: 33762
+        peak-context-tokens: 623184
+        model-seconds: 575
+  - session: "dcf73ed7-8ac6-4e88-b532-aebe5b9b7df8"
+    phase: 1
+    activity: coordination
+    confidence: windowed
+    window:
+      from: "2026-10-12T19:13:06.062Z"
+      to: "2026-10-12T20:20:45.733Z"
+    user-turns: 2
+    compactions: 0
+    note: "Starting the sessions for WP1.14 and WP1.15 and answering the maintainer in between."
+    usage:
+      - model: claude-sonnet-5.5
+        reasoning-effort: xhigh
+        agent: main
+        request-multiplier: 1.0
+        calls: 7
+        aiu: 223.659
+        fresh-input-tokens: 18
+        cache-read-tokens: 3822673
+        cache-write-tokens: 666394
+        output-tokens: 18830
+        reasoning-tokens: 6164
+        peak-context-tokens: 654299
+        model-seconds: 137
+  - session: "2072a7ae-f410-40fa-9ada-5e254ca12b5d"
+    phase: 1
+    work-package: "WP1.14"
+    activity: delivery
+    confidence: exact
+    window:
+      from: "2026-10-12T19:13:11.237Z"
+      to: "2026-10-12T20:19:18.958Z"
+    user-turns: 1
+    compactions: 0
+    note: "A session that the maintainer started for this work package alone, so it owns the whole window."
+    usage:
+      - model: claude-sonnet-5.5
+        reasoning-effort: xhigh
+        agent: main
+        request-multiplier: 1.0
+        calls: 158
+        aiu: 1337.054
+        fresh-input-tokens: 318
+        cache-read-tokens: 55549886
+        cache-write-tokens: 2052056
+        output-tokens: 268478
+        reasoning-tokens: 101128
+        peak-context-tokens: 525136
+        model-seconds: 1741
+      - model: claude-sonnet-5.5
+        reasoning-effort: xhigh
+        agent: sub-agent
+        request-multiplier: 1.0
+        calls: 38
+        aiu: 136.644
+        fresh-input-tokens: 78
+        cache-read-tokens: 4430658
+        cache-write-tokens: 180402
+        output-tokens: 47221
+        reasoning-tokens: 37263
+        peak-context-tokens: 180404
+        model-seconds: 378
