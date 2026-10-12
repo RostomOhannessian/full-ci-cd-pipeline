@@ -197,8 +197,8 @@ dotnet run --project tools/Governance.Auditor -- github-sync
 
 `status render` and `trace` write `docs/project/STATUS.md` and `docs/testing/traceability.md`. Add `--check` to compare without writing, as
 CI does. `github-sync` is a dry run until you pass `--apply`, which needs the maintainer's approval and refuses to run in GitHub Actions.
-`session` is advice and not a check that CI runs: it reads `status.yaml` and the local Git state, and it exits with 1 only when the handoff is
-open (`finish-handoff` or `stop`). Run each command with `--help` for its options.
+`session` is advice and not a check that CI runs: it reads `status.yaml` and the local Git state, and it exits with 1 when the advice is `finish-handoff` or `stop`, which
+means the handoff is open (and for a mistyped option, like every governance command, without any advice on standard output). Run each command with `--help` for its options.
 
 ### The dev command
 

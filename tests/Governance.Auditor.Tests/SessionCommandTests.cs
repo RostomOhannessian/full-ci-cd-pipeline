@@ -241,6 +241,19 @@ public sealed class SessionCommandTests
 
     [Fact]
     [Trait("Requirement", "REQ-AI-004")]
+    public async Task A_blocked_phase_with_every_work_package_completed_is_a_phase_boundary_through_the_command()
+    {
+        using var repository = SessionSamples.Repository(StatusSamples.Build([.. SecondWorkPackageDone, ("phase1State", "blocked")]));
+
+        var result = await CliRunner.RunAsync(repository, SessionSamples.Git(branch: "phase/1-sample", upstream: "origin/phase/1-sample"), "session", "--moment", "end");
+
+        Assert.Equal(0, result.ExitCode);
+        Assert.Contains("rule:      phase-boundary", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Every work package of phase 1 is completed, so the phase exit gate comes next.", result.Output, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    [Trait("Requirement", "REQ-AI-004")]
     public async Task A_compacted_context_at_the_end_gets_a_fresh_session_even_inside_a_phase()
     {
         using var repository = SessionSamples.Repository(StatusSamples.Build(SecondWorkPackageNotStarted));
@@ -435,6 +448,7 @@ public sealed class SessionCommandTests
         var result = await CliRunner.RunAsync(repository, git, arguments);
 
         Assert.NotEqual(0, result.ExitCode);
+        Assert.DoesNotContain("session:", result.Output, StringComparison.Ordinal);
         Assert.Empty(git.Requests);
     }
 
@@ -447,6 +461,7 @@ public sealed class SessionCommandTests
         var result = await CliRunner.RunAsync(repository, new FakeProcessRunner(), "session");
 
         Assert.NotEqual(0, result.ExitCode);
+        Assert.DoesNotContain("session:", result.Output, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -628,8 +643,8 @@ public sealed class SessionAdvisorTests
     [Trait("Requirement", "REQ-AI-004")]
     public void The_boundary_is_a_phase_when_every_work_package_of_the_current_phase_is_completed_but_the_phase_is_not()
     {
-        // A status file that validates never has this state, because the validator wants the phase marked completed. The rule still holds
-        // for a file that has not been validated.
+        // A status file with an in-progress phase and every work package completed does not validate, so only a blocked phase reaches this
+        // case through the command. The rule is tested here on a file that has not been validated.
         var status = StatusSamples.Parse(StatusSamples.Build(
             ("currentWorkPackage", "null"),
             ("currentBranch", "phase/1-sample"),

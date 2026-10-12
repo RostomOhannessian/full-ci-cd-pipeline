@@ -57,7 +57,8 @@ The caller says three things, because the repository cannot know them.
 ## The answer
 
 The answer is one of four words. The exit code is 0 when the command produced advice, 1 when the advice is `finish-handoff` or `stop`,
-and 2 when the tool could not run.
+and 2 when the tool could not run. A mistyped option also exits with 1, as it does for every governance command, but it prints no advice, so
+read the first line of the output: it is `session:` and the advice.
 
 | Advice | Meaning |
 | --- | --- |
@@ -89,7 +90,7 @@ gap. The command does not fetch, so its counts are as of the last fetch.
 
 The **boundary** is `phase` when the next work package starts a phase (its number ends in `.0`, or its phase differs from that of the last
 completed work package), when no work package is completed yet, or when every work package of the current phase is completed and the phase is
-not. A valid `status.yaml` never has that last state, because `governance status validate` refuses it, so that rule is a safety net. Every
+not. `governance status validate` refuses an in-progress phase in that state, so it takes a blocked phase to reach it, and it is rare. Every
 other case is `package`.
 
 The **next work package** is the one that `resume.next-work-package` names in `status.yaml` when it is ready. Otherwise it is the first
@@ -149,7 +150,7 @@ stop and ask the maintainer which branch to use when the faulty code is not on `
 
 ## What the check is not
 
-- It is advice and not a required check. No workflow job runs it, and it fails only when a handoff gap exists.
+- It is advice and not a required check. No workflow job runs it, and it exits with 1 only when the advice is `finish-handoff` or `stop`.
 - It does not make a decision that the repository forbids without the maintainer: it never pushes, and it never changes a setting.
 - It does not measure cost. Recording what each session costs is planned in WP1.15, which reads the same boundaries.
 

@@ -40,8 +40,9 @@ Judging this by feel is not reproducible, and a skill that judged it would hold 
   only the agent that holds the conversation knows that it was summarized.
 - The list order of `status.yaml` is not the order that the maintainer chooses. WP1.7 comes before WP1.14 and WP1.15 in the list, and the
   maintainer asked for WP1.14, WP1.15, and then WP1.7.
-- `governance status validate` refuses a phase that is in progress when all of its work packages are completed, so a valid file never
-  shows that state.
+- `governance status validate` refuses a phase that is `in_progress`, `planned`, or `completed` when its work packages disagree with it,
+  and it accepts a `blocked` phase whose work packages are all completed. It refuses a phase in progress with every work package completed,
+  so the usual state of "the last work package is done and the phase is not" never validates.
 - A kickoff prompt is text that an agent follows. Text that comes from reviewed repository files is safer than text that an agent writes.
 
 ## Decision drivers
@@ -76,7 +77,8 @@ The design:
   `used`.
 - **The answer.** One of `continue`, `fresh`, `finish-handoff`, or `stop`, with the rule and the reasons, the next work package, the
   boundary kind, the handoff gaps, and the kickoff prompt. The exit code is 0 when advice was produced, 1 for `finish-handoff` and `stop`,
-  and 2 when the tool could not run. The prompt is printed only for `fresh`.
+  and 2 when the tool could not run. A mistyped option also exits with 1, as it does for every governance command, and it prints no advice,
+  so the first line of the output tells the two apart. The prompt is printed only for `fresh`.
 - **The handoff gaps.** Uncommitted changes, commits that no remote has (the commits ahead of the upstream, or the commits on no remote when
   there is no upstream), a `status.yaml` that is not valid, and a `STATUS.md` that differs from what `status.yaml` renders. Being behind the
   upstream is a note and not a gap.
@@ -86,8 +88,8 @@ The design:
   the file or that is already completed, and accepts one that is not ready yet.
 - **The boundary kind.** `phase` when the next work package starts a phase (its number ends in `.0`, or its phase differs from the phase of
   the last completed work package), when no work package is completed yet, or when every work package of the current phase is completed and
-  the phase is not. Otherwise `package`. The last case cannot occur in a file that validates, as the facts above say, so the rule is a
-  safety net that a test reaches directly.
+  the phase is not. Otherwise `package`. The last case needs a phase that is blocked with every work package completed, because the validator
+  refuses an in-progress phase in that state, so it is rare, and a test reaches it directly.
 - **The rules.** Eight rules in `governance/policies/session-policy.yaml`, evaluated in order, where the first match wins: `leftovers`,
   `handoff-first`, `fresh-session-start`, `phase-boundary`, `compacted`, `pull-request-follow-up`, `bug-fix`, and `work-package`. A fresh
   session is the default at every work-package and phase boundary, after a compaction, and for a bug fix. A session continues only for
@@ -112,8 +114,10 @@ The design:
 - Good: an open handoff always stops the session, so no session starts on top of work that is not committed, not pushed, or not recorded.
 - Good: the kickoff prompts come from a reviewed file and carry the rules that every session must follow, so a fresh session needs no
   oral tradition.
-- Bad: a wrong `--context` gives wrong advice. Only follow-up on a pull request is affected, because it continues when the context is
-  `used` and moves to a fresh session when it is `compacted`. The skill says how to tell, and the default `used` is the cheaper mistake.
+- Bad: a wrong `--context` gives wrong advice. Claiming `fresh` at the start is the costly mistake, because the rule for a session that
+  began fresh comes before the boundary and task rules, so every `fresh` advice becomes `continue`. The skill and the protocol say to claim
+  `fresh` only when the conversation began with a kickoff prompt. Mixing up `used` and `compacted` changes only the follow-up on a pull
+  request, which continues when the context is `used` and moves to a fresh session when it is `compacted`, and `used` is the default.
 - Bad: the check does not fetch, so a branch can look current when it is not. The prompts start with `git fetch origin`, and the report says
   that the counts are as of the last fetch.
 - Bad: the prompts name the Copilot App trailer and `ask_user`, which are the tools in use today. A change of host is a change to the policy
@@ -164,7 +168,8 @@ The design:
 - A tool can report whether a conversation was compacted, so the caller no longer has to say.
 - The maintainer decides how a bug in work that exists only on a phase branch is fixed, which changes ADR-0003.
 - The project changes the host that runs its sessions, which changes the trailer and the question tool in the prompts.
-- The validator allows a phase that is in progress with every work package completed.
+- The validator allows a phase that is in progress with every work package completed, or the project moves the phase to completed at a
+  different step.
 
 ## Further reading
 

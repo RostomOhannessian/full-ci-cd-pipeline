@@ -18,9 +18,10 @@ advice and never decides it.
 
 - The moment: `start` for the first step of a session (the resume protocol in `AGENTS.md`), or `end` for its last step (`/session-handoff` runs
   it).
-- The context of this session, which only you can know. Use `fresh` when the conversation began with a kickoff prompt and holds nothing else
-  yet. Use `compacted` when the conversation was summarized: it opens with a summary, or the checkpoint list in the session's own folder has an
-  entry. Use `used` in every other case, which is also the default.
+- The context of this session, which only you can know. Use `fresh` only when the conversation began with a kickoff prompt and holds nothing
+  else yet, because at the start of a session it turns every `fresh` advice into `continue`. Use `compacted` when the conversation was
+  summarized: it opens with a summary, or the checkpoint list in the session's own folder has an entry. Use `used` in every other case, which
+  is also the default.
 - The kind of task that comes next. Use `work-package` (the default) for the next work package, `pull-request` for review comments or a failed
   check on the open pull request of this work package, and `bug-fix` for a bug in work that already merged. Ask the maintainer when you cannot
   tell, and never guess `bug-fix`.
@@ -52,8 +53,9 @@ advice and never decides it.
 ## Procedure
 
 1. Settle the three inputs above. Do not run the command with an input that you are unsure of.
-2. Run the command and keep its exit code: 0 means it produced advice (`continue` or `fresh`), 1 means the advice is `finish-handoff` or `stop`,
-   and 2 means that the tool could not run.
+2. Run the command and keep its exit code: 0 means it produced advice (`continue` or `fresh`), 1 means the advice is `finish-handoff` or `stop`
+   (a mistyped option also exits with 1, but it prints no `session:` line, so read the first line of the output), and 2 means that the tool
+   could not run.
 3. Say the advice first, in one line, with the rule that decided it and the reasons that it printed.
 4. Act on the advice, and only on the advice:
 
