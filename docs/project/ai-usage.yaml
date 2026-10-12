@@ -57,6 +57,11 @@ changes:
     files: 43
     additions: 3327
     deletions: 65
+  - work-package: "WP1.15"
+    pull-requests: [27]
+    files: 40
+    additions: 3964
+    deletions: 59
 records:
   - session: "e3240907-63f4-4ea8-90b3-b216afd27084"
     phase: 0
@@ -627,3 +632,28 @@ records:
         reasoning-tokens: 144944
         peak-context-tokens: 511568
         model-seconds: 1985
+  - session: "e16afa95-b35e-4651-a6fc-cb7bc77a4285"
+    phase: 1
+    work-package: "WP1.15"
+    activity: delivery
+    confidence: exact
+    window:
+      from: "2026-10-12T21:42:43.645Z"
+      to: "2026-10-12T21:46:07.117Z"
+    user-turns: 2
+    compactions: 0
+    note: "The same session after the first record: the push, the draft pull request, and the size of the change. The calls after this record are not in it."
+    usage:
+      - model: claude-sonnet-5.5
+        reasoning-effort: xhigh
+        agent: main
+        request-multiplier: 1.0
+        calls: 16
+        aiu: 203.771
+        fresh-input-tokens: 36
+        cache-read-tokens: 7395541
+        cache-write-tokens: 471489
+        output-tokens: 11936
+        reasoning-tokens: 2936
+        peak-context-tokens: 520070
+        model-seconds: 94
