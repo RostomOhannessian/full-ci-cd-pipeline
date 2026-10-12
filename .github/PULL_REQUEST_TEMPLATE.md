@@ -8,6 +8,26 @@
 - Work package ID: <!-- for example WP1.8, or "none" for a hotfix or dependency update -->
 - Target branch: <!-- phase/* for a work package, master for a phase PR, hotfix, or dependency update -->
 
+## Squash commit message
+
+<!-- The squash commit is the history of the phase branch and the source of the release notes. Write it here, review it with the rest of the pull request, and pass it to the merge: `gh pr merge N --squash --subject "..." --body "..."`. Never merge with an empty body. See CONTRIBUTING.md, "Squash commit message". -->
+
+Subject (the pull request title, at most 72 characters, naming the whole deliverable):
+
+```text
+type(scope): summary
+```
+
+Body (short bullets, one for each logical change, then `Part of #N` or "no Issue", and the trailer):
+
+```text
+- <what changed>
+
+Part of #N
+
+Co-authored-by: Copilot App <223556219+Copilot@users.noreply.github.com>
+```
+
 ## Definition of Done
 
 <!-- Tick what applies. If an item does not apply, say why next to it. See CONTRIBUTING.md. -->

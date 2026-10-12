@@ -177,7 +177,7 @@ public sealed class RepositoryPolicyTests
 
         foreach (var expected in new[]
         {
-            "one logical change", "`docs(plan):`", "72 characters", "plan amendment", "the whole deliverable", "short bullets", "Part of #", "Co-authored-by", "gh pr merge", "--squash", "--subject", "--body", "empty body", "git-cliff",
+            "One logical change", "`docs(plan):`", "72 characters", "plan amendment", "the whole deliverable", "Short bullets", "Part of #", "Co-authored-by", "gh pr merge", "--squash", "--subject", "--body", "empty body", "git-cliff",
         })
         {
             Assert.Contains(expected, section, StringComparison.Ordinal);
