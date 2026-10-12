@@ -146,6 +146,47 @@ public sealed class RepositoryPolicyTests
 
     [Fact]
     [Trait("Requirement", "REQ-GOV-004")]
+    public void The_pull_request_template_asks_for_the_squash_commit_message_before_the_definition_of_done()
+    {
+        var template = Read(".github/PULL_REQUEST_TEMPLATE.md");
+        var start = template.IndexOf("## Squash commit message", StringComparison.Ordinal);
+
+        Assert.StartsWith("<!-- markdownlint-disable MD041 -->", template, StringComparison.Ordinal);
+        Assert.True(start >= 0, "The template has no 'Squash commit message' section.");
+        Assert.True(start > template.IndexOf("## Work package", StringComparison.Ordinal), "The squash section must come after the work package section.");
+        Assert.True(start < template.IndexOf("## Definition of Done", StringComparison.Ordinal), "The squash section must come before the Definition of Done.");
+
+        var section = template[start..template.IndexOf("\n## ", start + 1, StringComparison.Ordinal)];
+
+        foreach (var expected in new[] { "Subject", "Body", "Part of #", "Co-authored-by: Copilot App <223556219+Copilot@users.noreply.github.com>", "gh pr merge", "--subject", "--body", "CONTRIBUTING.md" })
+        {
+            Assert.Contains(expected, section, StringComparison.Ordinal);
+        }
+    }
+
+    [Fact]
+    [Trait("Requirement", "REQ-GOV-004")]
+    public void The_contributing_guide_states_the_squash_commit_message_rule_that_the_template_and_the_prompts_point_to()
+    {
+        var guide = Read("CONTRIBUTING.md");
+        var start = guide.IndexOf("### Squash commit message", StringComparison.Ordinal);
+
+        Assert.True(start >= 0, "CONTRIBUTING.md has no 'Squash commit message' section.");
+
+        var section = guide[start..guide.IndexOf("\n### ", start + 1, StringComparison.Ordinal)];
+
+        foreach (var expected in new[]
+        {
+            "one logical change", "`docs(plan):`", "72 characters", "plan amendment", "the whole deliverable", "short bullets", "Part of #", "Co-authored-by", "gh pr merge", "--squash", "--subject", "--body", "empty body", "git-cliff",
+        })
+        {
+            Assert.Contains(expected, section, StringComparison.Ordinal);
+        }
+        Assert.Contains("CONTRIBUTING.md#squash-commit-message", Read("AGENTS.md"), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    [Trait("Requirement", "REQ-GOV-004")]
     public void The_work_package_issue_form_asks_for_every_item_of_the_definition_of_ready()
     {
         var form = Read(".github/ISSUE_TEMPLATE/work-package.yml");

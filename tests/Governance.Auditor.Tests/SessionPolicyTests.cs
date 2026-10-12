@@ -346,6 +346,29 @@ public sealed class SessionPolicyTests
         Assert.Contains("{branch}", prompt, StringComparison.Ordinal);
     }
 
+    [Fact]
+    [Trait("Requirement", "REQ-AI-004")]
+    public void Every_kickoff_prompt_that_ends_in_a_merge_names_the_squash_commit_message_rule()
+    {
+        var prompts = SessionPolicy.Load(RealRepository.Files).Prompts;
+
+        foreach (var prompt in new[] { prompts.WorkPackage, prompts.PullRequest, prompts.BugFix })
+        {
+            Assert.Contains("Squash-merge with an explicit subject and body that summarize every change", prompt, StringComparison.Ordinal);
+            Assert.Contains("(CONTRIBUTING.md, \"Squash commit message\")", prompt, StringComparison.Ordinal);
+        }
+    }
+
+    [Fact]
+    [Trait("Requirement", "REQ-AI-004")]
+    public void The_work_package_prompt_asks_for_one_logical_change_and_a_plan_amendment_of_its_own()
+    {
+        var prompt = SessionPolicy.Load(RealRepository.Files).Prompts.WorkPackage;
+
+        Assert.Contains("One logical change per pull request", prompt, StringComparison.Ordinal);
+        Assert.Contains("a plan amendment is its own `docs(plan):` pull request that merges first", prompt, StringComparison.Ordinal);
+    }
+
     // A plain reading of the eight rules in the policy file, written as an if chain so that it shares no code with the evaluator.
     private static (string Rule, string Advice) Reference(SessionFacts facts)
     {
