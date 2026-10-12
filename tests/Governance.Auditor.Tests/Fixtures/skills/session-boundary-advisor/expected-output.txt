@@ -31,6 +31,7 @@ Rules:
 - Do not weaken or skip a gate. Pin every action and image by commit SHA or digest.
 - Meet the Definition of Done (plan section 5.4 and CONTRIBUTING.md): green checks, tests tagged with requirement IDs, updated documentation, an updated status.yaml with a rendered STATUS.md, the CHANGELOG, an ADR for every decision, the threat model when a boundary changes, the governance auditors, and a pushed branch.
 - Keep the work in small, separate commits with Conventional Commit messages.
+- One logical change per pull request, and a plan amendment is its own `docs(plan):` pull request that merges first. Squash-merge with an explicit subject and body that summarize every change (CONTRIBUTING.md, "Squash commit message").
 
 When the work is merged, run `/session-handoff`. It ends with the session boundary check, `governance session --moment end`, which names the next session and prints its kickoff prompt. Give that prompt to the maintainer and stop.
 --- end of kickoff prompt ---

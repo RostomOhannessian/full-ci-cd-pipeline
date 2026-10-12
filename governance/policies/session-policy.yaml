@@ -98,6 +98,7 @@ prompts:
     - Do not weaken or skip a gate. Pin every action and image by commit SHA or digest.
     - Meet the Definition of Done (plan section 5.4 and CONTRIBUTING.md): green checks, tests tagged with requirement IDs, updated documentation, an updated status.yaml with a rendered STATUS.md, the CHANGELOG, an ADR for every decision, the threat model when a boundary changes, the governance auditors, and a pushed branch.
     - Keep the work in small, separate commits with Conventional Commit messages.
+    - One logical change per pull request, and a plan amendment is its own `docs(plan):` pull request that merges first. Squash-merge with an explicit subject and body that summarize every change (CONTRIBUTING.md, "Squash commit message").
 
     When the work is merged, run `/session-handoff`. It ends with the session boundary check, `governance session --moment end`, which names the next session and prints its kickoff prompt. Give that prompt to the maintainer and stop.
 
@@ -117,6 +118,7 @@ prompts:
     3. Fix each finding in its own commit with a Conventional Commit message, then run the checks again. Never weaken or skip a gate to turn a check green.
     4. Say what you changed for each review comment. Keep status.yaml, the CHANGELOG, and the evidence in the pull request body accurate.
     5. Ask the maintainer (with ask_user, if your host has it) before every push, merge, or settings change.
+    6. Squash-merge with an explicit subject and body that summarize every change (CONTRIBUTING.md, "Squash commit message").
 
     When the pull request is clean, run `/session-handoff`. It ends with the session boundary check, `governance session --moment end`, which names the next session and prints its kickoff prompt. Give that prompt to the maintainer and stop.
 
@@ -138,5 +140,6 @@ prompts:
     4. Update the CHANGELOG, the documentation, and the ADR or the threat model when the fix touches a decision or a trust boundary. Update status.yaml and render STATUS.md when the status changed.
     5. Meet the Definition of Done (plan section 5.4 and CONTRIBUTING.md) as for a work package, and use the pull request template with exact commands and results as evidence.
     6. Ask the maintainer (with ask_user, if your host has it) before every push, merge, or settings change. Never push to `master` and never force-push.
+    7. Squash-merge with an explicit subject and body that summarize every change (CONTRIBUTING.md, "Squash commit message").
 
     When the fix is merged, run `/session-handoff`. It ends with the session boundary check, `governance session --moment end`, which names the next session and prints its kickoff prompt. Give that prompt to the maintainer and stop.
