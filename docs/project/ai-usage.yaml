@@ -602,3 +602,28 @@ records:
         reasoning-tokens: 37263
         peak-context-tokens: 180404
         model-seconds: 378
+  - session: "e16afa95-b35e-4651-a6fc-cb7bc77a4285"
+    phase: 1
+    work-package: "WP1.15"
+    activity: delivery
+    confidence: exact
+    window:
+      from: "2026-10-12T20:20:44.115Z"
+      to: "2026-10-12T21:42:37.694Z"
+    user-turns: 1
+    compactions: 0
+    note: "A session that the maintainer started for this work package alone. It recorded its own usage, so the calls after this record are not in it."
+    usage:
+      - model: claude-sonnet-5.5
+        reasoning-effort: xhigh
+        agent: main
+        request-multiplier: 1.0
+        calls: 161
+        aiu: 1031.782
+        fresh-input-tokens: 328
+        cache-read-tokens: 53120051
+        cache-write-tokens: 817869
+        output-tokens: 296049
+        reasoning-tokens: 144944
+        peak-context-tokens: 511568
+        model-seconds: 1985
