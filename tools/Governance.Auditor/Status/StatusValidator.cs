@@ -46,6 +46,7 @@ internal static class StatusValidator
         CheckWorkPackageStates(status, findings);
         CheckPhaseStates(status, findings);
         CheckCurrent(status, findings);
+        CheckNextWorkPackage(status, findings);
 
         if (files is not null)
         {
@@ -274,6 +275,27 @@ internal static class StatusValidator
         if (!string.Equals(status.Current.Branch, active.Branch, StringComparison.Ordinal))
         {
             findings.Add(Error($"The current branch '{status.Current.Branch}' differs from the branch of {active.Id}, '{active.Branch}'."));
+        }
+    }
+
+    // The maintainer's chosen order is only a preference, so a work package that is not ready yet is allowed. One that does not exist, or that is
+    // already completed, is a mistake in the handoff.
+    private static void CheckNextWorkPackage(StatusDocument status, List<Finding> findings)
+    {
+        if (status.Resume.NextWorkPackage is not { } id)
+        {
+            return;
+        }
+
+        var next = status.FindWorkPackage(id);
+
+        if (next is null)
+        {
+            findings.Add(Error($"'resume.next-work-package' names {id}, which is not in the status file."));
+        }
+        else if (next.State == WorkState.Completed)
+        {
+            findings.Add(Error($"'resume.next-work-package' names {id}, which is already completed. Name the work package that starts next, or remove the field."));
         }
     }
 

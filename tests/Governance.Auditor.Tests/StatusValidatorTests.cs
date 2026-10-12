@@ -159,6 +159,19 @@ public sealed class StatusValidatorTests
     }
 
     [Fact]
+    [Trait("Requirement", "REQ-AI-004")]
+    public void The_chosen_next_work_package_must_exist_and_must_not_be_completed_but_may_be_blocked_by_a_dependency()
+    {
+        var idle = new[] { ("currentWorkPackage", "null"), ("currentBranch", "phase/1-sample"), ("wp12State", "planned") };
+
+        Assert.Empty(Validate(StatusSamples.Build([.. idle, ("nextWorkPackageLine", "next-work-package: \"WP1.2\"")])));
+        Assert.Empty(Validate(StatusSamples.Build([.. idle, ("nextWorkPackageLine", "next-work-package: \"WP2.1\"")])));
+        Assert.Empty(Validate(StatusSamples.Build([.. idle, ("nextWorkPackageLine", "next-work-package: null")])));
+        Assert.Contains(Validate(StatusSamples.Build([.. idle, ("nextWorkPackageLine", "next-work-package: \"WP9.9\"")])), finding => finding.Message.Contains("'resume.next-work-package' names WP9.9, which is not in the status file", StringComparison.Ordinal));
+        Assert.Contains(Validate(StatusSamples.Build([.. idle, ("nextWorkPackageLine", "next-work-package: \"WP1.1\"")])), finding => finding.Message.Contains("WP1.1, which is already completed", StringComparison.Ordinal));
+    }
+
+    [Fact]
     [Trait("Requirement", "REQ-GOV-004")]
     public void Evidence_must_exist_and_a_directory_entry_must_end_with_a_slash()
     {

@@ -57,8 +57,15 @@ internal static class StatusRenderer
             ["Branch", $"`{status.Current.Branch}`"],
             ["Last completed", Cell(status.Resume.LastCompleted)],
             ["Next action", Cell(status.Resume.NextAction)],
-            ["Open pull requests", pullRequests],
         ];
+
+        if (status.Resume.NextWorkPackage is { } nextId)
+        {
+            var next = status.FindWorkPackage(nextId);
+            rows.Add(["Next work package", next is null ? nextId : $"{next.Id}: {Cell(next.Title)}{IssueSuffix(status, next)}"]);
+        }
+
+        rows.Add(["Open pull requests", pullRequests]);
 
         return MarkdownText.Table(["Item", "Value"], rows).TrimEnd('\n');
     }

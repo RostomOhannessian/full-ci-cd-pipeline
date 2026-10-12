@@ -38,6 +38,10 @@
       "properties": {
         "last-completed": { "type": "string", "minLength": 5 },
         "next-action": { "type": "string", "minLength": 5 },
+        "next-work-package": {
+          "description": "Optional. The work package the maintainer chose to start next, when it is not the first one that is ready in list order. governance session prefers it when it is ready.",
+          "oneOf": [{ "$ref": "#/$defs/workPackageId" }, { "type": "null" }]
+        },
         "open-pull-requests": {
           "type": "array",
           "items": {

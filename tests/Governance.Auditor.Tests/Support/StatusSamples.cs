@@ -24,6 +24,7 @@ internal static class StatusSamples
         resume:
           last-completed: "WP1.1 is complete."
           next-action: "Finish WP1.2 | then open a pull request."
+          {{nextWorkPackageLine}}
           open-pull-requests: {{openPullRequests}}
           environment-notes:
             - "Use the noreply identity."
@@ -89,6 +90,7 @@ internal static class StatusSamples
         ["currentWorkPackage"] = "\"WP1.2\"",
         ["currentBranch"] = "wp/1.2-second",
         ["openPullRequests"] = "[]",
+        ["nextWorkPackageLine"] = string.Empty,
         ["phase1State"] = "in_progress",
         ["phase1Branch"] = "phase/1-sample",
         ["phase2State"] = "planned",
