@@ -1,5 +1,5 @@
 schema-version: 1
-last-verified: '2026-10-08'
+last-verified: '2026-10-12'
 areas:
   ARC: Architecture and layering
   DOM: Domain model
@@ -1682,3 +1682,27 @@ requirements:
   - manual
   evidence: ai-skills review record
   status: verified
+- id: REQ-AI-004
+  title: Session boundaries are advised by a deterministic check
+  statement: Each session starts and ends with a deterministic check that reads the status file and the Git state and says whether the next task belongs in a fresh session or in the current one, names the handoff gaps that must close first, and prints the kickoff prompt. The rules are data in a policy file, a fresh session is the default at every work-package and phase boundary, and a bug fix is test-first on a fix branch, so every change, including the smallest, is made in an AI-paired session with the same Definition of Done.
+  source: planning-request
+  delivered-by:
+  - WP1.14
+  verification:
+  - unit
+  - script
+  - docs
+  evidence: session-policy tests, the skill fixture, and the session-boundary-advisor skill
+  status: planned
+- id: REQ-AI-005
+  title: AI usage is recorded for every session and estimated for the work that remains
+  statement: A ledger records for each session, work package, model, and reasoning effort the AI units, calls, tokens, peak context, model time, user turns, compactions, sub-agent share, and size of the change, with the history of earlier sessions back-filled from the session store. A deterministic command validates the ledger, renders a report by phase, work package, model, and effort, and estimates a range for each planned work package from the completed ones, so the AI credits of future phases can be estimated.
+  source: planning-request
+  delivered-by:
+  - WP1.15
+  verification:
+  - unit
+  - script
+  - docs
+  evidence: ledger validation tests, the generated usage report, and the ai-usage-recorder skill
+  status: planned

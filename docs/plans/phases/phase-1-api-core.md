@@ -4,7 +4,7 @@ description: "A production-quality Clean Architecture API that runs locally with
 type: phase-plan
 phase: 1
 audience: [maintainers, learners]
-last-verified: 2026-10-04
+last-verified: 2026-10-12
 owner: "@RostomOhannessian"
 ---
 
@@ -35,6 +35,7 @@ In scope:
 - The product catalog domain, application layer, persistence, transactional outbox, two-level cache, versioned HTTP API, identity integration, and telemetry.
 - The governance and documentation machinery every later phase relies on: the two auditors, the status and traceability tooling, DocFX, and the Dev Container.
 - A first-class developer experience: one command to run the API-only stack, tested onboarding, and a documented host support matrix.
+- The machinery of AI-paired delivery (§5.8): a deterministic session-boundary check, and a ledger of the AI units that each session and work package cost, with an estimate for the work that remains.
 
 Non-goals:
 
@@ -79,6 +80,8 @@ New ADRs are written as decisions are made. Expected ones: the decorator order (
 | 1.11 | Observability | M | OpenTelemetry traces, metrics, and logs (§8.11); redaction; custom metrics; otel-lgtm dashboards provisioned for Compose; telemetry assertion tests using in-memory exporters |
 | 1.12 | Auditor depth and AI skills | M | Security rules for Dockerfile, IaC, and manifest checks (ready for later phases); blast-radius rules for destructive-migration detection, contract-change detection, and docs and test-plan requirements; `/test-plan-evaluator`; fixtures and tests for every rule; policy files under `governance/policies` |
 | 1.13 | Learning content and phase exit | M | Tool and concept pages for Phase 1; labs; Phase 1 test plan and traceability report; threat model update; GitHub Pages publishing from `master` (WIP banner); retrospective; phase PR; `v0.1.0` with git-cliff notes |
+| 1.14 | Session boundaries | S | `governance session --moment start\|end`, which reads `status.yaml` and the Git state and answers `continue`, `fresh`, `finish-handoff`, or `stop`, names the next work package and the handoff gaps (uncommitted changes, unpushed commits, an invalid or stale status page), and prints the kickoff prompt for a work package, for follow-up on an open pull request, or for a test-first bug fix on a `fix/<slug>` branch; the rules and the prompt templates as data in `governance/policies/session-policy.yaml` with a schema; the `/session-boundary-advisor` skill with a tested fixture; the resume and end-of-session protocols in `AGENTS.md` and `/session-handoff` call it; an ADR; a test for every rule on conforming and violating facts (§5.8) |
+| 1.15 | AI usage statistics | M | The ledger `docs/project/ai-usage.yaml` with a schema, which records for each session, work package, model, and reasoning effort the AI units, calls, tokens (fresh input, cache reads and writes, output, reasoning), peak context, model time, user turns, compactions, the share of sub-agents, and the size of the change; `governance usage validate`, `render` (the generated `AI-USAGE.md` by phase, work package, model, and effort), and `estimate` (a range for each planned work package from the completed ones, by size); the `/ai-usage-recorder` skill with the canonical session-store query; the back-fill of Phases 0 and 1 from the local session store; `/session-handoff` records the usage at the end of each session; an ADR; tests with a fixture ledger (§5.8) |
 
 ## Test plan
 
@@ -93,6 +96,7 @@ New ADRs are written as decisions are made. Expected ones: the decorator order (
 | Contract conformance | The authored OpenAPI contract and the served document agree | Blocking |
 | Mutation baseline | The strength of domain and application tests | Reported, not gated |
 | Script tests | The `dev` command and `doctor` behave as documented | Blocking |
+| Session and usage tooling | `governance session` gives the advice of every rule in the policy file, and `governance usage` validates, renders, and estimates from a fixture ledger | Blocking |
 | Documentation checks | DocFX warnings, links, Mermaid, tool inventory, and sections | Blocking |
 | Onboarding | A fresh Dev Container completes the quick start | Weekly and at release |
 
@@ -140,6 +144,7 @@ Negative and failure cases are part of the plan: denied authorization paths, sta
 - The DocFX build, the Pages URL, and the tool inventory audit.
 - Spike reports from WP1.0 and the ADR updates they caused.
 - The retrospective and the `v0.1.0` release notes.
+- The AI usage ledger, with a record for every completed work package and the Phase 0 total, and the `AI-USAGE.md` report with its estimate for Phase 2.
 
 ## Risks and rollback
 
@@ -173,4 +178,5 @@ Rollback: revert the work-package pull request. During Phase 1 the local databas
 - Governance:
   - Both auditors are required and green.
   - Status, Issues, the Milestone, and the retrospective are complete.
+  - The session-boundary check and the AI usage ledger are in use, and every completed work package has its usage recorded.
   - `v0.1.0` is tagged.

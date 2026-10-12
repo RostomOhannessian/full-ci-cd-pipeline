@@ -37,6 +37,8 @@ The planned repository skill set comes from plan section 13.2. Three of the skil
 | [`/blast-radius-evaluator`](../../.github/skills/blast-radius-evaluator/SKILL.md) | WP1.2 core, WP1.12 depth | Runs `governance blast-radius` and summarizes affected layers, gates, and rollback needs | exists |
 | [`/documentation-auditor`](../../.github/skills/documentation-auditor/SKILL.md) | WP1.3, WP1.12 | Runs `documentation audit`, explains the findings, and drafts the missing sections of a tool page from the template | exists |
 | `/test-plan-evaluator` | WP1.12 | Runs `governance trace` and proposes cases for uncovered requirements | planned in WP1.12 |
+| `/session-boundary-advisor` | WP1.14 | Runs `governance session` at the start and the end of a session and says whether the next task belongs in a fresh session or in this one, with the handoff gaps and the kickoff prompt | planned in WP1.14 |
+| `/ai-usage-recorder` | WP1.15 | Reads the session's usage from the session store, writes the ledger entry, and runs `governance usage validate`, `render`, and `estimate` | planned in WP1.15 |
 | [`/adr-assistant`](../../.github/skills/adr-assistant/SKILL.md) | WP0.5 | Scaffolds or updates ADRs from the repository template and evidence rules | exists |
 | [`/tool-doc-author`](../../.github/skills/tool-doc-author/SKILL.md) | WP0.5 | Scaffolds tool pages and inventory entries from repository templates | exists |
 | [`/session-handoff`](../../.github/skills/session-handoff/SKILL.md) | WP0.5 | Updates status and the **Resume here** section, then reminds the maintainer to push | exists |
