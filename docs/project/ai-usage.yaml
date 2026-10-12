@@ -682,3 +682,27 @@ records:
         reasoning-tokens: 21334
         peak-context-tokens: 200489
         model-seconds: 341
+  - session: "dcf73ed7-8ac6-4e88-b532-aebe5b9b7df8"
+    phase: 1
+    activity: coordination
+    confidence: windowed
+    window:
+      from: "2026-10-12T22:19:29.246Z"
+      to: "2026-10-12T22:47:10.265Z"
+    user-turns: 5
+    compactions: 0
+    note: "The same session after its first coordination slice: checking the WP1.15 work after its session reported an error and merging it, the question about the squash commit message of the merged WP1.14 work and the comment on that pull request, starting the session for the squash rule fix, checking its merge, and this record. The calls after this record are not in it."
+    usage:
+      - model: claude-sonnet-5.5
+        reasoning-effort: xhigh
+        agent: main
+        request-multiplier: 1.0
+        calls: 21
+        aiu: 468.362
+        fresh-input-tokens: 52
+        cache-read-tokens: 11615686
+        cache-write-tokens: 1271756
+        output-tokens: 34256
+        reasoning-tokens: 18187
+        peak-context-tokens: 643011
+        model-seconds: 271
