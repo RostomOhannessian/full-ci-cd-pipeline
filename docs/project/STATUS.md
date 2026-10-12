@@ -11,6 +11,8 @@ owner: "@RostomOhannessian"
 
 This page is generated from [status.yaml](status.yaml), which is the source of truth, by `governance status render`. Do not edit it by hand. Change `status.yaml`, run the command, and commit both files. CI fails when this page differs from the command's output. Last updated 2026-10-12.
 
+What the AI-paired sessions cost, by phase and work package, and the estimate for the work that remains, are in [AI usage](AI-USAGE.md).
+
 ## Resume here
 
 | Item | Value |

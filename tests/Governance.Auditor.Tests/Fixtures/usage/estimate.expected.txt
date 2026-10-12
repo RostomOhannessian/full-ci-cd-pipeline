@@ -1,0 +1,27 @@
+usage estimate: AI units (AIU) for the work packages that remain
+  method:
+    - Observe each completed work package: the AIU of its delivery slices in the ledger.
+    - A size class with completed work packages is estimated from their minimum, median, and maximum AIU.
+    - A size class with none is scaled from the AIU for each day of weight of all completed work packages. The weights are the midpoints of plan section 5.7: S 0.5, M 3, and L 6.5 days.
+    - A phase is the sum of its work packages. The command is deterministic, reads the ledger and status.yaml only, and never blocks a merge.
+  observed: 2 completed work packages with delivery usage (WP1.1, WP1.2)
+  by size (observed AIU: n, minimum, median, maximum):
+    S: n 1, min 121, median 121, max 121
+    M: n 1, min 400, median 400, max 400
+    L: no completed work package of this size
+  AIU for each day of weight: min 133, median 187, max 241
+  phase 1: Sample phase
+    WP1.3 (M, planned): 400 to 400, median 400 (by size, 1 observed, so the range is a single point)
+    WP1.4 (S, planned): 121 to 121, median 121 (by size, 1 observed, so the range is a single point)
+    total: 521 to 521, sum of medians 521
+  phase 2: Later phase
+    WP2.1 (L, planned): 867 to 1,567, median 1,217 (scaled by weight, no work package of this size is completed)
+    total: 867 to 1,567, sum of medians 1,217
+  caveats:
+    - Only 2 completed work packages have delivery usage, and no size class has more than 1 of them. A range is a planning aid built on very few observations, and it is not a promise.
+    - No completed work package has the size L, so those packages are scaled from the median AIU for each day of weight of the other sizes. They are the least reliable lines.
+    - AIU does not grow with the days of a size class. A session pays to read the repository and to rewrite its cache whatever the size, so the small packages cost far more for each day of weight than the large ones. The estimate therefore uses the observed AIU of a size class and not a multiple of a day.
+    - The estimate assumes the same models and efforts as the work that it is built from, which was 96.1% model-a at xhigh effort. A different model, a lower effort, or a different price per token changes the AIU of the same work by a large factor.
+    - A request multiplier is recorded for some models but it does not scale the AIU, which the store computes from the token counts and the per-token price of each call (ADR-0031). A model with a multiplier is expensive because of its price per token.
+    - Of the 2 observed work packages, 1 is windowed. A windowed work package shared its session with other work, and its window is derived from the user turns, the pull request times, and the commit times, so its numbers could be off by the calls at the edges of the window.
+    - Planning, coordination, and fixes were 13.3% of the AIU in the ledger, and they are not part of a work package. Add that share when you budget a phase.

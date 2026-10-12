@@ -1,0 +1,92 @@
+# The status file of a small sample project for the usage tests. Phase 1 has two completed work packages (one S and one M) and two planned
+# ones, and phase 2 has one planned L, so the estimate has a size class with no completed work package.
+schema-version: 1
+updated: 2026-01-10
+project:
+  name: "Sample project"
+  repository: "owner/name"
+  plan: "docs/plans/plan.md"
+  plan-version: "1.0.0"
+current:
+  phase: 1
+  work-package: null
+  branch: "phase/1-sample"
+resume:
+  last-completed: "WP1.2 is complete."
+  next-action: "Start WP1.3."
+  open-pull-requests: []
+  environment-notes:
+    - "Use the noreply identity."
+phases:
+  - id: 1
+    name: "Sample phase"
+    state: in_progress
+    branch: "phase/1-sample"
+    plan: "docs/plans/phase-1.md"
+    milestone: "Phase 1: Sample"
+    milestone-url: null
+    release: "v0.1.0"
+    issue: null
+    pull-request: null
+    work-packages:
+      - id: "WP1.1"
+        title: "First"
+        size: S
+        state: completed
+        branch: "wp/1.1-first"
+        issue: 3
+        pull-request: 18
+        depends-on: []
+        evidence: []
+        blockers: []
+      - id: "WP1.2"
+        title: "Second"
+        size: M
+        state: completed
+        branch: "wp/1.2-second"
+        issue: 4
+        pull-request: 19
+        depends-on: ["WP1.1"]
+        evidence: []
+        blockers: []
+      - id: "WP1.3"
+        title: "Third"
+        size: M
+        state: planned
+        branch: null
+        issue: 5
+        pull-request: null
+        depends-on: ["WP1.2"]
+        evidence: []
+        blockers: []
+      - id: "WP1.4"
+        title: "Fourth"
+        size: S
+        state: planned
+        branch: null
+        issue: 6
+        pull-request: null
+        depends-on: ["WP1.2"]
+        evidence: []
+        blockers: []
+  - id: 2
+    name: "Later phase"
+    state: planned
+    branch: "phase/2-later"
+    plan: "docs/plans/phase-2.md"
+    milestone: "Phase 2: Later"
+    milestone-url: null
+    release: "v0.2.0"
+    issue: null
+    pull-request: null
+    work-packages:
+      - id: "WP2.1"
+        title: "Fifth"
+        size: L
+        state: planned
+        branch: null
+        issue: null
+        pull-request: null
+        depends-on: ["WP1.2"]
+        evidence: []
+        blockers: []
