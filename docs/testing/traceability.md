@@ -18,9 +18,9 @@ A requirement is in scope once every work package that delivers it is completed,
 | Measure | Requirements |
 | --- | --- |
 | Requirements | 123 |
-| In scope and covered | 13 |
+| In scope and covered | 14 |
 | In scope and missing proof | 0 |
-| Covered before they are due | 32 |
+| Covered before they are due | 31 |
 | Not yet due | 78 |
 | Deferred or withdrawn | 0 |
 
