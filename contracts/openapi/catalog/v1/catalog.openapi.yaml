@@ -630,7 +630,8 @@ paths:
       description: |
         Replaces the name, description, price, and category of a product. The SKU and the identifier cannot change, so the body does not contain
         them. Requires the `catalog.write` scope and an `If-Match` header with the current `ETag`. A missing header returns 428, and a stale one
-        returns 412. A discontinued product rejects a change of price or category with 409. The response carries the new `ETag`.
+        returns 412. A discontinued product rejects a change of price or category with 409. A product moves only to a category that exists and is
+        active, and a product that stays in a category that was discontinued after it was assigned can still change. The response carries the new `ETag`.
       security:
         - oauth2: [catalog.write]
       parameters:
@@ -1135,7 +1136,7 @@ components:
           $ref: '#/components/schemas/Id'
     ProductUpdate:
       type: object
-      description: The body that replaces a product. A missing description clears it. The category must exist and be active.
+      description: The body that replaces a product. A missing description clears it. The category must exist, and it must be active unless it is the category that the product already belongs to.
       required: [name, price, categoryId]
       additionalProperties: false
       properties:

@@ -1,6 +1,7 @@
 # The top navigation of the site. Each entry opens the index page of one section, and the Diataxis sections come first (plan section 11.1).
-# The API reference is generated into reference/api by the metadata stage. Add its entry here when the first public type exists (WP1.6),
-# because DocFX rejects a navigation entry that points at a page that is not there.
+# The API reference is generated into .docfx/api by the metadata stage and published under reference/api. DocFX resolves a navigation entry
+# against the source files, so the entry names the generated table of contents by its path. It needs a public type, and a build that did not
+# run the metadata stage first fails here, because the file is not there (WP1.6 added the first public types).
 - name: Home
   href: index.md
 - name: Tutorials
@@ -11,6 +12,8 @@
   href: reference/tools/index.md
 - name: API contract
   href: reference/api-contract.md
+- name: API reference
+  href: ../.docfx/api/toc.yml
 - name: Explanation
   href: explanation/index.md
 - name: Decisions

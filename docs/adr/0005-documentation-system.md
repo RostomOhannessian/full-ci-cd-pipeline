@@ -96,6 +96,8 @@ check was shown to fail on a planted defect, and the audit found and fixed inven
 license note, and two dead source links. [ADR-0023](0023-documentation-auditor.md) records the auditor design. The decision does not change. The
 DocFX metadata step accepts one warning, "No .NET API detected", until WP1.6 adds the first public type.
 
+Execution record (WP1.6, 2026-10-12): the domain model added the first public types, so the DocFX metadata exception is removed, and both DocFX steps run with warnings as errors.
+
 Later phases confirm the system continuously whenever tutorials, labs, runbooks, and tool pages are added under the
 same rules.
 

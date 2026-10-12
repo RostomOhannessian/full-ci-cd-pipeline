@@ -5,15 +5,15 @@ function Get-DocFxAllowance {
     .SYNOPSIS
         Returns the DocFX warnings that the documentation build accepts, as regular expressions.
     .DESCRIPTION
-        DocFX warns that it found no .NET API when no project under src has a public type, and it gives the warning no code, so the
-        rules setting in docfx.json cannot silence it. That is true until WP1.6 adds the domain model. The metadata step accepts exactly
-        this warning, and every other warning and error fails the build. Remove the entry in WP1.6, and the test that names it.
+        None. Every warning and every error fails the build. The list was one entry long until WP1.6, because DocFX warns that it found no
+        .NET API while no project under src has a public type, and it gives that warning no code, so the rules setting in docfx.json could not
+        silence it. The domain model ended that, and the entry went with it. A new entry is a reviewed change to this function and to its test.
     #>
     [CmdletBinding()]
     [OutputType([string[]])]
     param()
 
-    return @('^No \.NET API detected')
+    return @()
 }
 
 function Get-DocFxProblem {
@@ -45,7 +45,7 @@ function Get-DocFxProblem {
         $entry = ($chunk -replace '\s*\r?\n\s*', ' ') | ConvertFrom-Json
         if ($entry.severity -notin 'warning', 'error') { continue }
 
-        $matchesAllowance = $entry.severity -eq 'warning' -and @($Allowed | Where-Object { $entry.message -match $_ }).Count -gt 0
+        $matchesAllowance = $entry.severity -eq 'warning' -and @($Allowed | Where-Object { -not [string]::IsNullOrEmpty($_) -and $entry.message -match $_ }).Count -gt 0
         [pscustomobject]@{
             Severity = $entry.severity
             Code     = if ($entry.PSObject.Properties['code']) { $entry.code } else { '' }

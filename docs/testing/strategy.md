@@ -118,5 +118,15 @@ Phase 0 has no application code, so its tests are checks on content, history, an
 dependency tests in `tests/Catalog.Architecture.Tests`, WP1.2 delivers the tests of the governance tool in
 `tests/Governance.Auditor.Tests`, WP1.3 delivers the tests of the documentation auditor in `tests/Documentation.Auditor.Tests`, with the
 Pester tests of the DocFX wrapper in `tools/ci`, and WP1.4 delivers the Pester tests of the `dev` command, the installer, the Compose stack, and the realm
-in `scripts/tests`, with the Dev Container onboarding check in CI. The unit, integration, snapshot, and API suites arrive with the work packages that
+in `scripts/tests`, with the Dev Container onboarding check in CI. WP1.5 delivers the contract tests in `tests/Catalog.Contract.Tests`, and WP1.6 delivers the domain
+tests in `tests/Catalog.Domain.Tests`, the comparison of the domain model with the contract, and the mutation baseline. The application, integration, snapshot, and API suites arrive with the work packages that
 build the code they test.
+
+## Property tests and mutation testing
+
+An example test shows that a rule works for one input, a property test states the rule for every input that a generator can make, and a mutation run shows whether the tests would notice a change to the code.
+
+- **Property tests** use CsCheck. Each one states a rule as an exactly-when property and checks it against an oracle that shares no code with the model, such as integer digit arithmetic for money or a regular expression copied from the contract.
+  CsCheck starts every run from a random seed and prints the seed of a failure, and setting `CsCheck_Seed` to it replays the failing case first, so the tests pin no seed (checked 2026-10-12).
+- **Mutation testing** uses Stryker.NET in a Linux container, with `docker compose -f tools/lint/compose.yaml run --rm mutation`. The score of the domain is 94.62 percent (checked 2026-10-12), it is reported and not a gate, and every survivor is
+  either killed by a new test or recorded as an equivalent mutant ([the evidence record](evidence/2026-10-12-domain-mutation-baseline.md), [ADR-0029](../adr/0029-domain-model-and-mutation-baseline.md)). A nightly report job is a follow-up.

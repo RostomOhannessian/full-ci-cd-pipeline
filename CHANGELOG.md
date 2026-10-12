@@ -52,6 +52,11 @@ Conventional Commits and attached to each release together with its evidence bun
 - `tests/Catalog.Contract.Tests`: 86 tests tagged with requirement IDs that read the contract with Microsoft.OpenApi 2.12.2 and check it against the permission matrix, the error catalog, and the style guide, and that check the patterns of the headers against sample values.
 - `tools/ci/Test-ContractConformance.ps1` and its tests: the comparison of a served OpenAPI document with the contract through oasdiff 1.33.0, which ignores descriptions, examples, and summaries. WP1.10 generates the served document.
 - ADR-0017 accepted, ADR-0027 on the contract linter and the conformance tooling, ADR-0028 on the HTTP conventions of v1, the API contract page, the API style guide, the error catalog, and tool pages for OpenAPI, Spectral, and oasdiff.
+- WP1.6 domain model: `src/Catalog.Domain` with the `Product` and `Category` aggregates, the value objects `Sku`, `ProductName`, `CategoryName`, `Description`, `Money`, `Currency`, `ProductId`, and `CategoryId`, a `DomainResult` that reports a refused rule as a value, and eight versioned, time-stamped domain events. It references the base class library only and takes the time from a `TimeProvider` ([ADR-0029](docs/adr/0029-domain-model-and-mutation-baseline.md), [the domain model page](docs/reference/domain-model.md)).
+- `tests/Catalog.Domain.Tests`: 172 example and property tests tagged with requirement IDs, with AwesomeAssertions, CsCheck property tests against independent oracles, a model-based test of the product lifecycle, `FakeTimeProvider`, and identifiers built from a counter. They cover 99.6 percent of the lines and 98.4 percent of the branches of the Domain.
+- `DomainAgreementTests` in `tests/Catalog.Contract.Tests`, which compares the bounds, the currency and status sets, the SKU pattern over every short string, the error fields, and the error codes of the model with the contract and the error catalog, and the page of the domain model with its events. `AssemblyReferenceTests` in `tests/Catalog.Architecture.Tests`, which reads the references of the built Domain from its metadata.
+- The mutation baseline: Stryker.NET 5.0.0 in the tool manifest, a `mutation` service in `tools/lint/compose.yaml` that runs it in the digest-pinned Linux SDK image on a scratch copy of the repository, and an evidence record that scores the Domain at 94.62 percent and accounts for each survivor. The score is a report and not a gate.
+- Tool pages for AwesomeAssertions, CsCheck, and Stryker.NET, and dependency catalog entries for `Microsoft.Extensions.TimeProvider.Testing` and the .NET SDK image. The documentation site has an API reference for the public types of the Domain.
 
 ### Changed
 
@@ -76,9 +81,14 @@ Conventional Commits and attached to each release together with its evidence bun
 - The tool inventory marks OpenAPI, Spectral, oasdiff, and Microsoft.OpenApi as `in-use` and replaces the `openapi-linter` placeholder with Spectral. Requirement CON-001 is verified, and API-001 to API-005 and CON-002 are in progress until WP1.7, WP1.8, and WP1.10.
 - The `dev` command's unit suite includes `Catalog.Contract.Tests` without a change, because it finds test projects by name.
 - The documentation site build leaves out `.env` and `.dev/`, because it copies every repository file that it does not exclude (the working-tree secret scan found a copy of a generated `.env` in `_site` before the exclusion). The link, spelling, and Markdown checks skip `.dev/`, where `dev bootstrap` installs downloaded tools.
+- The contract and ADR-0028 say that a product is refused a discontinued category only when it moves there, so a product that stays in a category that was discontinued after the assignment can still change. The wording of `updateProduct` and `ProductUpdate` changed, and no field did.
+- The DocFX metadata exception, which accepted the warning "No .NET API detected", is removed now that the Domain has public types. Both DocFX steps run with `--warningsAsErrors`, and the list of accepted warnings is empty.
+- The architecture rule against static mutable fields skips constants and the members of an enum, which ArchUnitNET reports as writable. The metadata of the assemblies identifies them, and the violating fixture still fails the rule.
+- Requirement DOM-002 is verified, and ARC-001, DOM-001, DOM-003, DOM-004, DOM-005, QUA-004, QUA-005, and QUA-006 are in progress until WP1.7, WP1.8, and WP1.10. The tool inventory marks AwesomeAssertions, CsCheck, and Stryker.NET as `in-use`.
 
 ### Fixed
 
+- The DocFX log check accepted every warning when the list of accepted warnings was empty, because an empty list that a function returns became a null pattern when it was passed on. A null or blank pattern now accepts nothing, and a test fails without the fix.
 - Two dead source links in the tool inventory (the Aspire overview and the Grafana docker-lgtm page).
 - The tool inventory listed Stryker.NET as MIT. The package's own license file is Apache-2.0, and the correction is recorded in the decision-critical addendum.
 

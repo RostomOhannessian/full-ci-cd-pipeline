@@ -12,6 +12,11 @@
 #
 # The contract-conformance service compares a served OpenAPI document with the contract through tools/ci/Test-ContractConformance.ps1.
 #
+# The mutation service is not a check. It measures the strength of the domain tests, writes its reports to TestResults/mutation, needs the network,
+# and is the one service here that does not mount the repository alone (see the comment on the service):
+#
+#   docker compose -f tools/lint/compose.yaml run --rm mutation
+#
 # The nightly workflow also runs the external link check, which needs the network:
 #
 #   docker compose -f tools/lint/compose.yaml run --rm external-links
@@ -91,6 +96,23 @@ services:
       - ../..:/workdir:ro
     network_mode: none
     command: ["--help"]
+
+  # Measures the strength of the domain tests with Stryker.NET (ADR-0029). The script copies the repository to a scratch directory, because Stryker rewrites
+  # source files, so the repository mount stays read-only, and it leaves the reports in TestResults/mutation. It restores packages, so it needs the network.
+  # The image is the one of spike 1.c, and the score is reported and not a gate (ADR-0018). Run it from the repository root. It takes a few minutes.
+  mutation:
+    image: mcr.microsoft.com/dotnet/sdk:10.0.401@sha256:e70cdb7f80b0348f5cb85f19a8f670fca061f033d57eed12fa003d58b0e06317
+    working_dir: /repo
+    volumes:
+      - ../..:/repo:ro
+      - ../../TestResults/mutation:/reports
+    environment:
+      # CI turns on the locked restore, so the container restores the same packages that CI does.
+      CI: "true"
+      DOTNET_NOLOGO: "1"
+      DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+      DOTNET_SKIP_FIRST_TIME_EXPERIENCE: "1"
+    entrypoint: ["/bin/bash", "/repo/tools/lint/run-mutation.sh"]
 
   # Secret scan over the complete Git history. Findings are redacted in the output.
   secrets: &gitleaks

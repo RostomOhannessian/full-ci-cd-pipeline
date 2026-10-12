@@ -39,7 +39,8 @@ requirements:
   - architecture
   - docs
   evidence: ArchUnitNET layer report and project graph
-  status: planned
+  status: in_progress
+  notes: WP1.1 enforces the reference table and the type rules against fixtures. WP1.6 fills the Domain with the first production types, reads its assembly references from metadata to prove that it references the base class library only, and teaches the static-state rule that a constant is not mutable state. The Application, Infrastructure, CrossCutting, and Api layers fill in WP1.7, WP1.8, and WP1.10.
 - id: REQ-ARC-002
   title: Api is the only composition root
   statement: Only Catalog.Api may inject IServiceProvider or register dependency wiring, and no business logic may live in the composition root.
@@ -102,7 +103,8 @@ requirements:
   - unit
   - property
   evidence: domain entity and property-test results
-  status: planned
+  status: in_progress
+  notes: WP1.6 delivers ProductId and CategoryId, which accept only a UUID version 7 of the RFC 9562 variant, and aggregates that take an identifier and never make one, with example and property tests over random bytes. The IIdGenerator port and its Guid.CreateVersion7 default belong to the Application layer, so they arrive in WP1.7 (ADR-0029).
 - id: REQ-DOM-002
   title: Catalog value objects enforce normalization and bounds
   statement: Sku, ProductName, CategoryName, Description, and Money normalize input and enforce the bounds, currency rules, and precision described in section 8.3.
@@ -115,7 +117,7 @@ requirements:
   - unit
   - property
   evidence: value-object tests and CsCheck report
-  status: planned
+  status: verified
 - id: REQ-DOM-003
   title: Discontinued products reject mutable changes
   statement: A discontinued product rejects price and category changes, and HTTP discontinue behavior remains idempotent.
@@ -129,7 +131,8 @@ requirements:
   - unit
   - integration
   evidence: lifecycle tests and API denied-change cases
-  status: planned
+  status: in_progress
+  notes: WP1.6 delivers the rule in the model. A discontinued product refuses a new price and a new category with ProductDiscontinued and still changes its name and description, discontinuing twice changes nothing, and a model-based property test holds the rule over random sequences of operations. The HTTP behavior and the denied-change API cases arrive in WP1.10.
 - id: REQ-DOM-004
   title: Domain events are versioned and time-stamped
   statement: Each domain event carries a schemaVersion and an occurredAt value sourced from TimeProvider so outbox payloads stay versioned and deterministic.
@@ -142,7 +145,8 @@ requirements:
   - integration
   - snapshot
   evidence: event snapshots and outbox tests
-  status: planned
+  status: in_progress
+  notes: WP1.6 delivers eight sealed event records that carry EventType, SchemaVersion 1, and an OccurredAt that comes from the TimeProvider, with a golden list of the properties of each event that fails when a shape changes. The event snapshots and the outbox tests arrive in WP1.8.
 - id: REQ-DOM-005
   title: Category assignment requires an active category
   statement: A product may be assigned only to a category that exists and is active at the time of the command.
@@ -156,7 +160,8 @@ requirements:
   - unit
   - integration
   evidence: category invariant tests
-  status: planned
+  status: in_progress
+  notes: WP1.6 delivers the rule in the model. A product is created in, or moved to, an active category only, and a product that stays in a category that was discontinued after the assignment can still change, which the contract and ADR-0028 now say. The model takes the Category as an argument, so the compiler stops code that skips the check. Loading the category and the foreign key that keeps it present arrive with the use cases and the persistence in WP1.7 and WP1.8.
 - id: REQ-APP-001
   title: Use cases use direct CQRS handler interfaces
   statement: Commands and queries execute through explicit ICommandHandler<TCommand, TResult> and IQueryHandler<TQuery, TResult> interfaces with no mediator or runtime type-dispatch layer.
@@ -793,7 +798,8 @@ requirements:
   - integration
   - ci
   evidence: test fixtures and replayable seeds
-  status: planned
+  status: in_progress
+  notes: WP1.1 declares the assembly parallelism and the invariant culture. WP1.6 adds FakeTimeProvider, identifiers built from a counter, synthetic builders, and CsCheck property tests whose failing seed is printed and replays the failure through CsCheck_Seed, and a test shows that one scenario gives the same events on every run. The container images of the integration tests arrive in WP1.8, and the flaky-test policy in WP4.8.
 - id: REQ-QUA-005
   title: Coverage stays above the initial thresholds
   statement: Line coverage stays at or above 90 percent for Domain, 85 percent for Application, and 80 percent across the solution excluding generated code and migrations, and branch coverage stays at or above 80 percent for Domain and Application.
@@ -805,7 +811,8 @@ requirements:
   verification:
   - ci
   evidence: coverage summary
-  status: planned
+  status: in_progress
+  notes: WP1.1 delivers the threshold gate, which fails a build under 90 percent of lines or 80 percent of branches for the Domain. WP1.6 fills the Domain, and its tests cover 99.6 percent of its lines and 98.4 percent of its branches (checked 2026-10-12). The Application thresholds apply from WP1.7.
 - id: REQ-QUA-006
   title: Mutation testing reports and later gates domain test strength
   statement: Domain mutation score is reported from Phase 1 and must reach at least 70 percent before it becomes a blocking gate once the Microsoft.Testing.Platform runner is generally available.
@@ -819,7 +826,8 @@ requirements:
   - ci
   - manual
   evidence: Stryker report
-  status: planned
+  status: in_progress
+  notes: WP1.0 ran the spike. WP1.6 pins Stryker.NET 5.0.0, runs it in the pinned Linux SDK image through the mutation service of tools/lint/compose.yaml, and scores the Domain at 94.62 percent, with every survivor accounted for in the evidence record. The Application baseline arrives in WP1.7, and the gate in WP4.8, once the Microsoft.Testing.Platform runner is generally available.
 - id: REQ-QUA-007
   title: Flaky tests are quarantined and CI meets feedback budgets
   statement: Flaky tests have zero tolerance, quarantines expire after 7 days, blanket retries are forbidden, a typical work-package pull request gets feedback within 15 minutes, and a full master build completes within 30 minutes.

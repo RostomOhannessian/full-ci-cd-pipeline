@@ -1,0 +1,13 @@
+{
+  "$schema": "https://raw.githubusercontent.com/stryker-mutator/stryker-net/master/src/Stryker.Core/Stryker.Core/stryker-config.schema.json",
+  "stryker-config": {
+    "project": "Catalog.Domain.csproj",
+    "test-runner": "mtp",
+    "reporters": ["cleartext", "json", "markdown"],
+    "thresholds": {
+      "high": 85,
+      "low": 70,
+      "break": 0
+    }
+  }
+}

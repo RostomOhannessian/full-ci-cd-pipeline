@@ -3,8 +3,18 @@
 
 namespace Catalog.Architecture.Tests.Fixtures.Clean.Domain
 {
+    // The members of an enum are constants, so the static-state rule must ignore them.
+    public enum WidgetKind
+    {
+        Plain,
+        Fancy,
+    }
+
     public sealed class Widget
     {
+        // A constant cannot change, so the static-state rule must ignore it.
+        public const int Capacity = 8;
+
         private static readonly int MaxNameLength = 100;
 
         public static int NameLimit => MaxNameLength;

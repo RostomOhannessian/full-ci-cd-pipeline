@@ -29,4 +29,12 @@
     <PackageVersion Include="Microsoft.OpenApi.YamlReader" Version="2.12.2" />
   </ItemGroup>
 
+  <!-- Catalog.Domain.Tests (ADR-0018, ADR-0029). AwesomeAssertions and CsCheck are Apache-2.0 and Microsoft.Extensions.TimeProvider.Testing is MIT, and
+       none has a dependency on net10.0. The versions of the first two are the ones of plan section 17, and all three were checked on 2026-10-11. -->
+  <ItemGroup>
+    <PackageVersion Include="AwesomeAssertions" Version="9.6.0" />
+    <PackageVersion Include="CsCheck" Version="4.9.1" />
+    <PackageVersion Include="Microsoft.Extensions.TimeProvider.Testing" Version="10.10.0" />
+  </ItemGroup>
+
 </Project>

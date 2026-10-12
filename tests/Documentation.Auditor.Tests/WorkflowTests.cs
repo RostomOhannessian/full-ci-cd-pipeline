@@ -162,14 +162,16 @@ public sealed class DocsWorkflowTests
 
     [Fact]
     [Trait("Requirement", "REQ-CI-005")]
-    public void The_script_runs_the_build_with_warnings_as_errors_and_the_metadata_step_with_one_named_exception()
+    public void The_script_runs_both_steps_with_warnings_as_errors_and_accepts_no_warning()
     {
         var script = File.ReadAllText(Path.Combine(RealRepository.Root, "tools", "ci", "Invoke-DocFx.ps1"));
         var module = File.ReadAllText(Path.Combine(RealRepository.Root, "tools", "ci", "DocFx.psm1"));
 
-        Assert.Contains("--warningsAsErrors", script, StringComparison.Ordinal);
-        Assert.Contains("-eq 'build'", script, StringComparison.Ordinal);
-        Assert.Single(Regex.Matches(module, @"return @\('\^No \\\.NET API detected'\)", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(1)));
+        // WP1.6 removed the exception for "No .NET API detected", so no step is exempt and the list of accepted warnings is empty.
+        Assert.Contains("'--warningsAsErrors'", script, StringComparison.Ordinal);
+        Assert.DoesNotContain("-eq 'build'", script, StringComparison.Ordinal);
+        Assert.Single(Regex.Matches(module, @"return @\(\)", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(1)));
+        Assert.DoesNotContain("return @('", module, StringComparison.Ordinal);
     }
 
     private static string AllCommands() => string.Join('\n', ((JsonObject)Workflow["jobs"]!).Select(pair => Run((JsonObject)pair.Value!)));
