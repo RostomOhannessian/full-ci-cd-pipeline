@@ -130,7 +130,7 @@ tests, and keeps the inventory rules in a place that only documentation changes 
 
 - **WP1.3** delivers the tool, the policy file, the schema, the workflow, the configuration, the skill, and the tests. The tests run every rule against a conforming repository and a violating
   one, and the self-check tests run the audit over this repository, so a repository that breaks a rule fails the unit tests as well as the workflow.
-- **WP1.6** removes the DocFX metadata exception, when the first public type exists.
+- **WP1.6** removed the DocFX metadata exception, when the first public type existed (see the execution record below).
 - **WP1.13** writes the owed pages and empties the list.
 - **WP1.4, WP3.1, WP3.6, and WP3.8** add the scanners for the formats that each introduces, and remove the matching unsupported source.
 - **WP1.12** reviews the auditor depth, and **WP2.2** consumes the job selection that the blast-radius map describes.
@@ -141,6 +141,10 @@ configuration against its lock file in both directions: a feature that the lock 
 digest each fail. A feature reference without its tag is a new `detect` kind, `feature:`, and a PowerShell module in `tools/versions.yaml` is another, `psmodule:`. The manifest scanner stops at
 a tool of a kind that it cannot read, so a new kind of tool cannot hide in the file. The policy also excludes `.dev/**`, where `dev bootstrap` installs downloaded tools that Git ignores.
 The two kinds are in the inventory schema, the tool reference, and the `tool-doc-author` skill, and 16 tests show each rule failing on a violating fixture.
+
+Execution record (WP1.6, 2026-10-12): the domain model gave `Catalog.Domain` public types, and DocFX 2.81.0 stopped warning "No .NET API detected" for the empty layers
+(the metadata step reports no warning with only that project documented). The exception is removed. `Get-DocFxAllowance` returns an empty list, a Pester test requires it to stay
+empty and shows the old warning failing, and `Invoke-DocFx.ps1` runs the metadata step with `--warningsAsErrors` like the build step. The decision does not change.
 
 ## Pros and cons of the options
 

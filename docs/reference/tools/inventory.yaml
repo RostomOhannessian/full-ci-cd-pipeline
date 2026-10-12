@@ -460,6 +460,25 @@ entries:
     adrs: ["0025"]
     notes: .devcontainer/Dockerfile pins mcr.microsoft.com/devcontainers/dotnet 10.0 at digest sha256:694076b55f447d4b9f5b49bc6616c2e904d63e1a61e43680b2bbea46011b6783, which carried SDK 10.0.401 on Ubuntu 24.04 on 2026-10-10. The image contains software under other licenses, as every Linux distribution image does, and the repository links none of it.
     detect: ["image:mcr.microsoft.com/devcontainers/dotnet"]
+  - id: dotnet-sdk-image
+    name: Microsoft .NET SDK image
+    category: container
+    tier: C
+    lifecycle: adopt
+    usage: in-use
+    introduced: phase-1
+    purpose: Runs the mutation tests in Linux, where Stryker.NET can start, with the SDK that global.json pins.
+    license: MIT
+    license-source: https://github.com/dotnet/dotnet-docker/blob/main/LICENSE
+    version: "10.0.401"
+    repo: https://github.com/dotnet/dotnet-docker
+    sources:
+      - https://github.com/dotnet/dotnet-docker
+      - https://mcr.microsoft.com/en-us/artifact/mar/dotnet/sdk
+      - https://hub.docker.com/r/microsoft/dotnet-sdk
+    adrs: ["0018", "0029"]
+    notes: tools/lint/compose.yaml pins mcr.microsoft.com/dotnet/sdk 10.0.401 at digest sha256:e70cdb7f80b0348f5cb85f19a8f670fca061f033d57eed12fa003d58b0e06317, the image that spike 1.c ran Stryker.NET in. The image contains software under other licenses, as every Linux distribution image does, and the repository links none of it. Only the mutation service uses it, and it needs the network to restore packages.
+    detect: ["image:mcr.microsoft.com/dotnet/sdk"]
   - id: devcontainers-ci
     name: devcontainers/ci
     category: ci-service
@@ -2153,7 +2172,7 @@ entries:
     category: test-tool
     tier: B
     lifecycle: adopt
-    usage: planned
+    usage: in-use
     introduced: phase-1
     purpose: Supplies fluent assertion helpers without the new FluentAssertions commercial terms.
     license: Apache-2.0
@@ -2163,7 +2182,9 @@ entries:
     sources:
       - https://www.nuget.org/packages/AwesomeAssertions
       - https://github.com/AwesomeAssertions/AwesomeAssertions
-    adrs: ["0004", "0018"]
+    adrs: ["0004", "0018", "0029"]
+    notes: The domain tests use it from WP1.6 (checked 2026-10-12). The 9.x line is the fork of FluentAssertions 7 under Apache-2.0, and its namespace is AwesomeAssertions. It has no dependency on net10.0 beyond the framework itself, and the architecture tests keep it out of production projects.
+    detect: ["nuget:AwesomeAssertions"]
   - id: chainsaw
     name: Chainsaw
     category: test-tool
@@ -2204,7 +2225,7 @@ entries:
     category: test-tool
     tier: B
     lifecycle: adopt
-    usage: planned
+    usage: in-use
     introduced: phase-1
     purpose: Supplies the property-based tests used for value objects and invariants.
     license: Apache-2.0
@@ -2214,7 +2235,9 @@ entries:
     sources:
       - https://www.nuget.org/packages/CsCheck
       - https://github.com/AnthonyLloyd/CsCheck
-    adrs: ["0018"]
+    adrs: ["0018", "0029"]
+    notes: The domain tests use it from WP1.6 (checked 2026-10-12). CsCheck starts every run from a random seed and names the seed of a failing case in its message, and setting CsCheck_Seed replays that case first, so a failure from CI can be debugged locally. A fixed seed replays only the first iteration, so the tests do not pin one.
+    detect: ["nuget:CsCheck"]
   - id: fluentassertions
     name: FluentAssertions
     category: test-tool
@@ -2249,6 +2272,25 @@ entries:
       - https://grafana.com/docs/k6/latest/
     adrs: ["0004", "0018"]
     notes: k6 is accepted as a tool-only AGPL dependency under ADR-0004 and is not linked into the distributed application.
+  - id: microsoft-extensions-timeprovider-testing
+    name: Microsoft.Extensions.TimeProvider.Testing
+    category: test-tool
+    tier: C
+    lifecycle: adopt
+    usage: in-use
+    introduced: phase-1
+    purpose: Supplies FakeTimeProvider, so tests control the clock and every time stamp is deterministic.
+    license: MIT
+    license-source: https://www.nuget.org/packages/Microsoft.Extensions.TimeProvider.Testing/10.10.0/license
+    version: "10.10.0"
+    repo: https://github.com/dotnet/extensions
+    sources:
+      - https://www.nuget.org/packages/Microsoft.Extensions.TimeProvider.Testing
+      - https://github.com/dotnet/extensions
+      - https://learn.microsoft.com/dotnet/core/extensions/timeprovider
+    adrs: ["0018", "0029"]
+    notes: The domain tests use it from WP1.6 (checked 2026-10-12). The model takes the time from a TimeProvider argument, and a test passes a FakeTimeProvider that starts at a fixed instant, so no test reads the system clock (plan section 10.3). It stays on the 10.x line with the framework. Only test projects reference it.
+    detect: ["nuget:Microsoft.Extensions.TimeProvider.Testing"]
   - id: ms-code-coverage
     name: Microsoft Code Coverage
     category: test-tool
@@ -2428,7 +2470,7 @@ entries:
     category: test-tool
     tier: B
     lifecycle: trial
-    usage: planned
+    usage: in-use
     introduced: phase-1
     purpose: Measures mutation resistance for the core domain and application logic.
     license: Apache-2.0
@@ -2439,8 +2481,9 @@ entries:
       - https://www.nuget.org/packages/dotnet-stryker
       - https://github.com/stryker-mutator/stryker-net
       - https://stryker-mutator.io/docs/stryker-net/introduction/
-    adrs: ["0018"]
-    notes: Trial because the Microsoft.Testing.Platform runner is still preview, so the plan reports mutation score but does not gate merges on it yet. The license was corrected from MIT to Apache-2.0 after reading the package LICENSE file on 2026-10-06. Spike 1.c ran the MTP runner successfully in a Linux container (58 mutants, score 59.09 percent on a sample project), but the tool cannot start on a Windows host that enforces Smart App Control because many of its DLLs are unsigned. Run restore first, and use the JSON report for numbers.
+    adrs: ["0018", "0029"]
+    notes: Trial because the Microsoft.Testing.Platform runner is still preview, so the plan reports mutation score but does not gate merges on it yet. The license was corrected from MIT to Apache-2.0 after reading the package LICENSE file on 2026-10-06. Spike 1.c ran the MTP runner successfully in a Linux container, but the tool cannot start on a Windows host that enforces Smart App Control because many of its DLLs are unsigned. WP1.6 pinned it in the tool manifest and runs it through the mutation service of tools/lint/compose.yaml, which scored the domain model at 94.62 percent (checked 2026-10-12). Run restore first, and use the JSON report for numbers.
+    detect: ["dotnet-tool:dotnet-stryker"]
   - id: testcontainers-dotnet
     name: Testcontainers for .NET
     category: test-tool

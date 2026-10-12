@@ -101,6 +101,7 @@ tflint
 tfsec
 tfvars
 timebox
+timeprovider
 trailofbits
 truststore
 tufin

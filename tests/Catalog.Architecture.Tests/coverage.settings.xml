@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Settings of Microsoft Code Coverage for the architecture tests (WP1.6). On Linux the extension instruments the assemblies in the output folder, and it adds a
+     tracker type to each one that has code. The architecture rules read those assemblies from disk, so they would see a type that nobody wrote and report that
+     every Domain type depends on it. The architecture tests never run production code, so they have no coverage to report, and excluding the production
+     assemblies keeps the rules reading what ships. The Domain's own coverage comes from the Domain tests. -->
+<Configuration>
+  <CodeCoverage>
+    <ModulePaths>
+      <Exclude>
+        <ModulePath>.*[/\\]Catalog\.(Domain|Application|Contracts|Infrastructure|CrossCutting|Api)\.dll$</ModulePath>
+      </Exclude>
+    </ModulePaths>
+  </CodeCoverage>
+</Configuration>

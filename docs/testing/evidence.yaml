@@ -2,7 +2,7 @@
 # carrying its ID, so they need no entry here. Each entry names a file that must exist. `governance trace` reads this file, checks every
 # path, and renders docs/testing/traceability.md. The schema is evidence.schema.json, and ADR-0022 explains the rules.
 schema-version: 1
-last-verified: '2026-10-11'
+last-verified: '2026-10-12'
 entries:
   - requirements: [REQ-GOV-001]
     kind: docs
@@ -119,3 +119,13 @@ entries:
     path: docs/reference/api-style-guide.md
     summary: The API style guide sets the versioning and deprecation rules with a 180-day support window and the format of the idempotency key, and tests check the window against the decision record.
     recorded: '2026-10-11'
+  - requirements: [REQ-QUA-006]
+    kind: manual
+    path: docs/testing/evidence/2026-10-12-domain-mutation-baseline.md
+    summary: Stryker.NET mutated the domain model in the pinned Linux SDK image and scored its 172 tests at 94.62 percent, with 211 mutants killed and 12 survivors that are classified as 7 equivalent and 5 in static initializers. Removing the Product tests lowered the score to 81.61 percent, which shows that the report finds weak tests.
+    recorded: '2026-10-12'
+  - requirements: [REQ-DOM-004]
+    kind: docs
+    path: docs/reference/domain-model.md
+    summary: The domain model page lists the eight events with their properties, the error codes, the rules, and the lifecycle, and a test parses the page and fails when it disagrees with the events and the error codes of the model.
+    recorded: '2026-10-12'

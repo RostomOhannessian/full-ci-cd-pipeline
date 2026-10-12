@@ -3,7 +3,7 @@ title: "Requirements traceability"
 description: "A generated map from every requirement to the tests and evidence that prove it, and to the work packages that deliver it."
 type: reference
 audience: [maintainers, contributors, learners]
-last-verified: 2026-10-11
+last-verified: 2026-10-12
 owner: "@RostomOhannessian"
 ---
 
@@ -18,10 +18,10 @@ A requirement is in scope once every work package that delivers it is completed,
 | Measure | Requirements |
 | --- | --- |
 | Requirements | 121 |
-| In scope and covered | 11 |
+| In scope and covered | 13 |
 | In scope and missing proof | 0 |
-| Covered before they are due | 27 |
-| Not yet due | 83 |
+| Covered before they are due | 31 |
+| Not yet due | 77 |
 | Deferred or withdrawn | 0 |
 
 ## AI: AI enablement
@@ -60,7 +60,7 @@ A requirement is in scope once every work package that delivers it is completed,
 
 | Requirement | Title | Delivered by | State | Tests | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| `REQ-ARC-001` | Layer references stay within Clean Architecture | WP1.1, WP1.6, WP1.7, WP1.8, WP1.10 | Covered | [ArchitectureRulesTests.cs](../../tests/Catalog.Architecture.Tests/ArchitectureRulesTests.cs), [ReferenceRulesTests.cs](../../tests/Catalog.Architecture.Tests/ReferenceRulesTests.cs) | None |
+| `REQ-ARC-001` | Layer references stay within Clean Architecture | WP1.1, WP1.6, WP1.7, WP1.8, WP1.10 | Covered | [ArchitectureRulesTests.cs](../../tests/Catalog.Architecture.Tests/ArchitectureRulesTests.cs), [AssemblyReferenceTests.cs](../../tests/Catalog.Architecture.Tests/AssemblyReferenceTests.cs), [ReferenceRulesTests.cs](../../tests/Catalog.Architecture.Tests/ReferenceRulesTests.cs) | None |
 | `REQ-ARC-002` | Api is the only composition root | WP1.1, WP1.10 | Covered | [ArchitectureRulesTests.cs](../../tests/Catalog.Architecture.Tests/ArchitectureRulesTests.cs) | None |
 | `REQ-ARC-003` | Application ports are interface-segregated | WP1.7, WP1.8, WP1.9 | Not yet due | None | None |
 | `REQ-ARC-004` | Endpoints depend on contracts and handler interfaces only | WP1.7, WP1.10 | Not yet due | None | None |
@@ -88,7 +88,7 @@ A requirement is in scope once every work package that delivers it is completed,
 
 | Requirement | Title | Delivered by | State | Tests | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| `REQ-CON-001` | The authored OpenAPI document is the contract source of truth | WP1.5 | Covered | [ContractShapeTests.cs](../../tests/Catalog.Contract.Tests/ContractShapeTests.cs), [DocumentationAgreementTests.cs](../../tests/Catalog.Contract.Tests/DocumentationAgreementTests.cs), [ContractRules.Tests.ps1](../../tools/ci/ContractRules.Tests.ps1) | contract: [catalog.openapi.yaml](../../contracts/openapi/catalog/v1/catalog.openapi.yaml), docs: [api-contract.md](../reference/api-contract.md) |
+| `REQ-CON-001` | The authored OpenAPI document is the contract source of truth | WP1.5 | Covered | [ContractShapeTests.cs](../../tests/Catalog.Contract.Tests/ContractShapeTests.cs), [DocumentationAgreementTests.cs](../../tests/Catalog.Contract.Tests/DocumentationAgreementTests.cs), [DomainAgreementTests.cs](../../tests/Catalog.Contract.Tests/DomainAgreementTests.cs), and 1 more | contract: [catalog.openapi.yaml](../../contracts/openapi/catalog/v1/catalog.openapi.yaml), docs: [api-contract.md](../reference/api-contract.md) |
 | `REQ-CON-002` | Served and authored contracts stay structurally equal | WP1.5, WP1.10 | Covered | [ContractConformance.Tests.ps1](../../tools/ci/ContractConformance.Tests.ps1) | None |
 | `REQ-CON-003` | Breaking v1 contract changes are blocked before merge | WP4.1 | Not yet due | None | None |
 | `REQ-CON-004` | The generated Catalog.Client is deterministic and drift-checked | WP4.1, WP4.2 | Not yet due | None | None |
@@ -124,11 +124,11 @@ A requirement is in scope once every work package that delivers it is completed,
 
 | Requirement | Title | Delivered by | State | Tests | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| `REQ-DOM-001` | Catalog aggregates use UUIDv7 identifiers | WP1.6 | Not yet due | None | None |
-| `REQ-DOM-002` | Catalog value objects enforce normalization and bounds | WP1.6 | Not yet due | None | None |
-| `REQ-DOM-003` | Discontinued products reject mutable changes | WP1.6, WP1.10 | Not yet due | None | None |
-| `REQ-DOM-004` | Domain events are versioned and time-stamped | WP1.6, WP1.8 | Not yet due | None | None |
-| `REQ-DOM-005` | Category assignment requires an active category | WP1.6, WP1.8 | Not yet due | None | None |
+| `REQ-DOM-001` | Catalog aggregates use UUIDv7 identifiers | WP1.6 | Covered | [DomainAgreementTests.cs](../../tests/Catalog.Contract.Tests/DomainAgreementTests.cs), [IdentifierTests.cs](../../tests/Catalog.Domain.Tests/IdentifierTests.cs) | None |
+| `REQ-DOM-002` | Catalog value objects enforce normalization and bounds | WP1.6 | Covered | [DomainAgreementTests.cs](../../tests/Catalog.Contract.Tests/DomainAgreementTests.cs), [DescriptionAndSkuTests.cs](../../tests/Catalog.Domain.Tests/DescriptionAndSkuTests.cs), [DomainResultTests.cs](../../tests/Catalog.Domain.Tests/DomainResultTests.cs), and 3 more | None |
+| `REQ-DOM-003` | Discontinued products reject mutable changes | WP1.6, WP1.10 | Covered | [DomainAgreementTests.cs](../../tests/Catalog.Contract.Tests/DomainAgreementTests.cs), [ProductLifecyclePropertyTests.cs](../../tests/Catalog.Domain.Tests/ProductLifecyclePropertyTests.cs), [ProductTests.cs](../../tests/Catalog.Domain.Tests/ProductTests.cs) | None |
+| `REQ-DOM-004` | Domain events are versioned and time-stamped | WP1.6, WP1.8 | Covered | [DomainAgreementTests.cs](../../tests/Catalog.Contract.Tests/DomainAgreementTests.cs), [AggregateRootTests.cs](../../tests/Catalog.Domain.Tests/AggregateRootTests.cs), [CategoryTests.cs](../../tests/Catalog.Domain.Tests/CategoryTests.cs), and 2 more | docs: [domain-model.md](../reference/domain-model.md) |
+| `REQ-DOM-005` | Category assignment requires an active category | WP1.6, WP1.8 | Covered | [CategoryTests.cs](../../tests/Catalog.Domain.Tests/CategoryTests.cs), [ProductTests.cs](../../tests/Catalog.Domain.Tests/ProductTests.cs) | None |
 
 ## DX: Developer experience and portability
 
@@ -221,9 +221,9 @@ A requirement is in scope once every work package that delivers it is completed,
 | `REQ-QUA-001` | Integration suites use real SQL Server Valkey and Keycloak containers | WP1.8, WP1.10, WP4.2 | Not yet due | None | None |
 | `REQ-QUA-002` | The suite matrix blocks changes at the right depth | WP1.1, WP1.8, WP1.10, WP2.2, WP3.1, WP3.6, WP4.2, WP4.8 | Covered | [TestSummaryTests.cs](../../tests/Governance.Auditor.Tests/TestSummaryTests.cs) | None |
 | `REQ-QUA-003` | Traceability fails when an in-scope requirement lacks proof | WP0.2, WP1.2, WP1.13, WP4.8 | Covered | [RepositorySelfCheckTests.cs](../../tests/Governance.Auditor.Tests/RepositorySelfCheckTests.cs), [TraceCommandTests.cs](../../tests/Governance.Auditor.Tests/TraceCommandTests.cs), [TraceTests.cs](../../tests/Governance.Auditor.Tests/TraceTests.cs) | None |
-| `REQ-QUA-004` | Tests remain deterministic across hosts and reruns | WP1.1, WP1.6, WP1.8, WP4.8 | Covered | [TestProjectConventionTests.cs](../../tests/Catalog.Architecture.Tests/TestProjectConventionTests.cs) | None |
+| `REQ-QUA-004` | Tests remain deterministic across hosts and reruns | WP1.1, WP1.6, WP1.8, WP4.8 | Covered | [TestProjectConventionTests.cs](../../tests/Catalog.Architecture.Tests/TestProjectConventionTests.cs), [DomainEventTests.cs](../../tests/Catalog.Domain.Tests/DomainEventTests.cs), [IdentifierTests.cs](../../tests/Catalog.Domain.Tests/IdentifierTests.cs) | None |
 | `REQ-QUA-005` | Coverage stays above the initial thresholds | WP1.1, WP1.6, WP1.7 | Not yet due | None | None |
-| `REQ-QUA-006` | Mutation testing reports and later gates domain test strength | WP1.0, WP1.6, WP1.7, WP4.8 | Not yet due | None | None |
+| `REQ-QUA-006` | Mutation testing reports and later gates domain test strength | WP1.0, WP1.6, WP1.7, WP4.8 | Covered | None | manual: [2026-10-12-domain-mutation-baseline.md](evidence/2026-10-12-domain-mutation-baseline.md) |
 | `REQ-QUA-007` | Flaky tests are quarantined and CI meets feedback budgets | WP1.1, WP2.2, WP4.8 | Not yet due | None | None |
 
 ## SEC: Application and platform security

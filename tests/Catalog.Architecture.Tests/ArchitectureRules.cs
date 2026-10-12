@@ -63,13 +63,14 @@ internal static class ArchitectureRules
             "REQ-ARC-005",
             (layers, strict) => Finish(Classes().That().Are(layers.ProductionClasses).And().HaveNameEndingWith("Handler").Should().NotBePublic().AndShould().BeSealed(), strict)),
 
-        // Compiler-generated static fields, such as the cache of a lambda, are not state that a developer can reach.
+        // Compiler-generated static fields, such as the cache of a lambda, are not state that a developer can reach. Constants cannot change, and the members of an enum are constants.
         new(
             "no-static-mutable-fields-outside-the-composition-root",
             "REQ-ARC-005",
             (layers, strict) => Finish(
                 FieldMembers().That().AreStatic().And().AreDeclaredIn(layers.OutsideComposition)
                     .And().FollowCustomPredicate(field => !field.IsCompilerGenerated, "are not compiler generated")
+                    .And().FollowCustomPredicate(field => !LiteralFields.Contains(field), "are not constants")
                     .Should().BeImmutable(),
                 strict)),
 

@@ -74,8 +74,7 @@ renders Mermaid diagrams without a plugin.
 
    [!code-bash[Generate the API metadata](../../../.github/workflows/docs.yml#docfx-metadata)]
 
-   Expected output: a table that says `DocFX metadata: passed`. While no project under `src` has a public type, the table lists one accepted
-   warning, `No .NET API detected`.
+   Expected output: a table that says `DocFX metadata: passed` and `No warnings and no errors.`
 
 4. Build the site. CI runs this step, which is a workflow step, so the lines below are YAML.
 
@@ -102,10 +101,11 @@ when a page links to a file that does not exist.
   in the repository is copied into `/repo/` as a resource. This is why the globs in `docfx.json` name the hidden folders, such as `.github`, `.config`, and
   `.cspell`, and the files that start with a dot: the pattern `**/*` does not match them. A link to a folder is not a link to a file, so link to a file in it.
 - **API reference.** The metadata stage reads `src/**/*.csproj` and writes to `.docfx/api`, and the build maps that folder to `/reference/api`.
-  The projects are almost empty until the domain model arrives in WP1.6, so there is nothing to show yet.
-- **Warnings are errors.** `tools/ci/Invoke-DocFx.ps1` runs the build with `--warningsAsErrors`. DocFX gives the warning "No .NET API
-  detected" no code, so the configuration cannot silence it, and the metadata step accepts exactly that warning and nothing else. The test in
-  `tools/ci/DocFx.Tests.ps1` names the exception, so adding another one is a reviewed change. Remove it in WP1.6.
+  The public types of `Catalog.Domain` are the first pages, and the navigation links to the reference under **API reference**. The other layers add theirs as they gain code.
+- **Warnings are errors.** `tools/ci/Invoke-DocFx.ps1` runs both steps with `--warningsAsErrors` and checks the log as well. The list of accepted
+  warnings is empty (checked 2026-10-12). Until WP1.6, DocFX warned "No .NET API detected" while no project had a public type, and the metadata step accepted
+  that one warning. The domain model ended it, and the exception was removed. The test in `tools/ci/DocFx.Tests.ps1` requires the list to stay empty, so
+  adding an exception is a reviewed change.
 - **Preview.** The `Documentation site` job in [docs.yml](../../../.github/workflows/docs.yml) uploads `_site` as the `docs-preview` artifact for seven days.
   The site is not published yet. GitHub Pages arrives at the Phase 1 exit (WP1.13).
 - **Includes.** A tutorial shows a command by including a region of a file that CI runs, with a line such as the two in the setup tutorial.
@@ -121,7 +121,7 @@ Run the build as in the setup tutorial. A clean build prints `DocFX build: passe
 | --- | --- | --- |
 | `InvalidFileLink` for a path under `.github` or a file with no extension | The file is not in the content or resource globs of `docfx.json`. The pattern `**/*` skips hidden folders and files that start with a dot | Add an explicit glob for the path, as `docfx.json` does for `.github/**/*` |
 | `InvalidFileLink` for a template page | Templates are not content, so a page that links to one needs the template as a resource | Keep `docs/templates` in the resource list of `docfx.json` |
-| "No .NET API detected" fails the build | The step ran without the script, so nothing accepts the warning | Run `tools/ci/Invoke-DocFx.ps1`, which accepts exactly this warning |
+| A warning fails the metadata or the build step | `tools/ci/Invoke-DocFx.ps1` accepts no warning, and DocFX itself runs with `--warningsAsErrors` | Fix the cause that the table names. Do not add an exception without a reviewed change to `DocFx.psm1` and its test |
 | The metadata step cannot find packages | The metadata stage does not restore (`noRestore` is on in `docfx.json`) | Run `dotnet restore ProductCatalog.slnx` first |
 | A diagram shows its source text | Mermaid works only in the `modern` template | Keep `"modern"` in the `template` list |
 

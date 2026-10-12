@@ -119,6 +119,28 @@ FROM mcr.microsoft.com/devcontainers/dotnet:10.0@sha256:694076b55f447d4b9f5b49bc
 - [The image's source and tags](https://github.com/devcontainers/images/tree/main/src/dotnet) (checked 2026-10-10)
 - [The image on the Microsoft Artifact Registry](https://mcr.microsoft.com/en-us/artifact/mar/devcontainers/dotnet) (checked 2026-10-10)
 
+## Microsoft .NET SDK image
+
+**Purpose.** Runs the mutation tests in Linux with the SDK that `global.json` pins. Stryker.NET cannot start on a Windows host that enforces Smart App Control, because many of its files are not signed (spike 1.c), so the
+mutation service runs it in this image, and a Windows developer needs only Docker.
+
+**Rationale.** It is the image that spike 1.c ran Stryker.NET in, it carries SDK 10.0.401 as `global.json` requires, and Microsoft maintains it. The repository's own Dockerfile image is the Dev Container base, which has a non-root user and tools
+that a one-shot mutation run does not need, so the service uses the plain SDK image. It is MIT licensed, and it contains software under other licenses, as every Linux distribution image does. The repository links none of it. Dependabot proposes updates to
+the tag and the digest, because the Compose file is in a folder that it watches (checked 2026-10-12). [ADR-0029](../../adr/0029-domain-model-and-mutation-baseline.md) records the choice.
+
+**Setup.** The Compose file names the image with its tag and digest, so a run gives the same tools.
+
+```yaml
+image: mcr.microsoft.com/dotnet/sdk:10.0.401@sha256:e70cdb7f80b0348f5cb85f19a8f670fca061f033d57eed12fa003d58b0e06317
+```
+
+**Used by.** The `mutation` service in `tools/lint/compose.yaml`.
+
+**Sources.**
+
+- [The image's source and tags](https://github.com/dotnet/dotnet-docker) (checked 2026-10-12)
+- [The image on the Microsoft Artifact Registry](https://mcr.microsoft.com/en-us/artifact/mar/dotnet/sdk) (checked 2026-10-12)
+
 ## devcontainers/ci
 
 **Purpose.** Builds the Dev Container on a hosted runner and runs the onboarding commands in it.
@@ -187,3 +209,30 @@ settings.AddYamlReader();
 - [OpenAPI.NET repository](https://github.com/Microsoft/OpenAPI.NET) (checked 2026-10-11)
 - [Microsoft.OpenApi.YamlReader 2.12.2 on NuGet](https://www.nuget.org/packages/Microsoft.OpenApi.YamlReader/2.12.2) (checked 2026-10-11)
 - [Upgrade guide to OpenAPI.NET 2.0](https://github.com/microsoft/OpenAPI.NET/blob/main/docs/upgrade-guide-2.md) (checked 2026-10-11)
+
+## Microsoft.Extensions.TimeProvider.Testing
+
+**Purpose.** Supplies `FakeTimeProvider`, a `TimeProvider` that a test controls. The domain model takes the time from a `TimeProvider` argument, and a test starts the fake at a fixed instant, moves it with `Advance` or `SetUtcNow`, and
+checks the exact time stamp of each event. No test reads the system clock, so a result does not depend on the host or the moment (plan section 10.3, REQ-QUA-004).
+
+**Rationale.** `TimeProvider` is part of .NET 8 and later, so the model needs no clock interface of its own, and this package is the maintained fake for it. It is MIT licensed, version 10.10.0 has no dependency beyond the framework for
+`net10.0`, and it stays on the 10.x line with the framework (checked 2026-10-12 in the package metadata on nuget.org). [ADR-0029](../../adr/0029-domain-model-and-mutation-baseline.md) records the choice.
+
+**Setup.** The test project names the package, and the central file holds the version. A test builds the fake at a fixed instant.
+
+```xml
+<PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
+```
+
+```csharp
+var clock = new FakeTimeProvider(new DateTimeOffset(2026, 1, 15, 9, 30, 0, TimeSpan.Zero));
+clock.Advance(TimeSpan.FromMinutes(5));
+```
+
+**Used by.** `tests/Catalog.Domain.Tests`, in `Support/Make.cs`. Only test projects reference it.
+
+**Sources.**
+
+- [Microsoft.Extensions.TimeProvider.Testing 10.10.0 on NuGet](https://www.nuget.org/packages/Microsoft.Extensions.TimeProvider.Testing/10.10.0) (checked 2026-10-12)
+- [The extensions repository](https://github.com/dotnet/extensions) (checked 2026-10-12)
+- [TimeProvider and ITimer in .NET](https://learn.microsoft.com/dotnet/core/extensions/timeprovider) (checked 2026-10-12)

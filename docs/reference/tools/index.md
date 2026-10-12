@@ -34,9 +34,12 @@ A page is named after its inventory ID. Tier C libraries are in [the dependency 
 | [OpenAPI](openapi.md) | A | The format of the authored contract that the API must follow |
 | [Spectral](spectral.md) | B | Lints the contract with the repository's own rules |
 | [oasdiff](oasdiff.md) | B | Compares a served document with the contract |
+| [AwesomeAssertions](awesomeassertions.md) | B | Writes the assertions of the unit tests, without the commercial terms of FluentAssertions 8 |
+| [CsCheck](cscheck.md) | B | Generates the inputs of the property tests and prints the seed of a failure |
+| [Stryker.NET](stryker-net.md) | B | Mutates the domain model to measure how well its tests catch a change |
 
 Eighteen tools that are in use have no page yet, and WP1.13 owes them. The audit reports each as a note, and it fails when WP1.13 is completed and a page is still missing. The Tier C entries for the Dev Container
-features, its base image, the `devcontainers/ci` action, and the two Microsoft.OpenApi packages are in [the dependency catalog](dependency-catalog.md).
+features, the base images, the `devcontainers/ci` action, the two Microsoft.OpenApi packages, and `Microsoft.Extensions.TimeProvider.Testing` are in [the dependency catalog](dependency-catalog.md).
 
 ## What a tool page contains
 

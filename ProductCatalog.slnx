@@ -17,6 +17,7 @@
   <Folder Name="/tests/">
     <Project Path="tests/Catalog.Architecture.Tests/Catalog.Architecture.Tests.csproj" />
     <Project Path="tests/Catalog.Contract.Tests/Catalog.Contract.Tests.csproj" />
+    <Project Path="tests/Catalog.Domain.Tests/Catalog.Domain.Tests.csproj" />
     <Project Path="tests/Documentation.Auditor.Tests/Documentation.Auditor.Tests.csproj" />
     <Project Path="tests/Governance.Auditor.Tests/Governance.Auditor.Tests.csproj" />
   </Folder>

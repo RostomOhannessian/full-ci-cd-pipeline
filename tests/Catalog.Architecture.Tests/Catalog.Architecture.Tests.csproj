@@ -2,6 +2,11 @@
 
   <!-- Architecture tests load the production assemblies and read the project files, so they reference every layer. -->
 
+  <PropertyGroup>
+    <!-- They read the assemblies from disk, so the coverage extension must not instrument them (see coverage.settings.xml). -->
+    <TestingPlatformCommandLineArguments>--coverage-settings "$(MSBuildThisFileDirectory)coverage.settings.xml"</TestingPlatformCommandLineArguments>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="TngTech.ArchUnitNET.xUnitV3" />
   </ItemGroup>

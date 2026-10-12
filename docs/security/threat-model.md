@@ -2,13 +2,13 @@
 title: "Threat model"
 description: "The design-time threat model: assets, actors, trust boundaries, and the planned controls, updated as each phase builds them."
 audience: [maintainers, learners]
-last-verified: 2026-10-11
+last-verified: 2026-10-12
 owner: "@RostomOhannessian"
 ---
 
 # Threat model
 
-**Status: version 1, written in Phase 0 and updated in WP1.1, WP1.2, WP1.3, WP1.4, and WP1.5.** This model describes the *planned* system. A control is delivered only when the
+**Status: version 1, written in Phase 0 and updated in WP1.1, WP1.2, WP1.3, WP1.4, WP1.5, and WP1.6.** This model describes the *planned* system. A control is delivered only when the
 Delivered column says so, and every other control names the phase that delivers it. Each phase updates it, and Phase 4 finalizes it. A work package
 that changes a trust boundary, a data flow, or a credential must update this page (Definition of Done item 7 in [CONTRIBUTING.md](../../CONTRIBUTING.md)).
 
@@ -147,6 +147,7 @@ The boundary between a contributor's machine, the Dev Container, the downloads t
 | A user obtains a scope that their role does not grant, and an API that trusts the `scope` claim lets them in | Elevation of privilege | Keycloak 26.8.0 grants a requested scope to a user without the mapped role, so the catalog realm puts `realm_access.roles` in the token, limited to the user's roles and the requested scopes, and `dev compose check` proves it for three users. The API must require the role as well as the scope (risk R21, [ADR-0026](../adr/0026-api-only-compose-stack-and-catalog-realm.md)) | Realm and check delivered in WP1.4 on 2026-10-10; API enforcement planned in WP1.7 and WP1.10 |
 | The Valkey ACL user can read or write another environment's keys, or flush the cache | Tampering, Elevation of privilege | The default user is off, and the application user starts from `-@all`, adds the measured commands, and reaches only its key and channel patterns. `dev compose check` tries the forbidden actions and expects a refusal. WP1.9 narrows the patterns to the final key scheme | WP1.4 delivered the Compose ACL and the check on 2026-10-10; WP1.9 narrows it |
 | The third-party `devcontainers/ci` action is compromised and runs in the onboarding job | Tampering, Elevation of privilege | The action is pinned by commit SHA, the job has `contents: read` and no secrets, `push` is `never`, and the workflow runs only for paths that the Dev Container uses, weekly, and by hand | WP1.4 delivered 2026-10-10 |
+| The mutation run executes repository code, and a dependency that it restores, as root in a container that has network access, and Stryker.NET rewrites source files | Tampering, Elevation of privilege | The `mutation` service mounts the repository read-only and copies it to a scratch directory in the container, and the copy leaves out `.git`, `.dev`, and the git-ignored `.env`, so no secret is in the container. The only writable mount is `TestResults/mutation`. The image is pinned by digest, the restore is locked and uses the repository's NuGet source mapping and signature rules ([ADR-0020](../adr/0020-dependency-intake-controls.md)), and the tool is pinned with `rollForward` off. No hosted workflow runs it yet, so no token or secret is in reach | WP1.6 delivered 2026-10-12 |
 
 ### TB3: Public Sigstore
 

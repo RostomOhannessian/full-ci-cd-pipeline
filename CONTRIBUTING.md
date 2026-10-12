@@ -111,6 +111,10 @@ The API contract comes before the API ([ADR-0017](docs/adr/0017-contract-first-a
 `docker compose -f tools/lint/compose.yaml run --rm contract-lint`, the contract tests that `dotnet test` runs, and the update of [the API contract page](docs/reference/api-contract.md) and
 [the error catalog](docs/reference/error-catalog.md). [The API style guide](docs/reference/api-style-guide.md) lists the rules and the steps.
 
+A change to a business rule starts in the domain model ([the domain model page](docs/reference/domain-model.md)), and the contract and the model state the same bounds, so a change to one is a change to both. It needs
+a test that names the requirement it proves, a property test when the rule has a range or a set of inputs, and the update of the page. Run `docker compose -f tools/lint/compose.yaml run --rm mutation` to see which
+changes to the model the tests miss ([ADR-0029](docs/adr/0029-domain-model-and-mutation-baseline.md)).
+
 ## Documentation standards
 
 - Every page starts with the front matter described in [docs/templates](docs/templates/tool-page-template.md) and carries a `last-verified` date.

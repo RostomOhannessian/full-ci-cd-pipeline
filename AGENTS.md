@@ -58,13 +58,14 @@ These steps come from plan section 6.
 | `docs/governance/ai-skills.md` | How AI instructions and skills are governed | Maintainer | exists |
 | `docs/governance/github-settings.md` | The GitHub settings, why each was chosen, and the evidence that it is applied | Maintainer | exists |
 | `.github/workflows/docs.yml`, `.github/workflows/ci.yml`, `.github/workflows/governance.yml` | The CI gates: the documentation checks (Markdown, links, spelling, diagrams, the DocFX site, the documentation auditor, and secret scans), the .NET build, tests, coverage, format, and license gate, and the governance auditors | Maintainer | exists |
-| `tools/lint/compose.yaml` | Lint container definitions used locally and in CI | Maintainer | exists |
+| `tools/lint/compose.yaml` | Lint container definitions used locally and in CI, and the `mutation` service that measures the strength of the domain tests | Maintainer | exists |
 | `.github/copilot-instructions.md`, `.github/instructions/`, `.github/skills/` | Repository-wide rules, path-scoped rules, and repository skills | Maintainer | exists |
 | `governance/github/` | Rulesets, labels, and milestones as code, plus a snapshot of the live settings | Maintainer | exists |
 | `governance/policies/` | The license allow-list and its exception, the forbidden-package list, the coverage thresholds, the security policy, and the blast-radius map | Maintainer | exists (WP1.1, WP1.2) |
 | `ProductCatalog.slnx`, `global.json`, `Directory.Build.props`, `Directory.Packages.props`, `NuGet.config`, `.config/dotnet-tools.json` | The solution, the SDK pin, shared build settings, central package versions, NuGet trust settings, and local tools | Maintainer | exists (WP1.1) |
-| `src/` | Six server projects under Clean Architecture boundaries. They hold almost no code yet: the domain, application, and API layers arrive in WP1.6, WP1.7, and WP1.10 | Maintainer | exists (WP1.1) |
-| `tests/Catalog.Architecture.Tests/` | The architecture, reference, and dependency rules, with fixtures that prove each rule can fail | Maintainer | exists (WP1.1) |
+| `src/` | Six server projects under Clean Architecture boundaries. `Catalog.Domain` holds the domain model (WP1.6), which references the base class library only, and the application, persistence, and API layers hold almost no code until WP1.7, WP1.8, and WP1.10 | Maintainer | exists (WP1.1, WP1.6) |
+| `tests/Catalog.Architecture.Tests/` | The architecture, reference, and dependency rules, with fixtures that prove each rule can fail, and the check that the Domain references the base class library only | Maintainer | exists (WP1.1, WP1.6) |
+| `tests/Catalog.Domain.Tests/` | The example tests and the CsCheck property tests of the domain model, with the Stryker.NET configuration for the mutation baseline | Maintainer | exists (WP1.6) |
 | `tests/Governance.Auditor.Tests/` | The tests of the governance tool, including each security rule against a conforming and a violating fixture | Maintainer | exists (WP1.2) |
 | `tools/ci/` | The coverage threshold gate, the DocFX wrapper, the contract conformance script, and their Pester tests, including the tests that break the contract once for each lint rule | Maintainer | exists (WP1.1, WP1.3, WP1.5) |
 | `tools/Governance.Auditor/` | The deterministic governance CLI: status, trace, test-summary, github-sync, security, and blast-radius | Maintainer | exists (WP1.2) |
@@ -76,7 +77,7 @@ These steps come from plan section 6.
 | `identity/keycloak/` | The Keycloak realm files, with `${ENV}` placeholders. The catalog realm exists, and the platform realm arrives in WP3.5 | Maintainer | exists (WP1.4) |
 | `docs/runbooks/`, `docs/labs/` | Operational procedures and hands-on labs. Machine migration and Lab 1 exist | Maintainer | exists (WP1.4) |
 | `contracts/` | The authored OpenAPI contract of the v1 API (`contracts/openapi/catalog/v1/catalog.openapi.yaml`) and the Spectral ruleset that lints it. The contract comes first, and the code follows it | Maintainer | exists (WP1.5) |
-| `tests/Catalog.Contract.Tests/` | The tests that read the contract with Microsoft.OpenApi and check it against the permission matrix, the error catalog, and the style guide | Maintainer | exists (WP1.5) |
+| `tests/Catalog.Contract.Tests/` | The tests that read the contract with Microsoft.OpenApi and check it against the permission matrix, the error catalog, and the style guide, and that compare the domain model with the contract | Maintainer | exists (WP1.5, WP1.6) |
 | `infra/` | Terraform modules and stacks | Maintainer | planned in WP3.1 |
 | `policies/kyverno/` | Kyverno policies, exceptions, and tests | Maintainer | planned in WP3.6 |
 | `k8s/` | GitOps manifests and overlays that Argo CD owns | Maintainer | planned from WP3.8 |
@@ -132,6 +133,13 @@ link to another site. A change to the API contract also needs the contract lint,
 ```text
 docker compose -f tools/lint/compose.yaml run --rm contract-lint
 pwsh -NoProfile -File tools/ci/Test-ContractConformance.ps1 -Served <served document>
+```
+
+A change to the domain model or to its tests can also be measured with a mutation run, which reports how well the tests catch a change to the model. It runs Stryker.NET in a Linux container,
+because Stryker.NET cannot start on a Windows host that enforces Smart App Control. The score is a report and not a gate ([ADR-0029](docs/adr/0029-domain-model-and-mutation-baseline.md)):
+
+```text
+docker compose -f tools/lint/compose.yaml run --rm mutation
 ```
 
 The documentation auditor and the documentation site build need the .NET SDK
