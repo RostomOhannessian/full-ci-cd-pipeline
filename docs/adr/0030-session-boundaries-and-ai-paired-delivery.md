@@ -138,6 +138,15 @@ The design:
 - The end of WP1.14 runs the command on this repository and records the kickoff prompt for the next work package in the pull request.
 - **WP1.15** records the usage of each session, so the cost of a fresh session and of a long one can be compared.
 
+Execution record (squash message rule, 2026-10-12): the three kickoff prompts carry the squash commit message rule, which asks for one logical
+change per pull request and a squash merge with an explicit subject and body, and `SessionPolicyTests` fails when a prompt lacks it. The reason
+is the squash commit of pull request 26 (`18fd243`), which named only the session boundary check and dropped the description, so plan
+amendment 2.1.0 does not show in `git log` or in the release notes of `v0.1.0`. The commit is not rewritten, because the phase ruleset
+forbids non-fast-forward pushes and `status.yaml` cites it by hash. The rule is written once, in
+[CONTRIBUTING.md](../../CONTRIBUTING.md#squash-commit-message), and the prompts, the pull request template, and AGENTS.md point to it. This
+fix is the first bug in work that exists only on a phase branch, and it was made on a branch from `phase/1-api-core`, because the policy file
+is not on `master`. That is a reading of ADR-0003 and not a change to it.
+
 ## Pros and cons of the options
 
 ### One command, a policy file, and a thin skill

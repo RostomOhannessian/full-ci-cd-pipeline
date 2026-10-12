@@ -55,7 +55,30 @@ Use [Conventional Commits](https://www.conventionalcommits.org/): `type(scope): 
 - Commits use the repository's GitHub noreply identity. Do not put personal email addresses in commits
   ([ADR-0006](docs/adr/0006-commit-identity-and-privacy.md)). GitHub uses your account's primary email for merges and squashes it creates, so turn on "Keep my email addresses private" in your account settings before you contribute.
 
-Release notes are generated from these messages, so a precise message is documentation.
+Release notes are generated from these messages, so a precise message is documentation. A squash merge has its own rule, [Squash commit message](#squash-commit-message).
+
+### Squash commit message
+
+A work-package, hotfix, or follow-up pull request is squash-merged, so its squash commit is the history of the phase branch and the source of the generated release notes. It must say what the pull request contains.
+
+- **One logical change per pull request.** A plan amendment is its own `docs(plan):` pull request, merged before the work that depends on it. A plan amendment is a change under `docs/plans/` that bumps the plan version, or a new work package, requirement, or risk.
+- **Subject.** The pull request title is the subject of the squash commit. It names the whole deliverable of the pull request, in 72 characters or fewer. The title check enforces the format, and a reviewer checks the length and the scope.
+- **Body.** Short bullets, one for each logical change in the pull request, then `Part of #N` (leave the line out when there is no Issue) and the `Co-authored-by` trailer.
+- **Merge.** Pass the subject and the body explicitly: `gh pr merge N --squash --subject "..." --body "..."`. Never merge with an empty body or with only the trailer, because GitHub then drops the description, and `git log` and the git-cliff release notes never show what the pull request changed.
+
+For example:
+
+```text
+fix(process): require a descriptive squash commit message
+
+- CONTRIBUTING.md states the rule: one logical change per pull request and a body that summarizes each change.
+- The pull request template asks for the subject and the body.
+- The kickoff prompts of the session policy carry the rule.
+
+Co-authored-by: Copilot App <223556219+Copilot@users.noreply.github.com>
+```
+
+The pull request template has a section for the subject and the body, so the text is reviewed before the merge.
 
 ### Definition of Ready and Done
 

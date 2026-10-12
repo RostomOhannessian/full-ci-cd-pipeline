@@ -17,11 +17,11 @@ The unit is the AI unit (AIU) that the Copilot session store reports for each mo
 
 | Measure | Value |
 | --- | --- |
-| Sessions | 7 |
-| Slices (records) | 17 |
-| Calls | 3,405 |
-| AIU | 26,997 |
-| Model time | 12.7 hours |
+| Sessions | 8 |
+| Slices (records) | 18 |
+| Calls | 3,466 |
+| AIU | 27,175 |
+| Model time | 12.8 hours |
 | Period | 2026-08-22 to 2026-10-12 |
 | Peak context | 760,572 tokens in one call (session 1667626f) |
 | Compactions | 6 |
@@ -33,7 +33,7 @@ Delivery is the work of a work package. Planning is the work on the plan itself,
 | Phase | Name | Delivery AIU | Planning AIU | Coordination AIU | Fix AIU | Total AIU | Calls |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | 0 | Foundation and early publication | 5,133 | 3,989 | 0 | 0 | 9,122 | 845 |
-| 1 | API core, data layer, and engineering foundation | 16,318 | 406 | 1,151 | 0 | 17,875 | 2,560 |
+| 1 | API core, data layer, and engineering foundation | 16,318 | 406 | 1,151 | 178 | 18,053 | 2,621 |
 
 - Phase 0 is recorded at phase level: Phase 0 was built in one session before work packages were tracked one by one, so its usage is recorded at phase level. WP0.1 to WP0.7 have no records of their own. Its pull requests changed 112 files, with 14,527 additions and 97 deletions.
 
@@ -69,11 +69,11 @@ Tokens are the sums over the calls. Fresh input is the input that was not served
 
 | Model | Effort | Agent | Calls | AIU | Share | Fresh input | Cache read | Cache write | Output | Reasoning |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `claude-sonnet-5.5` | xhigh | main | 2,101 | 15,125 | 56.0% | 4,276 | 792,098,133 | 13,671,885 | 3,391,295 | 1,313,260 |
-| `claude-sonnet-5.5` | max | main | 267 | 3,286 | 12.2% | 540 | 109,560,772 | 1,694,395 | 670,943 | 359,068 |
+| `claude-sonnet-5.5` | xhigh | main | 2,162 | 15,302 | 56.3% | 4,402 | 801,069,721 | 13,829,640 | 3,439,915 | 1,334,594 |
+| `claude-sonnet-5.5` | max | main | 267 | 3,286 | 12.1% | 540 | 109,560,772 | 1,694,395 | 670,943 | 359,068 |
 | `claude-sonnet-5` | max | sub-agent | 228 | 1,979 | 7.3% | 456 | 33,911,498 | 2,424,933 | 694,892 | 420,606 |
 | `claude-opus-5.5` | max | main | 47 | 1,920 | 7.1% | 100 | 13,431,481 | 2,055,935 | 311,617 | 178,379 |
-| `claude-sonnet-5.5` | xhigh | sub-agent | 425 | 1,776 | 6.6% | 868 | 75,540,018 | 1,865,329 | 553,819 | 321,169 |
+| `claude-sonnet-5.5` | xhigh | sub-agent | 425 | 1,776 | 6.5% | 868 | 75,540,018 | 1,865,329 | 553,819 | 321,169 |
 | `gpt-5.4` | medium | sub-agent | 261 | 1,463 | 5.4% | 1,336,349 | 25,492,480 | 0 | 327,463 | 127,820 |
 | `claude-sonnet-5.5` | medium | main | 30 | 999 | 3.7% | 84 | 10,239,327 | 3,544,771 | 10,569 | 214 |
 | `claude-opus-5.5` | high | main | 1 | 249 | 0.9% | 4 | 0 | 483,866 | 3,568 | 69 |
@@ -93,3 +93,4 @@ A session is an opaque ID, shown by its first eight characters. A session that s
 | `dcf73ed7` | 5 | 1,233 | 7,724 | 721,597 | 2 | 2026-10-10 | 2026-10-12 |
 | `2072a7ae` | 1 | 196 | 1,474 | 525,136 | 0 | 2026-10-12 | 2026-10-12 |
 | `e16afa95` | 2 | 177 | 1,236 | 520,070 | 0 | 2026-10-12 | 2026-10-12 |
+| `74a18e87` | 1 | 61 | 178 | 200,489 | 0 | 2026-10-12 | 2026-10-12 |

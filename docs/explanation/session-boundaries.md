@@ -139,9 +139,9 @@ their placeholders from `status.yaml`: the work package, its Issue, the phase pl
 
 | Task | What the prompt asks of the session |
 | --- | --- |
-| Work package | Resume from the repository, check that the working tree is clean, work on the `wp/<phase>.<nn>-<slug>` branch from the phase branch in the main checkout and never in a worktree, read the listed files, ask before every push, merge, or settings change, meet the Definition of Done, and end with `/session-handoff`. |
-| Pull request follow-up | Fix the review comments and the failed checks of one pull request, and nothing else. |
-| Bug fix | Work on a `fix/<slug>` branch, write the failing regression test first and tag it with the requirement that it protects, run the blast-radius evaluator, update the changelog, and meet the same Definition of Done as a feature. |
+| Work package | Resume from the repository, check that the working tree is clean, work on the `wp/<phase>.<nn>-<slug>` branch from the phase branch in the main checkout and never in a worktree, read the listed files, ask before every push, merge, or settings change, meet the Definition of Done, squash-merge with an explicit subject and body ([the squash rule](../../CONTRIBUTING.md#squash-commit-message)), and end with `/session-handoff`. |
+| Pull request follow-up | Fix the review comments and the failed checks of one pull request, and nothing else, and squash-merge it with an explicit subject and body. |
+| Bug fix | Work on a `fix/<slug>` branch, write the failing regression test first and tag it with the requirement that it protects, run the blast-radius evaluator, update the changelog, meet the same Definition of Done as a feature, and squash-merge with an explicit subject and body. |
 
 Every change is paired with an AI session, even a one-line fix, so a bug fix leaves the same evidence as a feature: a test that failed first, a
 changelog entry, and a reviewed pull request. [ADR-0003](../adr/0003-branch-and-work-package-protocol.md) defines a hotfix as a `fix/<slug>`

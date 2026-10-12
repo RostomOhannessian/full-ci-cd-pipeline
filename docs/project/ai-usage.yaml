@@ -657,3 +657,28 @@ records:
         reasoning-tokens: 2936
         peak-context-tokens: 520070
         model-seconds: 94
+  - session: "74a18e87-962f-4fcb-97e6-9947d201097a"
+    phase: 1
+    work-package: "WP1.14"
+    activity: fix
+    confidence: exact
+    window:
+      from: "2026-10-12T22:27:03.047Z"
+      to: "2026-10-12T22:39:17.927Z"
+    user-turns: 1
+    compactions: 0
+    note: "A session that the maintainer started for one process fix to the merged work of WP1.14, the squash commit message rule, and that holds that fix alone. The window ends when the draft pull request was open, so the calls after this record are not in it."
+    usage:
+      - model: claude-sonnet-5.5
+        reasoning-effort: xhigh
+        agent: main
+        request-multiplier: 1.0
+        calls: 61
+        aiu: 177.8
+        fresh-input-tokens: 126
+        cache-read-tokens: 8971588
+        cache-write-tokens: 157755
+        output-tokens: 48620
+        reasoning-tokens: 21334
+        peak-context-tokens: 200489
+        model-seconds: 341

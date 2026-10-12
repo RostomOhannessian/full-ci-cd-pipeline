@@ -100,6 +100,7 @@ Conventional Commits and attached to each release together with its evidence bun
 - Requirement DOM-002 is verified, and ARC-001, DOM-001, DOM-003, DOM-004, DOM-005, QUA-004, QUA-005, and QUA-006 are in progress until WP1.7, WP1.8, and WP1.10. The tool inventory marks AwesomeAssertions, CsCheck, and Stryker.NET as `in-use`.
 - The resume protocol and the end-of-session protocol in AGENTS.md, the repository instructions, and the AI skills page call the session boundary check, and the skill `/session-boundary-advisor` moves from planned to exists. Requirement AI-004 is verified.
 - The end-of-session protocol in AGENTS.md and `/session-handoff` record the AI usage of the session before the session boundary check, the generated status page links to the usage report, and the skill `/ai-usage-recorder` moves from planned to exists. Requirement AI-005 is verified. The AIU is not converted to money: GitHub bills 1 AI credit as $0.01 USD, and the store's prices match the published ones for the models used here, but plans, allowances, and discounts decide the bill (checked 2026-10-12).
+- A squash merge has a written rule: one logical change per pull request, a plan amendment in its own `docs(plan):` pull request, and a subject and body that name and summarize every change. CONTRIBUTING.md states it, and the pull request template, AGENTS.md, and the three kickoff prompts point to it. The squash commit of pull request 26 named only the session boundary check and omitted plan amendment 2.1.0 and WP1.13 checks the `v0.1.0` release notes for that gap.
 
 ### Fixed
 

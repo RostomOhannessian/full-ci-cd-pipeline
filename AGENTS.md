@@ -102,6 +102,7 @@ Follow [ADR-0003](docs/adr/0003-branch-and-work-package-protocol.md) and [CONTRI
 - Phase PRs target `master` and merge with a merge commit after the phase exit gate passes.
 - Dependabot PRs target `master`; merge `master` back into the active phase branch by PR at least weekly and before the phase PR.
 - Use Conventional Commits for commits and PR titles: `type(scope): summary`.
+- Squash-merge with an explicit subject and body that summarize every change, and keep a plan amendment in its own `docs(plan):` pull request ([CONTRIBUTING.md](CONTRIBUTING.md#squash-commit-message)).
 
 ## Commit identity and privacy
 
