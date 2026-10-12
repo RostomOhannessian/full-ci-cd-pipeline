@@ -24,6 +24,7 @@ internal static class StatusSamples
         resume:
           last-completed: "WP1.1 is complete."
           next-action: "Finish WP1.2 | then open a pull request."
+          {{nextWorkPackageLine}}
           open-pull-requests: {{openPullRequests}}
           environment-notes:
             - "Use the noreply identity."
@@ -50,14 +51,14 @@ internal static class StatusSamples
                 evidence: {{wp11Evidence}}
                 blockers: []
               - id: "WP1.2"
-                title: "Second"
+                title: "{{wp12Title}}"
                 size: M
                 state: {{wp12State}}
                 branch: {{wp12Branch}}
                 issue: 4
                 pull-request: null
                 depends-on: {{wp12DependsOn}}
-                evidence: []
+                evidence: {{wp12Evidence}}
                 blockers: {{wp12Blockers}}
           - id: 2
             name: "Later phase"
@@ -79,7 +80,7 @@ internal static class StatusSamples
                 pull-request: null
                 depends-on: ["WP1.2"]
                 evidence: []
-                blockers: []
+                blockers: {{wp21Blockers}}
         """;
 
     private static readonly Dictionary<string, string> Defaults = new(StringComparer.Ordinal)
@@ -89,6 +90,7 @@ internal static class StatusSamples
         ["currentWorkPackage"] = "\"WP1.2\"",
         ["currentBranch"] = "wp/1.2-second",
         ["openPullRequests"] = "[]",
+        ["nextWorkPackageLine"] = string.Empty,
         ["phase1State"] = "in_progress",
         ["phase1Branch"] = "phase/1-sample",
         ["phase2State"] = "planned",
@@ -99,11 +101,14 @@ internal static class StatusSamples
         ["wp11DependsOn"] = "[]",
         ["wp11Evidence"] = "[\"docs/evidence/first.md\", \"docs/evidence/\"]",
         ["wp12State"] = "in_progress",
+        ["wp12Title"] = "Second",
         ["wp12Branch"] = "\"wp/1.2-second\"",
         ["wp12DependsOn"] = "[\"WP1.1\"]",
+        ["wp12Evidence"] = "[]",
         ["wp12Blockers"] = "[]",
         ["wp21Id"] = "WP2.1",
         ["wp21State"] = "planned",
+        ["wp21Blockers"] = "[]",
     };
 
     public static string Valid => Build();

@@ -94,6 +94,9 @@ internal sealed record ResumeInfo
 
     public required string NextAction { get; init; }
 
+    /// <summary>The work package the maintainer chose to start next. When it is null, the first ready work package in list order is next.</summary>
+    public string? NextWorkPackage { get; init; }
+
     public required IReadOnlyList<OpenPullRequest> OpenPullRequests { get; init; }
 
     public required IReadOnlyList<string> EnvironmentNotes { get; init; }

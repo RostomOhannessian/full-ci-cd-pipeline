@@ -3,7 +3,7 @@ title: "Risk register"
 description: "The live register of the project's delivery, security, and operational risks, with mitigations, revisit triggers, and the phases that address them."
 type: reference
 audience: [maintainers, contributors]
-last-verified: 2026-10-10
+last-verified: 2026-10-12
 owner: "@RostomOhannessian"
 ---
 
@@ -43,6 +43,7 @@ This is the live copy of the initial risk list in [section 16 of the implementat
 | R20 | A pull request weakens the governance auditors that audit it, because the auditor is built from the pull request's own source | M | H | The blast-radius map flags a change under `tools/Governance.Auditor/` for a close human read; the rules and policies are covered by tests that run each rule against a conforming and a violating fixture; the policy files sit under `governance/`, which CODEOWNERS covers; the maintainer decides whether to add `tools/Governance.Auditor/` to CODEOWNERS ([ADR-0021](../adr/0021-governance-auditor-cli.md)). A later option is to run the base branch's copy of the tool | A change under `tools/Governance.Auditor/` or `governance/policies/` that removes or relaxes a rule | 1, 2 | open |
 | R21 | An API that trusts the `scope` claim lets a user escalate, because Keycloak 26.8.0 grants a requested scope to a user who lacks the role that the scope maps to | M | H | The catalog realm puts `realm_access.roles` in the token, limited to the user's own roles and the requested scopes; `dev compose check` proves it for the three demo users; the API must require the role as well as the scope (WP1.7 and WP1.10), and `Catalog.Identity.ContractTests` prove it against the real realm file (WP1.10). The maintainer decides whether to amend plan section 8.7 ([ADR-0026](../adr/0026-api-only-compose-stack-and-catalog-realm.md)) | An authorization test that passes on the scope alone; a Keycloak release that changes scope gating | 1, 3 | open |
 | R22 | The Dev Container runs privileged, because docker-in-docker needs it, so code in it could reach the host's Docker VM | L | M | The daemon is private to the container and no host socket is mounted; the stack binds only to loopback; Codespaces runs the container in a throwaway virtual machine; the threat model lists the boundary; the base image, the features, and the action are pinned and reviewed ([ADR-0025](../adr/0025-dev-command-and-dev-container.md)) | A feature release that changes its privilege model; a move to rootless Docker | 1 | accepted |
+| R23 | The AI credits that the remaining phases need are unknown, so the delivery could outrun its budget or stop in the middle of a phase, and a long session could lose detail when its context is compacted | M | M | Every session records its AI units, model, effort, and context in the ledger, a generated report and an estimate cover each planned work package, and a deterministic check starts a fresh session at each work-package and phase boundary, which keeps the context small (plan section 5.8, WP1.14, WP1.15) | An estimate for a phase that is more than half again as large as the last phase; a work package whose cost is more than twice its size class | 1 | open |
 
 ## Closed risks
 

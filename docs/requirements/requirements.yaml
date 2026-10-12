@@ -1,5 +1,5 @@
 schema-version: 1
-last-verified: '2026-10-08'
+last-verified: '2026-10-12'
 areas:
   ARC: Architecture and layering
   DOM: Domain model
@@ -1682,3 +1682,28 @@ requirements:
   - manual
   evidence: ai-skills review record
   status: verified
+- id: REQ-AI-004
+  title: Session boundaries are advised by a deterministic check
+  statement: Each session starts and ends with a deterministic check that reads the status file and the Git state and says whether the next task belongs in a fresh session or in the current one, names the handoff gaps that must close first, and prints the kickoff prompt. The rules are data in a policy file, a fresh session is the default at every work-package and phase boundary, and a bug fix is test-first on a fix branch, so every change, including the smallest, is made in an AI-paired session with the same Definition of Done.
+  source: planning-request
+  delivered-by:
+  - WP1.14
+  verification:
+  - unit
+  - script
+  - docs
+  evidence: session-policy tests, the skill fixture, and the session-boundary-advisor skill
+  status: verified
+  notes: WP1.14 delivers the whole requirement, and WP1.15 does not change it. The command, the policy file with its schema, the skill with two golden fixtures, and the tests that check every rule on facts that match and facts that do not exist, and AGENTS.md and /session-handoff call the check. The check is advice, so CI does not run it, and that every session really starts and ends with it is a practice that the resume and end-of-session protocols require and that each later handoff shows. ADR-0030 records the decision.
+- id: REQ-AI-005
+  title: AI usage is recorded for every session and estimated for the work that remains
+  statement: A ledger records for each session, work package, model, and reasoning effort the AI units, calls, tokens, peak context, model time, user turns, compactions, sub-agent share, and size of the change, with the history of earlier sessions back-filled from the session store. A deterministic command validates the ledger, renders a report by phase, work package, model, and effort, and estimates a range for each planned work package from the completed ones, so the AI credits of future phases can be estimated.
+  source: planning-request
+  delivered-by:
+  - WP1.15
+  verification:
+  - unit
+  - script
+  - docs
+  evidence: ledger validation tests, the generated usage report, and the ai-usage-recorder skill
+  status: planned

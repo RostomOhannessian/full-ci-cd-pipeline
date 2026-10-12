@@ -2,11 +2,11 @@
 title: "Secure Product Catalog Platform: implementation plan"
 description: "The approved plan of record: decisions, architecture, delivery model, quality strategy, and the phase overview."
 type: plan
-version: 2.0.2
+version: 2.1.0
 status: approved
 date: 2026-10-04
 audience: [maintainers, learners]
-last-verified: 2026-10-04
+last-verified: 2026-10-12
 owner: "@RostomOhannessian"
 ---
 
@@ -14,8 +14,8 @@ owner: "@RostomOhannessian"
 
 | Field | Value |
 | --- | --- |
-| Version | 2.0.2 |
-| Date | 2026-10-04 |
+| Version | 2.1.0 |
+| Date | 2026-10-04 (amended 2026-10-12) |
 | Status | Approved by the project owner on 2026-10-04. This file is the plan of record. Amend it by pull request and add a revision entry (section 19). |
 | Phase plans | One file per phase, listed in section 14 |
 | Evidence | Dated research records in [docs/research](../research/README.md) |
@@ -299,6 +299,17 @@ Each phase begins with work package `x.0`: time-boxed spikes of one day or less 
 
 A work package estimated above L must be split. Sizes guide sequencing only; the plan sets no calendar dates.
 
+### 5.8 AI-paired delivery
+
+Every change to this repository is made in an AI-paired session, including the smallest bug fix. The session is the unit of context, so it has a boundary at each end.
+
+- **Start.** The session reads the repository and not its memory (§6), then runs the session-boundary check, which says whether this session should do the task or a fresh one should (`/session-boundary-advisor`, from WP1.14).
+- **End.** The session updates `status.yaml` and renders `STATUS.md`, commits, pushes with the maintainer's approval, records what the session cost (`/ai-usage-recorder`, from WP1.15), and runs the boundary check again. The check names the next session and prints its kickoff prompt.
+
+A **fresh session** is the default at every work-package boundary and every phase boundary, after the context has been compacted, and for a bug fix in work that has already merged. A session **continues** only for follow-up on its own open pull request (review comments or a failed check) while its context is intact. A bug fix is test-first on a `fix/<slug>` branch, carries the ID of the requirement that it protects, and meets the same Definition of Done as any change (§5.4), so a one-line fix leaves the same evidence as a feature. The rules are data in `governance/policies/session-policy.yaml`, and `governance session` applies them, so the advice is reproducible and a skill never decides it.
+
+**AI usage statistics.** Each session records what it cost: AI units (AIU, which the Copilot session store reports as `total_nano_aiu` and which this plan treats as its AI credits, with no conversion to money assumed), the model and the reasoning effort, the number of calls, the tokens (fresh input, cache reads and writes, output, and reasoning), the peak context, the model time, the user turns, the compactions, the share of sub-agents, and the size of the change that the work produced. The ledger is `docs/project/ai-usage.yaml`, the generated report is `docs/project/AI-USAGE.md`, and `governance usage estimate` turns the completed work packages into a range for the planned ones. The purpose is to estimate the AI credits that the remaining phases need. The history of the sessions that built Phase 0 and Phase 1 is back-filled, and every later session adds its own numbers, so the estimate improves as the ledger grows (from WP1.15).
+
 ## 6. Portable planning, progress, and handoff
 
 | Artifact | Purpose |
@@ -317,9 +328,10 @@ A work package estimated above L must be split. Sizes guide sequencing only; the
 
 1. Clone or pull, then open the Dev Container.
 2. Read `STATUS.md` → **Resume here**.
-3. Check out the active branch.
-4. Run `dev doctor`.
-5. Continue with the next action.
+3. Run the session-boundary check (from WP1.14). If it says that a fresh session should do the task, stop and give the maintainer the kickoff prompt that it prints.
+4. Check out the active branch.
+5. Run `dev doctor`.
+6. Continue with the next action.
 
 **End-of-session protocol:**
 
@@ -327,6 +339,8 @@ A work package estimated above L must be split. Sizes guide sequencing only; the
 2. Regenerate `STATUS.md`.
 3. Commit and push.
 4. Keep the draft PR current.
+5. Record the session's AI usage in the ledger (from WP1.15).
+6. Run the session-boundary check (from WP1.14), and give the maintainer the kickoff prompt for the next session.
 
 **Rules that keep work portable:**
 
@@ -835,7 +849,7 @@ sequenceDiagram
 | Breaking change | oasdiff against the last release | v1 compatibility | Every PR (from WP4.1) | Blocking |
 | Consumer/provider contract | PactNet; provider on Kestrel (`UseKestrel`) | Client expectations vs. API | PRs; `master` (from WP4.2) | Blocking |
 | API property-based | Schemathesis | Robustness and schema conformance | Contract changes; nightly | Blocking on new failures |
-| Mutation | Stryker.NET (MTP runner is preview) | Strength of Domain and Application tests | Nightly | Reported; becomes a gate when the runner is GA |
+| Mutation | Stryker.NET (MTP runner is preview) | Strength of Domain and Application tests | By hand through the `mutation` service from WP1.6; nightly through [optional extension A](phases/optional-extensions.md) | Reported; becomes a gate when the runner is GA |
 | Image | `Catalog.Image.Tests` (Testcontainers), Trivy, Syft | Non-root user, ports, no build tools, vulnerabilities, size budget | Image changes; `master` | Blocking |
 | Workflow security | actionlint, zizmor, Governance.Auditor | Permissions, pinning, injection, secrets usage | Every PR | Blocking |
 | IaC | `terraform fmt`/`validate`/`test`, tflint, Trivy IaC | Modules and misconfigurations | Infrastructure changes | Blocking |
@@ -1050,7 +1064,9 @@ It fails the build when anything it finds has no inventory entry or documentatio
 | `/test-plan-evaluator` | WP1.12 | Runs `governance trace` and proposes test cases for uncovered requirements. |
 | `/adr-assistant` | WP0.5 | Creates or updates ADRs from the template, including evidence and sources. |
 | `/tool-doc-author` | WP0.5 | Scaffolds tool pages with all required sections and their inventory entries. |
-| `/session-handoff` | WP0.5 | Updates `status.yaml` and the **Resume here** section, then reminds you to push. |
+| `/session-handoff` | WP0.5 | Updates `status.yaml` and the **Resume here** section, then reminds you to push. From WP1.14 it ends by running the session-boundary check, and from WP1.15 by recording the session's AI usage. |
+| `/session-boundary-advisor` | WP1.14 | Runs `governance session` at the start and the end of a session. It says whether the next task belongs in a fresh session or in this one, names the handoff gaps that must close first, and prints the kickoff prompt for a work package, for follow-up on a pull request, or for a bug fix. |
+| `/ai-usage-recorder` | WP1.15 | Reads the session's usage from the session store, writes the ledger entry, runs `governance usage validate` and `render`, and shows the estimate. It never edits an entry that it did not write. |
 
 Each skill declares:
 
@@ -1104,6 +1120,7 @@ Each phase has its own plan with scope and non-goals, decisions, prerequisites, 
 | 3 | A reproducible local Kubernetes platform where every hop is authenticated, encrypted, authorized, segmented, observable, and policy-checked, with no static credentials in workloads. | `v0.3.0` | [Phase 3](phases/phase-3-zero-trust-platform.md) |
 | 4 | Contracts that are versioned and verified by consumers, plus fully declarative delivery. One signed digest moves from dev to staging to prod through analyzed canaries, with automated and manual rollback rehearsed. | `v0.4.0` | [Phase 4](phases/phase-4-contracts-gitops.md) |
 | Launch | Turn the public repository into a polished, versioned portfolio release | `v1.0.0` | [Launch gate](phases/launch-v1.md) |
+| Optional | Two extensions after the launch gate, each started only by a plan amendment: a nightly mutation report job, and a web UI on top of the API. No exit gate depends on them, and the status page does not track them until one is promoted. | None | [Optional extensions](phases/optional-extensions.md) |
 
 ## 15. Validation matrix
 
@@ -1189,3 +1206,4 @@ Pin exact versions and digests in `Directory.Packages.props`, `tools/versions.ya
 | 2.0 | 2026-10-04 | Deep review with re-verified facts. Section 1 lists every finding and change. |
 | 2.0.1 | 2026-10-04 | Published to the repository: split into this plan and one plan per phase, added the `ARC` and `QUA` requirement areas, removed private details, and corrected the Trivy rule-ID statement, which Aqua's migration guide does not make. |
 | 2.0.2 | 2026-10-04 | Recorded the WP0.7 privacy finding: merges that GitHub creates use the account's primary email, so the repository was recreated before publication and the account setting became a prerequisite (ADR-0006, R18, R19). |
+| 2.1.0 | 2026-10-12 | Added section 5.8 (AI-paired delivery: session boundaries and AI usage statistics) with WP1.14 (session boundaries) and WP1.15 (AI usage statistics) in Phase 1, the new requirements AI-004 and AI-005, risk R23, and the optional extensions after the launch gate (a nightly mutation report job and a web UI). The maintainer asked for each in the WP1.6 session. No outcome of section 2.1 changed. |

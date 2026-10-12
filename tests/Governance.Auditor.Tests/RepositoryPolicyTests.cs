@@ -230,7 +230,7 @@ public sealed class SkillTests
 
     private static readonly string[] DocumentedFrontMatterKeys = ["name", "description", "license"];
 
-    public static TheoryData<string> SkillNames => new() { "advanced-security-auditor", "blast-radius-evaluator" };
+    public static TheoryData<string> SkillNames => new() { "advanced-security-auditor", "blast-radius-evaluator", "session-boundary-advisor" };
 
     public static TheoryData<string> AllSkillNames
     {
@@ -356,6 +356,66 @@ public sealed class SkillTests
 
         Assert.Equal(0, result.ExitCode);
         Golden.AssertMatches(result.Output, "skills/blast-radius-evaluator/expected-output.txt");
+    }
+
+    [Fact]
+    [Trait("Requirement", "REQ-AI-002")]
+    [Trait("Requirement", "REQ-AI-004")]
+    public async Task The_session_boundary_skill_fixture_gives_the_reviewed_output_at_the_end_of_a_work_package()
+    {
+        using var repository = SessionSamples.Repository(Golden.Read("skills/session-boundary-advisor/status.yaml"));
+        var git = SessionSamples.Git(branch: "wp/1.2-sample-feature", upstream: "origin/wp/1.2-sample-feature");
+
+        var result = await CliRunner.RunAsync(repository, git, "session", "--moment", "end");
+
+        Assert.Equal(0, result.ExitCode);
+        Golden.AssertMatches(result.Output, "skills/session-boundary-advisor/expected-output.txt");
+    }
+
+    [Fact]
+    [Trait("Requirement", "REQ-AI-002")]
+    [Trait("Requirement", "REQ-AI-004")]
+    public async Task The_session_boundary_skill_fixture_gives_the_reviewed_output_when_the_handoff_is_open()
+    {
+        using var repository = SessionSamples.Repository(Golden.Read("skills/session-boundary-advisor/status.yaml"));
+        var git = SessionSamples.Git(branch: "wp/1.2-sample-feature", upstream: "origin/wp/1.2-sample-feature", ahead: 2, changed: ["docs/project/status.yaml", "tests/SampleTests.cs"]);
+
+        var result = await CliRunner.RunAsync(repository, git, "session", "--moment", "end");
+
+        Assert.Equal(1, result.ExitCode);
+        Golden.AssertMatches(result.Output, "skills/session-boundary-advisor/expected-output-finish-handoff.txt");
+    }
+
+    [Fact]
+    [Trait("Requirement", "REQ-AI-004")]
+    public void The_session_boundary_skill_hands_over_the_prompt_unchanged_and_never_decides_the_advice()
+    {
+        var body = Body("session-boundary-advisor");
+        var sections = Sections(body);
+
+        foreach (var expected in new[] { "session --moment start", "session --moment end", "--context compacted", "--task pull-request", "--task bug-fix", "`continue`", "`fresh`", "`finish-handoff`", "`stop`" })
+        {
+            Assert.Contains(expected, body, StringComparison.Ordinal);
+        }
+
+        Assert.Contains("never decides it", sections["Purpose"], StringComparison.Ordinal);
+        Assert.Contains("exactly as the command printed it", sections["Procedure"], StringComparison.Ordinal);
+        Assert.Contains("hand out no kickoff prompt", sections["Failure behavior"], StringComparison.Ordinal);
+        Assert.Contains("never guess `bug-fix`", sections["Inputs"], StringComparison.Ordinal);
+        Assert.Contains("Never edit `governance/policies/session-policy.yaml`", sections["Read and write scope"], StringComparison.Ordinal);
+    }
+
+    [Fact]
+    [Trait("Requirement", "REQ-AI-004")]
+    public void The_handoff_skill_ends_by_running_the_session_boundary_check_and_giving_the_maintainer_the_prompt()
+    {
+        var sections = Sections(Body("session-handoff"));
+
+        Assert.Contains("session --moment end", sections["Procedure"], StringComparison.Ordinal);
+        Assert.Contains("kickoff prompt", sections["Procedure"], StringComparison.Ordinal);
+        Assert.Contains("--context compacted", sections["Procedure"], StringComparison.Ordinal);
+        Assert.Contains("kickoff prompt", sections["Outputs"], StringComparison.Ordinal);
+        Assert.Contains("governance session", sections["Allowed tools"], StringComparison.Ordinal);
     }
 
     private static string Body(string skill) => FrontMatter(skill).Text;

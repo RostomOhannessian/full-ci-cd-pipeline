@@ -103,6 +103,7 @@ Architecture tests (ArchUnitNET) fail the build when a dependency points the wro
 | [3: Zero-trust platform](docs/plans/phases/phase-3-zero-trust-platform.md) | A local Kubernetes platform where every hop is authenticated, encrypted, authorized, segmented, and policy-checked. | `v0.3.0` | Planned |
 | [4: Contracts and GitOps](docs/plans/phases/phase-4-contracts-gitops.md) | Consumer-verified contracts and fully declarative delivery with rehearsed rollback. | `v0.4.0` | Planned |
 | [v1.0 launch](docs/plans/phases/launch-v1.md) | A polished, versioned portfolio release. | `v1.0.0` | Planned |
+| [Optional extensions](docs/plans/phases/optional-extensions.md) | A nightly mutation report job and a web UI on top of the API, each started only by a plan amendment. | None | Not scheduled |
 
 The complete plan, with the reasoning behind every choice, is [the implementation plan](docs/plans/implementation-plan.md).
 

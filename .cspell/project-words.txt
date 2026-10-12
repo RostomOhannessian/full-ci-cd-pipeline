@@ -5,9 +5,11 @@ authenticode
 automapper
 awesomeassertions
 backplane
+blazor
 buildkit
 buildx
 cicd
+clickjacking
 criticals
 cscheck
 cyclonedx
@@ -107,6 +109,7 @@ truststore
 tufin
 unbuilt
 unmilestoned
+unpushed
 unreviewed
 valkey
 winget

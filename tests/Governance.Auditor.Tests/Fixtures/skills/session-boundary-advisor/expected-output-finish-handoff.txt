@@ -1,0 +1,15 @@
+session: finish-handoff
+  action:    Close the handoff gaps, then run the check again.
+  moment:    end
+  task:      work-package
+  context:   used
+  rule:      handoff-first
+  reasons:
+    - The handoff is not complete, so another session could not resume from the repository. Close the gaps first: commit the changes, update status.yaml and render STATUS.md, and ask the maintainer to approve the push. Then run the check again.
+    - WP1.4 is in the same phase as the last completed work package, WP1.2.
+  boundary:  package
+  next:      WP1.4: Developer tooling (Issue 6, phase 1), branch wp/1.4-developer-tooling
+  handoff:   incomplete
+    - 2 paths have uncommitted changes (for example docs/project/status.yaml, tests/SampleTests.cs). Commit them, or ask the maintainer what to do with them.
+    - 2 commits are not pushed to origin/wp/1.2-sample-feature. Ask the maintainer to approve the push.
+  git:       branch wp/1.2-sample-feature, upstream origin/wp/1.2-sample-feature, 2 ahead, 0 behind, 2 changed paths

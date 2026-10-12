@@ -3,7 +3,7 @@ title: "AI skills governance"
 description: "How this repository configures GitHub Copilot, which repository-owned skills it plans to keep, and how external skills are reviewed before any installation."
 type: reference
 audience: [maintainers, contributors]
-last-verified: 2026-10-08
+last-verified: 2026-10-12
 owner: "@RostomOhannessian"
 ---
 
@@ -28,7 +28,7 @@ Nothing from the external-skill review is installed today. Agent Finder relevanc
 
 ## Repository skills
 
-The planned repository skill set comes from plan section 13.2. Three of the skills wrap a deterministic CLI, and the tests in
+The planned repository skill set comes from plan section 13.2. Four of the skills wrap a deterministic CLI, and the tests in
 `tests/Governance.Auditor.Tests` and `tests/Documentation.Auditor.Tests` check their structure, the commands they run, and their fixtures.
 
 | Skill | Phase | Behavior | Status |
@@ -37,14 +37,22 @@ The planned repository skill set comes from plan section 13.2. Three of the skil
 | [`/blast-radius-evaluator`](../../.github/skills/blast-radius-evaluator/SKILL.md) | WP1.2 core, WP1.12 depth | Runs `governance blast-radius` and summarizes affected layers, gates, and rollback needs | exists |
 | [`/documentation-auditor`](../../.github/skills/documentation-auditor/SKILL.md) | WP1.3, WP1.12 | Runs `documentation audit`, explains the findings, and drafts the missing sections of a tool page from the template | exists |
 | `/test-plan-evaluator` | WP1.12 | Runs `governance trace` and proposes cases for uncovered requirements | planned in WP1.12 |
+| [`/session-boundary-advisor`](../../.github/skills/session-boundary-advisor/SKILL.md) | WP1.14 | Runs `governance session` at the start and the end of a session and says whether the next task belongs in a fresh session or in this one, with the handoff gaps and the kickoff prompt | exists |
+| `/ai-usage-recorder` | WP1.15 | Reads the session's usage from the session store, writes the ledger entry, and runs `governance usage validate`, `render`, and `estimate` | planned in WP1.15 |
 | [`/adr-assistant`](../../.github/skills/adr-assistant/SKILL.md) | WP0.5 | Scaffolds or updates ADRs from the repository template and evidence rules | exists |
 | [`/tool-doc-author`](../../.github/skills/tool-doc-author/SKILL.md) | WP0.5 | Scaffolds tool pages and inventory entries from repository templates | exists |
-| [`/session-handoff`](../../.github/skills/session-handoff/SKILL.md) | WP0.5 | Updates status and the **Resume here** section, then reminds the maintainer to push | exists |
+| [`/session-handoff`](../../.github/skills/session-handoff/SKILL.md) | WP0.5, WP1.14 | Updates status and the **Resume here** section, runs the session boundary check and hands over the kickoff prompt, then reminds the maintainer to push | exists |
 
-The three Phase 0 skills scaffold documents that have templates. The three auditor skills are different: each runs a
-deterministic command, and each has a fixture that the tests run, so the output the skill explains is checked in CI
-(`SkillTests` in `tests/Governance.Auditor.Tests` and in `tests/Documentation.Auditor.Tests`). The two governance skills hold no write scope. The documentation skill
-may draft the missing sections of one tool page that a finding names, and nothing else. The test-plan skill stays planned until its CLI exists.
+The three Phase 0 skills scaffold documents that have templates. The three auditor skills and the session boundary advisor are different: each
+runs a deterministic command, and each has a fixture that the tests run, so the output the skill explains is checked in CI
+(`SkillTests` in `tests/Governance.Auditor.Tests` and in `tests/Documentation.Auditor.Tests`). The three governance skills hold no write scope.
+The documentation skill may draft the missing sections of one tool page that a finding names, and nothing else. The test-plan skill stays
+planned until its CLI exists, and the usage skill stays planned until WP1.15 delivers the ledger and its command.
+
+The session boundary advisor is the one skill that the resume and end-of-session protocols call on every session, so it has a second
+caller: `/session-handoff` ends by running the same check and handing the maintainer the kickoff prompt of the next session. The rules and
+the prompts are data in `governance/policies/session-policy.yaml`, so the skill reports them and never decides them
+([ADR-0030](../adr/0030-session-boundaries-and-ai-paired-delivery.md), [session boundaries](../explanation/session-boundaries.md)).
 
 ## Operational notes
 
@@ -59,7 +67,8 @@ may draft the missing sections of one tool page that a finding names, and nothin
 - The three Phase 0 skills scaffold ADRs, tool pages, and handoff records that already have repository templates and clear acceptance rules.
 - The auditor-style skills waited until their deterministic CLIs existed, because the prompt layer must not become the policy engine. The
   security and blast-radius skills arrived with `governance security` and `governance blast-radius` in WP1.2, the documentation skill arrived with
-  `documentation audit` in WP1.3, and the test-plan skill stays planned until its CLI exists.
+  `documentation audit` in WP1.3, the session boundary advisor arrived with `governance session` in WP1.14, and the test-plan skill stays
+  planned until its CLI exists.
 - A small set lowers the prompt-injection surface and makes review of allowed tools and write scope practical.
 - Repository-owned skills are easier to keep honest once CI fixtures exist, so a skill that wraps a CLI ships with a tested fixture.
 - Any later skill should justify itself by saving review effort without bypassing branch, status, or evidence controls.

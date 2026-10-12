@@ -3,7 +3,7 @@ title: "Explanation"
 description: "What the repository's concept pages will explain, and which architecture and governance concepts you can already study."
 audience: [learners, contributors, maintainers]
 type: reference
-last-verified: 2026-10-04
+last-verified: 2026-10-12
 owner: "@RostomOhannessian"
 ---
 
@@ -36,6 +36,7 @@ Explanation pages answer "why does this work this way?" They connect decisions, 
 
 ## Concepts you can read today
 
+- [Session boundaries and AI-paired delivery](session-boundaries.md): why every task starts in a fresh session, how `governance session` decides it, and what the kickoff prompts carry.
 - [ADR-0001](../adr/0001-record-architecture-decisions.md): why this repository records major decisions in small, durable ADR files.
 - [ADR-0002](../adr/0002-repository-visibility-and-capability-strategy.md): why the repository is public and how capability-aware automation follows from that choice.
 - [ADR-0003](../adr/0003-branch-and-work-package-protocol.md): how phase branches and work-package branches keep delivery small and reviewable.

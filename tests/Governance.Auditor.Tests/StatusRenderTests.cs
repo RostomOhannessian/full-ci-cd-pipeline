@@ -43,6 +43,19 @@ public sealed class StatusRenderTests
     }
 
     [Fact]
+    [Trait("Requirement", "REQ-AI-004")]
+    public void The_resume_table_shows_the_chosen_next_work_package_only_when_the_status_file_names_one()
+    {
+        var without = StatusRenderer.Render(StatusSamples.Parse(StatusSamples.Valid));
+        var with = StatusRenderer.Render(StatusSamples.Parse(StatusSamples.Build(("nextWorkPackageLine", "next-work-package: \"WP2.1\""))));
+
+        Assert.DoesNotContain("Next work package", without, StringComparison.Ordinal);
+        Assert.Contains("| Next work package | WP2.1: Third |", with, StringComparison.Ordinal);
+        Assert.True(with.IndexOf("| Next action |", StringComparison.Ordinal) < with.IndexOf("| Next work package |", StringComparison.Ordinal));
+        Assert.True(with.IndexOf("| Next work package |", StringComparison.Ordinal) < with.IndexOf("| Open pull requests |", StringComparison.Ordinal));
+    }
+
+    [Fact]
     [Trait("Requirement", "REQ-GOV-003")]
     public void With_no_active_work_package_the_table_says_none_and_open_pull_requests_are_listed_with_their_links()
     {
