@@ -29,6 +29,57 @@ public sealed class AssemblyReferenceTests
     private static List<string> OutsideTheBaseClassLibrary(IEnumerable<string> referencedAssemblies) =>
         [.. referencedAssemblies.Where(name => !File.Exists(Path.Combine(RuntimeDirectory, $"{name}.dll")))];
 
+    /// <summary>The namespaces of the top-level types of an assembly that are not its own, such as a tracker that a coverage tool injected. A type with no namespace is the module or a compiler type.</summary>
+    private static List<string> ForeignTypes(string path, string assemblyName)
+    {
+        using var stream = File.OpenRead(path);
+        using var image = new PEReader(stream);
+        var metadata = image.GetMetadataReader();
+
+        return
+        [
+            .. metadata.TypeDefinitions
+                .Select(metadata.GetTypeDefinition)
+                .Where(type => type.GetDeclaringType().IsNil)
+                .Select(type => (Namespace: metadata.GetString(type.Namespace), Name: metadata.GetString(type.Name)))
+                .Where(type => type.Namespace.Length > 0 && type.Namespace != assemblyName && !type.Namespace.StartsWith($"{assemblyName}.", StringComparison.Ordinal))
+                .Select(type => $"{type.Namespace}.{type.Name}")
+                .Order(StringComparer.Ordinal),
+        ];
+    }
+
+    [Theory]
+    [InlineData("Catalog.Domain")]
+    [InlineData("Catalog.Application")]
+    [InlineData("Catalog.Contracts")]
+    [InlineData("Catalog.Infrastructure")]
+    [InlineData("Catalog.CrossCutting")]
+    [InlineData("Catalog.Api")]
+    [Trait("Requirement", "REQ-ARC-001")]
+    public void The_rules_read_assemblies_that_hold_only_the_types_of_their_own_layer(string assemblyName)
+    {
+        // On Linux the coverage extension instruments the assemblies in the output folder and adds a tracker type to each one that has code, which makes every
+        // type look as if it depends on it. This project excludes the production assemblies from instrumentation (coverage.settings.xml), and this test fails
+        // when that stops working, so a rule never judges a type that nobody wrote.
+        var foreign = ForeignTypes(BinaryPath(assemblyName), assemblyName);
+
+        Assert.True(foreign.Count == 0, $"{assemblyName} holds types outside its own namespace, which means that a tool changed the assembly on disk: {string.Join(", ", foreign)}. Check tests/Catalog.Architecture.Tests/coverage.settings.xml.");
+    }
+
+    [Fact]
+    [Trait("Requirement", "REQ-ARC-001")]
+    public void The_foreign_type_check_reports_types_outside_the_layer_and_never_the_layers_own_types()
+    {
+        // The test assembly holds its own types and generated types of the test framework. Asked as the Domain, every one of them is foreign. Asked as itself,
+        // none of the types that it wrote is reported, which is what a layer assembly relies on.
+        var asDomain = ForeignTypes(typeof(AssemblyReferenceTests).Assembly.Location, "Catalog.Domain");
+        var asItself = ForeignTypes(typeof(AssemblyReferenceTests).Assembly.Location, "Catalog.Architecture.Tests");
+
+        Assert.Contains(typeof(AssemblyReferenceTests).FullName, asDomain);
+        Assert.DoesNotContain(typeof(AssemblyReferenceTests).FullName, asItself);
+        Assert.True(asDomain.Count > asItself.Count);
+    }
+
     [Fact]
     [Trait("Requirement", "REQ-ARC-001")]
     public void The_domain_references_only_assemblies_of_the_base_class_library()

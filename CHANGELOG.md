@@ -84,6 +84,7 @@ Conventional Commits and attached to each release together with its evidence bun
 - The contract and ADR-0028 say that a product is refused a discontinued category only when it moves there, so a product that stays in a category that was discontinued after the assignment can still change. The wording of `updateProduct` and `ProductUpdate` changed, and no field did.
 - The DocFX metadata exception, which accepted the warning "No .NET API detected", is removed now that the Domain has public types. Both DocFX steps run with `--warningsAsErrors`, and the list of accepted warnings is empty.
 - The architecture rule against static mutable fields skips constants and the members of an enum, which ArchUnitNET reports as writable. The metadata of the assemblies identifies them, and the violating fixture still fails the rule.
+- The architecture tests no longer let the coverage extension instrument the production assemblies. On Linux it adds a tracker type to every assembly that has code, and the layer rules then judged a type that nobody wrote (the first hosted build of WP1.6 failed on it, and a Windows run does not show it). `coverage.settings.xml` excludes the assemblies, and a guard test fails when an assembly holds a type outside its own namespace.
 - Requirement DOM-002 is verified, and ARC-001, DOM-001, DOM-003, DOM-004, DOM-005, QUA-004, QUA-005, and QUA-006 are in progress until WP1.7, WP1.8, and WP1.10. The tool inventory marks AwesomeAssertions, CsCheck, and Stryker.NET as `in-use`.
 
 ### Fixed
