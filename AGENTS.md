@@ -142,11 +142,12 @@ docker compose -f tools/lint/compose.yaml run --rm contract-lint
 pwsh -NoProfile -File tools/ci/Test-ContractConformance.ps1 -Served <served document>
 ```
 
-A change to the domain model or to its tests can also be measured with a mutation run, which reports how well the tests catch a change to the model. It runs Stryker.NET in a Linux container,
-because Stryker.NET cannot start on a Windows host that enforces Smart App Control. The score is a report and not a gate ([ADR-0029](docs/adr/0029-domain-model-and-mutation-baseline.md)):
+A change to the domain model, to the application layer, or to their tests can also be measured with a mutation run, which reports how well the tests catch a change to the code. It runs Stryker.NET in a Linux container,
+because Stryker.NET cannot start on a Windows host that enforces Smart App Control. The argument names the layer, and the default is the domain. The score is a report and not a gate ([ADR-0029](docs/adr/0029-domain-model-and-mutation-baseline.md)):
 
 ```text
 docker compose -f tools/lint/compose.yaml run --rm mutation
+docker compose -f tools/lint/compose.yaml run --rm mutation application
 ```
 
 The documentation auditor and the documentation site build need the .NET SDK
