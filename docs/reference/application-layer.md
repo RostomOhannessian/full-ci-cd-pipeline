@@ -64,7 +64,7 @@ the realm file.
 Commands pass through telemetry and logging, validation, authorization, idempotency (when the command has a key), and the transaction before the handler. Queries pass through telemetry, validation, authorization, and the query cache (for marked queries) before the handler. The reason for each position is in
 [ADR-0032](../adr/0032-decorator-pipeline-and-application-results.md).
 
-The decorators are in [`src/Catalog.CrossCutting/Decorators`](../../src/Catalog.CrossCutting/Decorators), and `CommandPipeline.Compose` and `QueryPipeline.Compose` are the only places that name them, so the order is plain code. The composition root calls `Compose` once for each handler that a feature registers
+The decorators are in `src/Catalog.CrossCutting/Decorators`, and [`CommandPipeline.Compose` and `QueryPipeline.Compose`](../../src/Catalog.CrossCutting/Decorators/Pipelines.cs) are the only places that name them, so the order is plain code. The composition root calls `Compose` once for each handler that a feature registers
 (WP1.10, planned). A rule of `Catalog.Architecture.Tests` fails when a decorator names another decorator.
 
 | Decorator | Used by | What it does |
