@@ -125,6 +125,6 @@ Each test names the requirement that it proves, and `governance trace` reads the
 
 ## What is not here yet
 
-- The identifier generator, the `IIdGenerator` port, and the use cases arrive in WP1.7 (planned).
+- The `IIdGenerator` port and its default implementation, `GuidV7IdGenerator`, are in [the application layer](application-layer.md) (WP1.7). The use cases arrive in the third pull request of WP1.7 (planned).
 - The mapping to the database, the row version, the outbox, and the payload snapshots of the events arrive in WP1.8 (planned).
 - The endpoints and the served contract arrive in WP1.10 (planned).

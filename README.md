@@ -147,6 +147,7 @@ The API itself arrives with WP1.10, and the full local platform arrives in Phase
 | Look up a tool | [Tool inventory](docs/reference/tools/index.md) |
 | Look up an API operation, scope, header, or error | [API contract](docs/reference/api-contract.md), [API style guide](docs/reference/api-style-guide.md), and [error catalog](docs/reference/error-catalog.md) |
 | Look up a business rule, a value object, or a domain event | [Domain model](docs/reference/domain-model.md) |
+| Look up a use-case result, an application error, a permission, or a port | [Application layer](docs/reference/application-layer.md) |
 | Understand how AI is used here | [AI skills and instructions](docs/governance/ai-skills.md) and [AGENTS.md](AGENTS.md) |
 
 ## Contributing
