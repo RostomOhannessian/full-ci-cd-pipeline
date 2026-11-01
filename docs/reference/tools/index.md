@@ -39,7 +39,7 @@ A page is named after its inventory ID. Tier C libraries are in [the dependency 
 | [Stryker.NET](stryker-net.md) | B | Mutates the domain model to measure how well its tests catch a change |
 
 Eighteen tools that are in use have no page yet, and WP1.13 owes them. The audit reports each as a note, and it fails when WP1.13 is completed and a page is still missing. The Tier C entries for the Dev Container
-features, the base images, the `devcontainers/ci` action, the two Microsoft.OpenApi packages, and `Microsoft.Extensions.TimeProvider.Testing` are in [the dependency catalog](dependency-catalog.md).
+features, the base images, the `devcontainers/ci` action, the two Microsoft.OpenApi packages, `Microsoft.Extensions.TimeProvider.Testing`, and FluentValidation are in [the dependency catalog](dependency-catalog.md).
 
 ## What a tool page contains
 

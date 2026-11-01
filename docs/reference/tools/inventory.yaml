@@ -700,7 +700,7 @@ entries:
     category: dotnet-library
     tier: C
     lifecycle: adopt
-    usage: planned
+    usage: in-use
     introduced: phase-1
     purpose: Centralizes command and request validation in the application layer.
     license: Apache-2.0
@@ -709,7 +709,9 @@ entries:
     sources:
       - https://www.nuget.org/packages/FluentValidation
       - https://fluentvalidation.net/
-    adrs: ["0018"]
+    adrs: ["0018", "0032"]
+    notes: The validation decorator of Catalog.CrossCutting uses it from WP1.7 (checked 2026-11-01). It is Apache-2.0 and has no dependency on net8.0 or later. Version 12.2.0 was released on 2026-10-10, and the repository keeps the planned 12.1.1 until Dependabot proposes the update. Plan section 11.2 also names FluentValidation as a library that may get a tier A or B page, and this inventory keeps tier C until the maintainer decides.
+    detect: ["nuget:FluentValidation"]
   - id: fusioncache
     name: FusionCache
     category: dotnet-library

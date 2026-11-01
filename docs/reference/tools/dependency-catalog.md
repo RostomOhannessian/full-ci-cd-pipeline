@@ -2,7 +2,7 @@
 title: "Dependency catalog"
 description: "The libraries, Dev Container features, images, and actions that this repository uses and that need no page of their own: what each is for, why it was chosen, how it is referenced, and where to read more."
 audience: [learners, contributors]
-last-verified: 2026-10-11
+last-verified: 2026-11-01
 owner: "@RostomOhannessian"
 ---
 
@@ -236,3 +236,28 @@ clock.Advance(TimeSpan.FromMinutes(5));
 - [Microsoft.Extensions.TimeProvider.Testing 10.10.0 on NuGet](https://www.nuget.org/packages/Microsoft.Extensions.TimeProvider.Testing/10.10.0) (checked 2026-10-12)
 - [The extensions repository](https://github.com/dotnet/extensions) (checked 2026-10-12)
 - [TimeProvider and ITimer in .NET](https://learn.microsoft.com/dotnet/core/extensions/timeprovider) (checked 2026-10-12)
+
+## FluentValidation
+
+**Purpose.** Checks the shape of a command or a query before its handler runs. A validator is a class with one rule for each field, and it reports every invalid field at once, so a caller fixes a request in one round trip. The validation decorator of `Catalog.CrossCutting`
+runs the validators of a request and turns their failures into the `validation-failed` error of [the error catalog](../error-catalog.md) (REQ-APP-005).
+
+**Rationale.** The plan names FluentValidation for the validators (plan section 17). It is Apache-2.0, which the allow-list of [ADR-0004](../../adr/0004-licensing-and-dependency-license-policy.md) accepts, and version 12.1.1 has no dependency on net8.0 or later (checked 2026-11-01 in the package metadata on nuget.org).
+The package stays in `Catalog.CrossCutting`, because the application layer depends on the domain model and the base class library only ([ADR-0032](../../adr/0032-decorator-pipeline-and-application-results.md)). Version 12.2.0 was released on 2026-10-10, and the repository keeps the planned version until Dependabot proposes the update.
+
+**Setup.** The project names the package, and the central file holds the version. A validator derives from `AbstractValidator<T>`.
+
+```xml
+<PackageReference Include="FluentValidation" />
+```
+
+```csharp
+RuleFor(command => command.Name).NotEmpty().WithMessage("The name is required.");
+```
+
+**Used by.** `src/Catalog.CrossCutting`, in `Decorators/ValidationDecorators.cs`. The validators of the use cases arrive in the third pull request of WP1.7 (planned).
+
+**Sources.**
+
+- [FluentValidation 12.1.1 on NuGet](https://www.nuget.org/packages/FluentValidation/12.1.1) (checked 2026-11-01)
+- [The FluentValidation documentation](https://fluentvalidation.net/) (checked 2026-11-01)

@@ -34,7 +34,7 @@ public interface IUseCaseObservation : IDisposable
     /// <param name="reason">The reason.</param>
     void Refused(ApplicationError reason);
 
-    /// <summary>The use case threw an exception, which is a fault.</summary>
+    /// <summary>The use case threw an exception, which is a fault. A cancellation arrives here too, and the adapter decides how to classify it.</summary>
     /// <param name="exception">The exception.</param>
     void Faulted(Exception exception);
 }

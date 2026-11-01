@@ -6,4 +6,9 @@
     <ProjectReference Include="..\Catalog.Application\Catalog.Application.csproj" />
   </ItemGroup>
 
+  <!-- The validation decorator and the validators use FluentValidation, which the Application layer may not reference (ADR-0032). -->
+  <ItemGroup>
+    <PackageReference Include="FluentValidation" />
+  </ItemGroup>
+
 </Project>
