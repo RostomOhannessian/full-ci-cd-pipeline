@@ -3,10 +3,11 @@
   <!-- Tests of the authored OpenAPI contract and of the documents that must agree with it (WP1.5, ADR-0027). Each test is tagged with the
        requirement it proves, and `governance trace` reads the tags. Microsoft.OpenApi is the library that ASP.NET Core 10 generates its own
        document with, so the tests read the contract with the same model that the conformance check will compare it against. The Domain is
-       referenced so that DomainAgreementTests can compare the bounds and the names of the model with the contract (WP1.6, ADR-0029). -->
+       referenced so that DomainAgreementTests can compare the bounds and the names of the model with the contract (WP1.6, ADR-0029), and the Application so that ApplicationAgreementTests can compare the error mapping and the permission table with the catalog and the contract (WP1.7, ADR-0032). -->
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Catalog.Domain\Catalog.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Catalog.Application\Catalog.Application.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Tests of the application layer (WP1.7, ADR-0032): the results and the error mapping, the permission table, the ports, the decorators, and the use cases. Each test is tagged
+       with the requirement it proves, and `governance trace` reads the tags. -->
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Catalog.Application\Catalog.Application.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AwesomeAssertions" />
+    <PackageReference Include="CsCheck" />
+    <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
+  </ItemGroup>
+
+  <!-- The identifiers and the property runner of the domain tests are shared on purpose, so both projects build identifiers and run CsCheck in the same way (plan section 10.3). -->
+  <ItemGroup>
+    <Compile Include="..\Catalog.Domain.Tests\Support\TestIds.cs" Link="Support\TestIds.cs" />
+    <Compile Include="..\Catalog.Domain.Tests\Support\Property.cs" Link="Support\Property.cs" />
+  </ItemGroup>
+
+  <!-- Parallelism is declared per assembly in this file (plan section 10.3). -->
+  <ItemGroup>
+    <Content Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>
