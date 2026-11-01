@@ -18,10 +18,10 @@ A requirement is in scope once every work package that delivers it is completed,
 | Measure | Requirements |
 | --- | --- |
 | Requirements | 123 |
-| In scope and covered | 15 |
+| In scope and covered | 17 |
 | In scope and missing proof | 0 |
 | Covered before they are due | 35 |
-| Not yet due | 73 |
+| Not yet due | 71 |
 | Deferred or withdrawn | 0 |
 
 ## AI: AI enablement
@@ -41,7 +41,7 @@ A requirement is in scope once every work package that delivers it is completed,
 | `REQ-API-001` | v1 endpoints expose products and categories | WP1.5, WP1.10 | Covered | [ContractShapeTests.cs](../../tests/Catalog.Contract.Tests/ContractShapeTests.cs), [DocumentationAgreementTests.cs](../../tests/Catalog.Contract.Tests/DocumentationAgreementTests.cs), [ContractRules.Tests.ps1](../../tools/ci/ContractRules.Tests.ps1) | contract: [catalog.openapi.yaml](../../contracts/openapi/catalog/v1/catalog.openapi.yaml), docs: [api-contract.md](../reference/api-contract.md) |
 | `REQ-API-002` | Responses advertise API versions and deprecation | WP1.5, WP4.1 | Covered | [DocumentationAgreementTests.cs](../../tests/Catalog.Contract.Tests/DocumentationAgreementTests.cs), [HttpSemanticsTests.cs](../../tests/Catalog.Contract.Tests/HttpSemanticsTests.cs), [ContractRules.Tests.ps1](../../tools/ci/ContractRules.Tests.ps1) | docs: [api-style-guide.md](../reference/api-style-guide.md) |
 | `REQ-API-003` | Conditional requests enforce strong ETags | WP1.5, WP1.10 | Covered | [TagAndKeyTests.cs](../../tests/Catalog.Application.Tests/TagAndKeyTests.cs), [HttpSemanticsTests.cs](../../tests/Catalog.Contract.Tests/HttpSemanticsTests.cs), [ContractRules.Tests.ps1](../../tools/ci/ContractRules.Tests.ps1) | None |
-| `REQ-API-004` | POST creates require an Idempotency-Key | WP1.5, WP1.8, WP1.10 | Covered | [TagAndKeyTests.cs](../../tests/Catalog.Application.Tests/TagAndKeyTests.cs), [HttpSemanticsTests.cs](../../tests/Catalog.Contract.Tests/HttpSemanticsTests.cs), [ContractRules.Tests.ps1](../../tools/ci/ContractRules.Tests.ps1) | docs: [api-style-guide.md](../reference/api-style-guide.md) |
+| `REQ-API-004` | POST creates require an Idempotency-Key | WP1.5, WP1.8, WP1.10 | Covered | [IdempotencyDecoratorTests.cs](../../tests/Catalog.Application.Tests/IdempotencyDecoratorTests.cs), [TagAndKeyTests.cs](../../tests/Catalog.Application.Tests/TagAndKeyTests.cs), [HttpSemanticsTests.cs](../../tests/Catalog.Contract.Tests/HttpSemanticsTests.cs), and 1 more | docs: [api-style-guide.md](../reference/api-style-guide.md) |
 | `REQ-API-005` | Errors use RFC 9457 Problem Details | WP1.5, WP1.10 | Covered | [DocumentationAgreementTests.cs](../../tests/Catalog.Contract.Tests/DocumentationAgreementTests.cs), [ErrorCatalogTests.cs](../../tests/Catalog.Contract.Tests/ErrorCatalogTests.cs), [HttpSemanticsTests.cs](../../tests/Catalog.Contract.Tests/HttpSemanticsTests.cs), and 1 more | docs: [error-catalog.md](../reference/error-catalog.md) |
 | `REQ-API-006` | JSON input is strict and bounded | WP1.10 | Not yet due | None | None |
 | `REQ-API-007` | Rate limits return 429 and Retry-After | WP1.10, WP4.4 | Not yet due | None | None |
@@ -52,10 +52,10 @@ A requirement is in scope once every work package that delivers it is completed,
 | Requirement | Title | Delivered by | State | Tests | Evidence |
 | --- | --- | --- | --- | --- | --- |
 | `REQ-APP-001` | Use cases use direct CQRS handler interfaces | WP1.7 | Not yet due | None | None |
-| `REQ-APP-002` | Command decorators run in the approved order | WP1.7 | Not yet due | None | None |
-| `REQ-APP-003` | Query decorators run in the approved order | WP1.7 | Not yet due | None | None |
+| `REQ-APP-002` | Command decorators run in the approved order | WP1.7 | Covered | [PipelineOrderTests.cs](../../tests/Catalog.Application.Tests/PipelineOrderTests.cs), [TelemetryDecoratorTests.cs](../../tests/Catalog.Application.Tests/TelemetryDecoratorTests.cs), [TransactionAndCacheDecoratorTests.cs](../../tests/Catalog.Application.Tests/TransactionAndCacheDecoratorTests.cs), and 1 more | docs: [0032-decorator-pipeline-and-application-results.md](../adr/0032-decorator-pipeline-and-application-results.md) |
+| `REQ-APP-003` | Query decorators run in the approved order | WP1.7 | Covered | [PipelineOrderTests.cs](../../tests/Catalog.Application.Tests/PipelineOrderTests.cs), [TelemetryDecoratorTests.cs](../../tests/Catalog.Application.Tests/TelemetryDecoratorTests.cs), [TransactionAndCacheDecoratorTests.cs](../../tests/Catalog.Application.Tests/TransactionAndCacheDecoratorTests.cs) | docs: [0032-decorator-pipeline-and-application-results.md](../adr/0032-decorator-pipeline-and-application-results.md) |
 | `REQ-APP-004` | Application results use typed error cases | WP1.7, WP1.10 | Covered | [ProblemMappingTests.cs](../../tests/Catalog.Application.Tests/ProblemMappingTests.cs), [ResultTests.cs](../../tests/Catalog.Application.Tests/ResultTests.cs), [ApplicationAgreementTests.cs](../../tests/Catalog.Contract.Tests/ApplicationAgreementTests.cs) | None |
-| `REQ-APP-005` | Validators and use-case authorization run before handlers | WP1.7, WP1.10 | Covered | [PermissionPolicyTests.cs](../../tests/Catalog.Application.Tests/PermissionPolicyTests.cs) | None |
+| `REQ-APP-005` | Validators and use-case authorization run before handlers | WP1.7, WP1.10 | Covered | [PermissionPolicyTests.cs](../../tests/Catalog.Application.Tests/PermissionPolicyTests.cs), [ValidationAndAuthorizationTests.cs](../../tests/Catalog.Application.Tests/ValidationAndAuthorizationTests.cs) | None |
 | `REQ-APP-006` | Feature registration is explicit and deterministic | WP1.7, WP1.10 | Not yet due | None | None |
 
 ## ARC: Architecture and layering
@@ -170,7 +170,7 @@ A requirement is in scope once every work package that delivers it is completed,
 | Requirement | Title | Delivered by | State | Tests | Evidence |
 | --- | --- | --- | --- | --- | --- |
 | `REQ-IDN-001` | The catalog realm defines the API audience and scopes | WP1.4, WP1.10, WP3.5 | Covered | [Dev.Compose.Tests.ps1](../../scripts/tests/Dev.Compose.Tests.ps1), [Realm.Tests.ps1](../../scripts/tests/Realm.Tests.ps1) | manual: [2026-10-10-dev-container-quick-start.md](evidence/2026-10-10-dev-container-quick-start.md) |
-| `REQ-IDN-002` | Catalog permissions map scopes to endpoint behavior | WP1.7, WP1.10, WP3.5 | Covered | [PermissionPolicyTests.cs](../../tests/Catalog.Application.Tests/PermissionPolicyTests.cs), [ProblemMappingTests.cs](../../tests/Catalog.Application.Tests/ProblemMappingTests.cs), [ApplicationAgreementTests.cs](../../tests/Catalog.Contract.Tests/ApplicationAgreementTests.cs) | None |
+| `REQ-IDN-002` | Catalog permissions map scopes to endpoint behavior | WP1.7, WP1.10, WP3.5 | Covered | [PermissionPolicyTests.cs](../../tests/Catalog.Application.Tests/PermissionPolicyTests.cs), [ProblemMappingTests.cs](../../tests/Catalog.Application.Tests/ProblemMappingTests.cs), [ValidationAndAuthorizationTests.cs](../../tests/Catalog.Application.Tests/ValidationAndAuthorizationTests.cs), and 1 more | None |
 | `REQ-IDN-003` | JWT validation checks issuer audience algorithms and clock skew | WP1.10 | Not yet due | None | None |
 | `REQ-IDN-004` | Platform UIs use the platform realm and remove local admins | WP3.5, WP4.3 | Not yet due | None | None |
 | `REQ-IDN-005` | Realm files are the single source across environments | WP1.4, WP1.10, WP3.5 | Covered | [DevEnvironment.Tests.ps1](../../scripts/tests/DevEnvironment.Tests.ps1), [Realm.Tests.ps1](../../scripts/tests/Realm.Tests.ps1) | docs: [catalog-realm.json](../../identity/keycloak/realms/catalog-realm.json) |

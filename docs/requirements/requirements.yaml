@@ -188,7 +188,8 @@ requirements:
   - architecture
   - docs
   evidence: decorator order tests and ADR
-  status: planned
+  status: verified
+  notes: The second pull request of WP1.7 delivers CommandPipeline, the only place that names the command decorators, and PipelineOrderTests, which runs requests through the production chain over fakes that share one journal and asserts the order and every short circuit. The rule decorators-are-composed-only-by-pipelines fails on a violating fixture, and ADR-0032 records the order and the reason for each position (checked 2026-11-01). WP1.10 proves the status codes through HTTP.
 - id: REQ-APP-003
   title: Query decorators run in the approved order
   statement: 'Query handling applies decorators in this outermost-first order: telemetry, validation, authorization, query caching for marked queries, then the handler.'
@@ -200,7 +201,8 @@ requirements:
   - architecture
   - docs
   evidence: query decorator tests and ADR
-  status: planned
+  status: verified
+  notes: The second pull request of WP1.7 delivers QueryPipeline and the tests of the order, the cache hit, the unmarked query, and the refusals in PipelineOrderTests and TransactionAndCacheDecoratorTests, and ADR-0032 records the order (checked 2026-11-01).
 - id: REQ-APP-004
   title: Application results use typed error cases
   statement: Application use cases return Result<T> values that use the typed errors ValidationFailed, NotFound, Conflict, PreconditionFailed, PreconditionRequired, Forbidden, and IdempotencyKeyReused.
@@ -228,7 +230,8 @@ requirements:
   - unit
   - integration
   evidence: validator tests and denied-path tests
-  status: planned
+  status: in_progress
+  notes: The second pull request of WP1.7 delivers the validation and authorization decorators, with tests that show that no handler runs for an invalid request or a caller without the scope and a role, for a command and for a query. The validators of the use cases arrive in the third pull request, and WP1.10 proves the denied paths through HTTP.
 - id: REQ-APP-006
   title: Feature registration is explicit and deterministic
   statement: Each feature registers its handlers and decorators through explicit extension methods so dependency wiring remains deterministic and reviewable.
