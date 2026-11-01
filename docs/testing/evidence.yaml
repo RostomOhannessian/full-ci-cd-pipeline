@@ -129,6 +129,16 @@ entries:
     path: docs/testing/evidence/2026-10-12-domain-mutation-baseline.md
     summary: Stryker.NET mutated the domain model in the pinned Linux SDK image and scored its 172 tests at 94.62 percent, with 211 mutants killed and 12 survivors that are classified as 7 equivalent and 5 in static initializers. Removing the Product tests lowered the score to 81.61 percent, which shows that the report finds weak tests.
     recorded: '2026-10-12'
+  - requirements: [REQ-QUA-005]
+    kind: policy
+    path: governance/policies/coverage-thresholds.json
+    summary: The threshold gate in the ci workflow, tools/ci/Test-CoverageThresholds.ps1, reads these thresholds and fails the build under 90 percent of lines or 80 percent of branches for the Domain, under 85 percent of lines or 80 percent of branches for the Application, or under 80 percent of lines for the solution. The run of 2026-11-01 measured 99.63 and 98.41 for the Domain, 100 and 99.52 for the Application, and 99.88 percent of the lines of the solution.
+    recorded: '2026-11-01'
+  - requirements: [REQ-QUA-006]
+    kind: manual
+    path: docs/testing/evidence/2026-11-01-application-mutation-baseline.md
+    summary: Stryker.NET mutated the application layer in the pinned Linux SDK image and scored its 192 tests at 96.92 percent, with 252 mutants killed and 8 survivors that are all equivalent. The first run scored 90.00 percent, and 12 new tests killed the 18 survivors that showed a weak edge.
+    recorded: '2026-11-01'
   - requirements: [REQ-DOM-004]
     kind: docs
     path: docs/reference/domain-model.md

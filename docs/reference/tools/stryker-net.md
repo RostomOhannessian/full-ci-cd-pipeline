@@ -7,7 +7,7 @@ tools: [stryker-net]
 introduced: "phase-1"
 prerequisites: ["Docker", "Network access, because the run restores packages from nuget.org"]
 estimated-time: "30 minutes"
-last-verified: 2026-10-12
+last-verified: 2026-11-01
 verified-against: { stryker-net: "5.0.0" }
 owner: "@RostomOhannessian"
 ---
@@ -89,7 +89,7 @@ means the run never fails because of the score:
 ```
 
 1. Run the mutation service from the repository root. Add `-T` when you pipe the output. With the image cached, the run takes about 45 seconds, and Stryker itself takes about 19 of them (checked
-   2026-10-12). The first run also pulls the image and restores packages.
+   2026-10-12). The first run also pulls the image and restores packages. Add the argument `application` to run it on the application layer instead of the domain (WP1.7, [the evidence record](../../testing/evidence/2026-11-01-application-mutation-baseline.md)).
 
    ```bash illustrative
    docker compose -f tools/lint/compose.yaml run --rm mutation

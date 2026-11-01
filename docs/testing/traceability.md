@@ -18,10 +18,10 @@ A requirement is in scope once every work package that delivers it is completed,
 | Measure | Requirements |
 | --- | --- |
 | Requirements | 123 |
-| In scope and covered | 17 |
+| In scope and covered | 20 |
 | In scope and missing proof | 0 |
 | Covered before they are due | 35 |
-| Not yet due | 71 |
+| Not yet due | 68 |
 | Deferred or withdrawn | 0 |
 
 ## AI: AI enablement
@@ -40,8 +40,8 @@ A requirement is in scope once every work package that delivers it is completed,
 | --- | --- | --- | --- | --- | --- |
 | `REQ-API-001` | v1 endpoints expose products and categories | WP1.5, WP1.10 | Covered | [ContractShapeTests.cs](../../tests/Catalog.Contract.Tests/ContractShapeTests.cs), [DocumentationAgreementTests.cs](../../tests/Catalog.Contract.Tests/DocumentationAgreementTests.cs), [ContractRules.Tests.ps1](../../tools/ci/ContractRules.Tests.ps1) | contract: [catalog.openapi.yaml](../../contracts/openapi/catalog/v1/catalog.openapi.yaml), docs: [api-contract.md](../reference/api-contract.md) |
 | `REQ-API-002` | Responses advertise API versions and deprecation | WP1.5, WP4.1 | Covered | [DocumentationAgreementTests.cs](../../tests/Catalog.Contract.Tests/DocumentationAgreementTests.cs), [HttpSemanticsTests.cs](../../tests/Catalog.Contract.Tests/HttpSemanticsTests.cs), [ContractRules.Tests.ps1](../../tools/ci/ContractRules.Tests.ps1) | docs: [api-style-guide.md](../reference/api-style-guide.md) |
-| `REQ-API-003` | Conditional requests enforce strong ETags | WP1.5, WP1.10 | Covered | [TagAndKeyTests.cs](../../tests/Catalog.Application.Tests/TagAndKeyTests.cs), [HttpSemanticsTests.cs](../../tests/Catalog.Contract.Tests/HttpSemanticsTests.cs), [ContractRules.Tests.ps1](../../tools/ci/ContractRules.Tests.ps1) | None |
-| `REQ-API-004` | POST creates require an Idempotency-Key | WP1.5, WP1.8, WP1.10 | Covered | [IdempotencyDecoratorTests.cs](../../tests/Catalog.Application.Tests/IdempotencyDecoratorTests.cs), [TagAndKeyTests.cs](../../tests/Catalog.Application.Tests/TagAndKeyTests.cs), [HttpSemanticsTests.cs](../../tests/Catalog.Contract.Tests/HttpSemanticsTests.cs), and 1 more | docs: [api-style-guide.md](../reference/api-style-guide.md) |
+| `REQ-API-003` | Conditional requests enforce strong ETags | WP1.5, WP1.10 | Covered | [BoundaryTests.cs](../../tests/Catalog.Application.Tests/BoundaryTests.cs), [ProductUseCaseTests.cs](../../tests/Catalog.Application.Tests/ProductUseCaseTests.cs), [TagAndKeyTests.cs](../../tests/Catalog.Application.Tests/TagAndKeyTests.cs), and 2 more | None |
+| `REQ-API-004` | POST creates require an Idempotency-Key | WP1.5, WP1.8, WP1.10 | Covered | [CategoryUseCaseTests.cs](../../tests/Catalog.Application.Tests/CategoryUseCaseTests.cs), [IdempotencyDecoratorTests.cs](../../tests/Catalog.Application.Tests/IdempotencyDecoratorTests.cs), [ProductUseCaseTests.cs](../../tests/Catalog.Application.Tests/ProductUseCaseTests.cs), and 3 more | docs: [api-style-guide.md](../reference/api-style-guide.md) |
 | `REQ-API-005` | Errors use RFC 9457 Problem Details | WP1.5, WP1.10 | Covered | [DocumentationAgreementTests.cs](../../tests/Catalog.Contract.Tests/DocumentationAgreementTests.cs), [ErrorCatalogTests.cs](../../tests/Catalog.Contract.Tests/ErrorCatalogTests.cs), [HttpSemanticsTests.cs](../../tests/Catalog.Contract.Tests/HttpSemanticsTests.cs), and 1 more | docs: [error-catalog.md](../reference/error-catalog.md) |
 | `REQ-API-006` | JSON input is strict and bounded | WP1.10 | Not yet due | None | None |
 | `REQ-API-007` | Rate limits return 429 and Retry-After | WP1.10, WP4.4 | Not yet due | None | None |
@@ -51,12 +51,12 @@ A requirement is in scope once every work package that delivers it is completed,
 
 | Requirement | Title | Delivered by | State | Tests | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| `REQ-APP-001` | Use cases use direct CQRS handler interfaces | WP1.7 | Not yet due | None | None |
+| `REQ-APP-001` | Use cases use direct CQRS handler interfaces | WP1.7 | Covered | [BoundaryTests.cs](../../tests/Catalog.Application.Tests/BoundaryTests.cs), [CategoryUseCaseTests.cs](../../tests/Catalog.Application.Tests/CategoryUseCaseTests.cs), [ProductQueryTests.cs](../../tests/Catalog.Application.Tests/ProductQueryTests.cs), and 2 more | None |
 | `REQ-APP-002` | Command decorators run in the approved order | WP1.7 | Covered | [PipelineOrderTests.cs](../../tests/Catalog.Application.Tests/PipelineOrderTests.cs), [TelemetryDecoratorTests.cs](../../tests/Catalog.Application.Tests/TelemetryDecoratorTests.cs), [TransactionAndCacheDecoratorTests.cs](../../tests/Catalog.Application.Tests/TransactionAndCacheDecoratorTests.cs), and 1 more | docs: [0032-decorator-pipeline-and-application-results.md](../adr/0032-decorator-pipeline-and-application-results.md) |
-| `REQ-APP-003` | Query decorators run in the approved order | WP1.7 | Covered | [PipelineOrderTests.cs](../../tests/Catalog.Application.Tests/PipelineOrderTests.cs), [TelemetryDecoratorTests.cs](../../tests/Catalog.Application.Tests/TelemetryDecoratorTests.cs), [TransactionAndCacheDecoratorTests.cs](../../tests/Catalog.Application.Tests/TransactionAndCacheDecoratorTests.cs) | docs: [0032-decorator-pipeline-and-application-results.md](../adr/0032-decorator-pipeline-and-application-results.md) |
-| `REQ-APP-004` | Application results use typed error cases | WP1.7, WP1.10 | Covered | [ProblemMappingTests.cs](../../tests/Catalog.Application.Tests/ProblemMappingTests.cs), [ResultTests.cs](../../tests/Catalog.Application.Tests/ResultTests.cs), [ApplicationAgreementTests.cs](../../tests/Catalog.Contract.Tests/ApplicationAgreementTests.cs) | None |
-| `REQ-APP-005` | Validators and use-case authorization run before handlers | WP1.7, WP1.10 | Covered | [PermissionPolicyTests.cs](../../tests/Catalog.Application.Tests/PermissionPolicyTests.cs), [ValidationAndAuthorizationTests.cs](../../tests/Catalog.Application.Tests/ValidationAndAuthorizationTests.cs) | None |
-| `REQ-APP-006` | Feature registration is explicit and deterministic | WP1.7, WP1.10 | Not yet due | None | None |
+| `REQ-APP-003` | Query decorators run in the approved order | WP1.7 | Covered | [BoundaryTests.cs](../../tests/Catalog.Application.Tests/BoundaryTests.cs), [PipelineOrderTests.cs](../../tests/Catalog.Application.Tests/PipelineOrderTests.cs), [ProductQueryTests.cs](../../tests/Catalog.Application.Tests/ProductQueryTests.cs), and 2 more | docs: [0032-decorator-pipeline-and-application-results.md](../adr/0032-decorator-pipeline-and-application-results.md) |
+| `REQ-APP-004` | Application results use typed error cases | WP1.7, WP1.10 | Covered | [BoundaryTests.cs](../../tests/Catalog.Application.Tests/BoundaryTests.cs), [CategoryUseCaseTests.cs](../../tests/Catalog.Application.Tests/CategoryUseCaseTests.cs), [ProblemMappingTests.cs](../../tests/Catalog.Application.Tests/ProblemMappingTests.cs), and 4 more | None |
+| `REQ-APP-005` | Validators and use-case authorization run before handlers | WP1.7, WP1.10 | Covered | [PermissionPolicyTests.cs](../../tests/Catalog.Application.Tests/PermissionPolicyTests.cs), [ProductQueryTests.cs](../../tests/Catalog.Application.Tests/ProductQueryTests.cs), [ProductUseCaseTests.cs](../../tests/Catalog.Application.Tests/ProductUseCaseTests.cs), and 2 more | None |
+| `REQ-APP-006` | Feature registration is explicit and deterministic | WP1.7, WP1.10 | Covered | [RegistrationTests.cs](../../tests/Catalog.Application.Tests/RegistrationTests.cs) | None |
 
 ## ARC: Architecture and layering
 
@@ -128,7 +128,7 @@ A requirement is in scope once every work package that delivers it is completed,
 | --- | --- | --- | --- | --- | --- |
 | `REQ-DOM-001` | Catalog aggregates use UUIDv7 identifiers | WP1.6, WP1.7 | Covered | [IdGeneratorTests.cs](../../tests/Catalog.Application.Tests/IdGeneratorTests.cs), [DomainAgreementTests.cs](../../tests/Catalog.Contract.Tests/DomainAgreementTests.cs), [IdentifierTests.cs](../../tests/Catalog.Domain.Tests/IdentifierTests.cs) | None |
 | `REQ-DOM-002` | Catalog value objects enforce normalization and bounds | WP1.6 | Covered | [DomainAgreementTests.cs](../../tests/Catalog.Contract.Tests/DomainAgreementTests.cs), [DescriptionAndSkuTests.cs](../../tests/Catalog.Domain.Tests/DescriptionAndSkuTests.cs), [DomainResultTests.cs](../../tests/Catalog.Domain.Tests/DomainResultTests.cs), and 3 more | None |
-| `REQ-DOM-003` | Discontinued products reject mutable changes | WP1.6, WP1.10 | Covered | [DomainAgreementTests.cs](../../tests/Catalog.Contract.Tests/DomainAgreementTests.cs), [ProductLifecyclePropertyTests.cs](../../tests/Catalog.Domain.Tests/ProductLifecyclePropertyTests.cs), [ProductTests.cs](../../tests/Catalog.Domain.Tests/ProductTests.cs) | None |
+| `REQ-DOM-003` | Discontinued products reject mutable changes | WP1.6, WP1.10 | Covered | [ProductUseCaseTests.cs](../../tests/Catalog.Application.Tests/ProductUseCaseTests.cs), [DomainAgreementTests.cs](../../tests/Catalog.Contract.Tests/DomainAgreementTests.cs), [ProductLifecyclePropertyTests.cs](../../tests/Catalog.Domain.Tests/ProductLifecyclePropertyTests.cs), and 1 more | None |
 | `REQ-DOM-004` | Domain events are versioned and time-stamped | WP1.6, WP1.8 | Covered | [DomainAgreementTests.cs](../../tests/Catalog.Contract.Tests/DomainAgreementTests.cs), [AggregateRootTests.cs](../../tests/Catalog.Domain.Tests/AggregateRootTests.cs), [CategoryTests.cs](../../tests/Catalog.Domain.Tests/CategoryTests.cs), and 2 more | docs: [domain-model.md](../reference/domain-model.md) |
 | `REQ-DOM-005` | Category assignment requires an active category | WP1.6, WP1.8 | Covered | [CategoryTests.cs](../../tests/Catalog.Domain.Tests/CategoryTests.cs), [ProductTests.cs](../../tests/Catalog.Domain.Tests/ProductTests.cs) | None |
 
@@ -224,8 +224,8 @@ A requirement is in scope once every work package that delivers it is completed,
 | `REQ-QUA-002` | The suite matrix blocks changes at the right depth | WP1.1, WP1.8, WP1.10, WP2.2, WP3.1, WP3.6, WP4.2, WP4.8 | Covered | [TestSummaryTests.cs](../../tests/Governance.Auditor.Tests/TestSummaryTests.cs) | None |
 | `REQ-QUA-003` | Traceability fails when an in-scope requirement lacks proof | WP0.2, WP1.2, WP1.13, WP4.8 | Covered | [RepositorySelfCheckTests.cs](../../tests/Governance.Auditor.Tests/RepositorySelfCheckTests.cs), [TraceCommandTests.cs](../../tests/Governance.Auditor.Tests/TraceCommandTests.cs), [TraceTests.cs](../../tests/Governance.Auditor.Tests/TraceTests.cs) | None |
 | `REQ-QUA-004` | Tests remain deterministic across hosts and reruns | WP1.1, WP1.6, WP1.8, WP4.8 | Covered | [TestProjectConventionTests.cs](../../tests/Catalog.Architecture.Tests/TestProjectConventionTests.cs), [DomainEventTests.cs](../../tests/Catalog.Domain.Tests/DomainEventTests.cs), [IdentifierTests.cs](../../tests/Catalog.Domain.Tests/IdentifierTests.cs) | None |
-| `REQ-QUA-005` | Coverage stays above the initial thresholds | WP1.1, WP1.6, WP1.7 | Not yet due | None | None |
-| `REQ-QUA-006` | Mutation testing reports and later gates domain test strength | WP1.0, WP1.6, WP1.7, WP4.8 | Covered | None | manual: [2026-10-12-domain-mutation-baseline.md](evidence/2026-10-12-domain-mutation-baseline.md) |
+| `REQ-QUA-005` | Coverage stays above the initial thresholds | WP1.1, WP1.6, WP1.7 | Covered | None | policy: [coverage-thresholds.json](../../governance/policies/coverage-thresholds.json) |
+| `REQ-QUA-006` | Mutation testing reports and later gates domain test strength | WP1.0, WP1.6, WP1.7, WP4.8 | Covered | None | manual: [2026-10-12-domain-mutation-baseline.md](evidence/2026-10-12-domain-mutation-baseline.md), manual: [2026-11-01-application-mutation-baseline.md](evidence/2026-11-01-application-mutation-baseline.md) |
 | `REQ-QUA-007` | Flaky tests are quarantined and CI meets feedback budgets | WP1.1, WP2.2, WP4.8 | Not yet due | None | None |
 
 ## SEC: Application and platform security

@@ -68,7 +68,7 @@ requirements:
   - unit
   evidence: port definitions and handler unit tests
   status: in_progress
-  notes: The first pull request of WP1.7 defines the repositories, IUnitOfWork, ICatalogCache, IIdGenerator, ICurrentPrincipal, the outbox dispatcher, and the telemetry port in Catalog.Application, and the rule application-ports-are-segregated fails on a port with more than five operations, with a violating fixture. The handler tests arrive with the use cases, and WP1.8 and WP1.9 implement the adapters (ADR-0032).
+  notes: The first pull request of WP1.7 defines the repositories, IUnitOfWork, ICatalogCache, IIdGenerator, ICurrentPrincipal, the outbox dispatcher, and the telemetry port in Catalog.Application, and the rule application-ports-are-segregated fails on a port with more than five operations, with a violating fixture. The handlers use only the ports that they need, and the rules query-handlers-depend-on-no-write-port and command-handlers-depend-on-no-read-store hold that on a violating fixture. WP1.8 and WP1.9 implement the adapters (ADR-0032).
 - id: REQ-ARC-004
   title: Endpoints depend on contracts and handler interfaces only
   statement: HTTP endpoints depend only on request and response contracts plus the specific handler interfaces they call, and never on domain entities or infrastructure types.
@@ -91,7 +91,8 @@ requirements:
   verification:
   - architecture
   evidence: ArchUnitNET naming and state rules
-  status: planned
+  status: verified
+  notes: WP1.1 delivers the rules against fixtures, and WP1.7 delivers the first production handlers, which the rules judge. Every class named Handler in Catalog.Application is internal and sealed, no static field or property of the layers outside the composition root is mutable, and each rule fails on a violating fixture (checked 2026-11-01).
 - id: REQ-DOM-001
   title: Catalog aggregates use UUIDv7 identifiers
   statement: Product and category aggregates use ProductId and CategoryId values created through IIdGenerator with Guid.CreateVersion7 as the default implementation so identifiers stay versioned and testable.
@@ -176,7 +177,8 @@ requirements:
   - unit
   - architecture
   evidence: handler interface tests
-  status: planned
+  status: verified
+  notes: WP1.7 delivers ICommandHandler and IQueryHandler, ten handlers that implement them (five for categories and five for products), and tests that run each use case through the production chain over an in-memory catalog. The rules handlers-implement-a-handler-interface and pipeline-code-uses-no-reflection-or-activator fail on a violating fixture, so no mediator and no runtime dispatch can come in (checked 2026-11-01).
 - id: REQ-APP-002
   title: Command decorators run in the approved order
   statement: 'Command handling applies decorators in this outermost-first order: telemetry and logging, validation, authorization, idempotency when a key is present, transaction and unit of work, then the handler.'
@@ -231,7 +233,7 @@ requirements:
   - integration
   evidence: validator tests and denied-path tests
   status: in_progress
-  notes: The second pull request of WP1.7 delivers the validation and authorization decorators, with tests that show that no handler runs for an invalid request or a caller without the scope and a role, for a command and for a query. The validators of the use cases arrive in the third pull request, and WP1.10 proves the denied paths through HTTP.
+  notes: The second pull request of WP1.7 delivers the validation and authorization decorators, with tests that show that no handler runs for an invalid request or a caller without the scope and a role, for a command and for a query. The validators of the ten use cases run the factories of the value objects of the model and report every invalid field at once, and the handlers refuse a broken rule when no validator runs. WP1.10 proves the denied paths through HTTP.
 - id: REQ-APP-006
   title: Feature registration is explicit and deterministic
   statement: Each feature registers its handlers and decorators through explicit extension methods so dependency wiring remains deterministic and reviewable.
@@ -243,7 +245,8 @@ requirements:
   - architecture
   - unit
   evidence: registration extension tests
-  status: planned
+  status: in_progress
+  notes: WP1.7 delivers IFeatureRegistry and the extension methods AddCategories and AddProducts, which name each handler once in a fixed order, and RegistrationTests record what they register and prove that every request of the Application is registered exactly once. WP1.10 implements the registry over the container in the composition root and resolves each handler through it.
 - id: REQ-API-001
   title: v1 endpoints expose products and categories
   statement: The v1 API exposes /api/v1/categories, /api/v1/categories/{id}, /api/v1/products, /api/v1/products/{id}, and POST discontinue actions, and product listing supports categoryId, status, q, sort, pageSize of at most 100, and cursor.
@@ -626,7 +629,7 @@ requirements:
   - contract
   evidence: authorization matrix tests
   status: in_progress
-  notes: The first pull request of WP1.7 delivers PermissionPolicy, the one table that maps each access level to its scope and to the roles that grant it, because Keycloak 26.8.0 grants a requested scope to a user without the role (R21, ADR-0026, ADR-0032). An exhaustive test covers all 64 combinations of scopes and roles for each level, and an agreement test compares the scopes with the contract and the roles with the realm file. The use cases declare their levels in the third pull request of WP1.7, WP1.10 binds the table to the endpoints, and WP3.5 proves it against the real realm.
+  notes: The first pull request of WP1.7 delivers PermissionPolicy, the one table that maps each access level to its scope and to the roles that grant it, because Keycloak 26.8.0 grants a requested scope to a user without the role (R21, ADR-0026, ADR-0032). An exhaustive test covers all 64 combinations of scopes and roles for each level, and an agreement test compares the scopes with the contract and the roles with the realm file. Each of the ten requests declares its level, and ApplicationAgreementTests compare the level of each with the scope that the contract names for its operation. WP1.10 binds the table to the endpoints, and WP3.5 proves it against the real realm.
 - id: REQ-IDN-003
   title: JWT validation checks issuer audience algorithms and clock skew
   statement: JWT validation enforces exact issuer and audience checks, allows only RS256 and ES256, tolerates no more than 30 seconds of clock skew, and accepts JWKS rotation.
@@ -818,8 +821,8 @@ requirements:
   verification:
   - ci
   evidence: coverage summary
-  status: in_progress
-  notes: WP1.1 delivers the threshold gate, which fails a build under 90 percent of lines or 80 percent of branches for the Domain. WP1.6 fills the Domain, and its tests cover 99.6 percent of its lines and 98.4 percent of its branches (checked 2026-10-12). The Application thresholds apply from WP1.7.
+  status: verified
+  notes: WP1.1 delivers the threshold gate, which fails a build under 90 percent of lines or 80 percent of branches for the Domain. WP1.6 fills the Domain, and its tests cover 99.6 percent of its lines and 98.4 percent of its branches (checked 2026-10-12). The Application thresholds apply from WP1.7, and its tests cover 100 percent of its lines and 99.5 percent of its branches, with 99.9 percent of the lines of the solution (checked 2026-11-01).
 - id: REQ-QUA-006
   title: Mutation testing reports and later gates domain test strength
   statement: Domain mutation score is reported from Phase 1 and must reach at least 70 percent before it becomes a blocking gate once the Microsoft.Testing.Platform runner is generally available.
@@ -834,7 +837,7 @@ requirements:
   - manual
   evidence: Stryker report
   status: in_progress
-  notes: WP1.0 ran the spike. WP1.6 pins Stryker.NET 5.0.0, runs it in the pinned Linux SDK image through the mutation service of tools/lint/compose.yaml, and scores the Domain at 94.62 percent, with every survivor accounted for in the evidence record. The Application baseline arrives in WP1.7, and the gate in WP4.8, once the Microsoft.Testing.Platform runner is generally available.
+  notes: WP1.0 ran the spike. WP1.6 pins Stryker.NET 5.0.0, runs it in the pinned Linux SDK image through the mutation service of tools/lint/compose.yaml, and scores the Domain at 94.62 percent, with every survivor accounted for in the evidence record. WP1.7 runs the same service with the argument application and scores the Application at 96.92 percent after the first run scored 90.00 percent, with every survivor accounted for in a second evidence record (checked 2026-11-01). The gate arrives in WP4.8, once the Microsoft.Testing.Platform runner is generally available.
 - id: REQ-QUA-007
   title: Flaky tests are quarantined and CI meets feedback budgets
   statement: Flaky tests have zero tolerance, quarantines expire after 7 days, blanket retries are forbidden, a typical work-package pull request gets feedback within 15 minutes, and a full master build completes within 30 minutes.
