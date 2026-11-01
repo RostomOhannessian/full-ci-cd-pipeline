@@ -5,6 +5,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Catalog.Application\Catalog.Application.csproj" />
+    <ProjectReference Include="..\..\src\Catalog.CrossCutting\Catalog.CrossCutting.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -56,6 +56,12 @@ namespace Catalog.Architecture.Tests.Fixtures.Clean.CrossCutting
     {
         public Application.IWidgetStore? Inner { get; init; }
     }
+
+    // A pipeline names the decorators, and a decorator does not.
+    internal static class WidgetPipeline
+    {
+        public static WidgetLoggingDecorator Compose() => new();
+    }
 }
 
 namespace Catalog.Architecture.Tests.Fixtures.Clean.Api
