@@ -47,6 +47,7 @@ public sealed class ArchitectureRulesTests
         ["infrastructure-does-not-depend-on-cross-cutting-or-the-composition-root"] = "ApiAwareStore",
         ["cross-cutting-does-not-depend-on-infrastructure-or-the-composition-root"] = "DirectDatabaseDecorator",
         ["no-service-locator-outside-the-composition-root"] = "ServiceLocatorUser",
+        ["application-ports-are-segregated"] = "IEverythingStore",
         ["handlers-are-internal-and-sealed"] = "CreateProductHandler",
         ["no-static-mutable-fields-outside-the-composition-root"] = "GlobalCounter",
         ["no-static-mutable-properties-outside-the-composition-root"] = "StaticSettings",
@@ -73,12 +74,17 @@ public sealed class ArchitectureRulesTests
     public void Production_code_uses_no_service_locator_outside_the_composition_root() => AssertProductionFollowsRulesFor("REQ-ARC-002");
 
     [Fact]
+    [Trait("Requirement", "REQ-ARC-003")]
+    public void Production_ports_are_segregated() => AssertProductionFollowsRulesFor("REQ-ARC-003");
+
+    [Fact]
     [Trait("Requirement", "REQ-ARC-005")]
     public void Production_handlers_are_internal_and_sealed_and_no_static_state_is_mutable() => AssertProductionFollowsRulesFor("REQ-ARC-005");
 
     [Fact]
     [Trait("Requirement", "REQ-ARC-001")]
     [Trait("Requirement", "REQ-ARC-002")]
+    [Trait("Requirement", "REQ-ARC-003")]
     [Trait("Requirement", "REQ-ARC-005")]
     public void Every_requirement_has_at_least_one_rule_and_every_rule_has_a_violating_fixture()
     {
@@ -86,7 +92,7 @@ public sealed class ArchitectureRulesTests
             ArchitectureRules.All.Select(rule => rule.Id).Order(StringComparer.Ordinal),
             ReportedType.Keys.Order(StringComparer.Ordinal));
         Assert.Equal(
-            ["REQ-ARC-001", "REQ-ARC-002", "REQ-ARC-005"],
+            ["REQ-ARC-001", "REQ-ARC-002", "REQ-ARC-003", "REQ-ARC-005"],
             ArchitectureRules.All.Select(rule => rule.Requirement).Distinct().Order(StringComparer.Ordinal));
     }
 
@@ -94,6 +100,7 @@ public sealed class ArchitectureRulesTests
     [MemberData(nameof(RuleIds))]
     [Trait("Requirement", "REQ-ARC-001")]
     [Trait("Requirement", "REQ-ARC-002")]
+    [Trait("Requirement", "REQ-ARC-003")]
     [Trait("Requirement", "REQ-ARC-005")]
     public void A_strict_rule_passes_on_conforming_code_and_matches_at_least_one_type(string ruleId)
     {
@@ -106,6 +113,7 @@ public sealed class ArchitectureRulesTests
     [MemberData(nameof(RuleIds))]
     [Trait("Requirement", "REQ-ARC-001")]
     [Trait("Requirement", "REQ-ARC-002")]
+    [Trait("Requirement", "REQ-ARC-003")]
     [Trait("Requirement", "REQ-ARC-005")]
     public void A_rule_fails_and_names_the_type_that_breaks_it(string ruleId)
     {

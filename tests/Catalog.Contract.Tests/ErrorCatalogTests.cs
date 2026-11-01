@@ -16,7 +16,7 @@ public sealed class ErrorCatalogTests
     private static readonly string Catalog = Authored.ReadText("docs", "reference", "error-catalog.md");
 
     /// <summary>The entries of the catalog page: a heading that is a slug, followed by its status and its title.</summary>
-    private static readonly IReadOnlyDictionary<string, (int Status, string Title)> Entries = ReadEntries();
+    internal static readonly IReadOnlyDictionary<string, (int Status, string Title)> Entries = ReadEntries();
 
     /// <summary>Every example of a problem body, with the status code of the response that holds it.</summary>
     private static readonly IReadOnlyList<(string OperationId, string StatusKey, string ExampleName, JsonNode Body)> Examples =

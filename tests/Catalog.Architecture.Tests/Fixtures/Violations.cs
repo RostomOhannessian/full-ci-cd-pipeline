@@ -24,6 +24,22 @@ namespace Catalog.Architecture.Tests.Fixtures.Violations.Application
         private readonly IServiceProvider _services = services;
     }
 
+    // Breaks "application-ports-are-segregated": a port with six operations asks every caller to depend on all of them.
+    public interface IEverythingStore
+    {
+        void Add();
+
+        void Remove();
+
+        void Find();
+
+        void Count();
+
+        void Archive();
+
+        void Restore();
+    }
+
     // Breaks "handlers-are-internal-and-sealed": the handler is public and not sealed.
     public class CreateProductHandler
     {
