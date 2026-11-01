@@ -181,6 +181,12 @@
           "xunit.v3.runner.common": "[4.0.1]"
         }
       },
+      "catalog.application": {
+        "type": "Project",
+        "dependencies": {
+          "Catalog.Domain": "[1.0.0, )"
+        }
+      },
       "catalog.domain": {
         "type": "Project"
       }

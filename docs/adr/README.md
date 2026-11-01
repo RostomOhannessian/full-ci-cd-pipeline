@@ -56,6 +56,7 @@ The rules for writing them are in [ADR-0001](0001-record-architecture-decisions.
 | [0029](0029-domain-model-and-mutation-baseline.md) | Model the catalog with always-valid value objects, result values, and explicit events, and report mutation scores from Linux | accepted | Accepted 2026-10-12 in WP1.6 |
 | [0030](0030-session-boundaries-and-ai-paired-delivery.md) | Advise session boundaries with a deterministic check whose rules and prompts are data | accepted | Accepted 2026-10-12 in WP1.14 |
 | [0031](0031-ai-usage-ledger-and-estimate.md) | Record AI usage in a validated ledger and estimate the remaining work from it | accepted | Accepted 2026-10-12 in WP1.15 |
+| [0032](0032-decorator-pipeline-and-application-results.md) | Wrap handlers in a fixed decorator pipeline with hand-written registration, typed results, and a scope-and-role permission table | accepted | Accepted 2026-11-01 in WP1.7 |
 
 The evidence behind these decisions is in the [research records](../research/README.md). The plan that ties them together is
 [the implementation plan](../plans/implementation-plan.md).

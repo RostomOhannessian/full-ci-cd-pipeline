@@ -40,7 +40,7 @@ requirements:
   - docs
   evidence: ArchUnitNET layer report and project graph
   status: in_progress
-  notes: WP1.1 enforces the reference table and the type rules against fixtures. WP1.6 fills the Domain with the first production types, reads its assembly references from metadata to prove that it references the base class library only, and teaches the static-state rule that a constant is not mutable state. The Application, Infrastructure, CrossCutting, and Api layers fill in WP1.7, WP1.8, and WP1.10.
+  notes: WP1.1 enforces the reference table and the type rules against fixtures. WP1.6 fills the Domain with the first production types, reads its assembly references from metadata to prove that it references the base class library only, and teaches the static-state rule that a constant is not mutable state. The Application, Infrastructure, CrossCutting, and Api layers fill in WP1.7, WP1.8, and WP1.10. The first pull request of WP1.7 gives the Application its first types, and the same rules judge them.
 - id: REQ-ARC-002
   title: Api is the only composition root
   statement: Only Catalog.Api may inject IServiceProvider or register dependency wiring, and no business logic may live in the composition root.
@@ -67,7 +67,8 @@ requirements:
   - architecture
   - unit
   evidence: port definitions and handler unit tests
-  status: planned
+  status: in_progress
+  notes: The first pull request of WP1.7 defines the repositories, IUnitOfWork, ICatalogCache, IIdGenerator, ICurrentPrincipal, the outbox dispatcher, and the telemetry port in Catalog.Application, and the rule application-ports-are-segregated fails on a port with more than five operations, with a violating fixture. The handler tests arrive with the use cases, and WP1.8 and WP1.9 implement the adapters (ADR-0032).
 - id: REQ-ARC-004
   title: Endpoints depend on contracts and handler interfaces only
   statement: HTTP endpoints depend only on request and response contracts plus the specific handler interfaces they call, and never on domain entities or infrastructure types.
@@ -99,12 +100,13 @@ requirements:
   - 2
   delivered-by:
   - WP1.6
+  - WP1.7
   verification:
   - unit
   - property
   evidence: domain entity and property-test results
-  status: in_progress
-  notes: WP1.6 delivers ProductId and CategoryId, which accept only a UUID version 7 of the RFC 9562 variant, and aggregates that take an identifier and never make one, with example and property tests over random bytes. The IIdGenerator port and its Guid.CreateVersion7 default belong to the Application layer, so they arrive in WP1.7 (ADR-0029).
+  status: verified
+  notes: WP1.6 delivers ProductId and CategoryId, which accept only a UUID version 7 of the RFC 9562 variant, and aggregates that take an identifier and never make one, with example and property tests over random bytes. WP1.7 delivers the IIdGenerator port and GuidV7IdGenerator, which calls Guid.CreateVersion7 with the time of the injected TimeProvider, with tests that show the identifiers are distinct, version 7, and sorted by the clock (ADR-0029, ADR-0032).
 - id: REQ-DOM-002
   title: Catalog value objects enforce normalization and bounds
   statement: Sku, ProductName, CategoryName, Description, and Money normalize input and enforce the bounds, currency rules, and precision described in section 8.3.
@@ -210,7 +212,8 @@ requirements:
   - unit
   - integration
   evidence: Result<T> tests and Problem Details mapping cases
-  status: planned
+  status: in_progress
+  notes: The first pull request of WP1.7 delivers Result<T>, the seven typed errors, and ProblemMapping, the one table that maps each error to an entry of the error catalog, with unit tests and an agreement test against the catalog page. WP1.10 serializes the mapping as Problem Details through HTTP (ADR-0032).
 - id: REQ-APP-005
   title: Validators and use-case authorization run before handlers
   statement: FluentValidation validators and application-layer authorization requirements run before handler logic for every protected command and query.
@@ -619,7 +622,8 @@ requirements:
   - integration
   - contract
   evidence: authorization matrix tests
-  status: planned
+  status: in_progress
+  notes: The first pull request of WP1.7 delivers PermissionPolicy, the one table that maps each access level to its scope and to the roles that grant it, because Keycloak 26.8.0 grants a requested scope to a user without the role (R21, ADR-0026, ADR-0032). An exhaustive test covers all 64 combinations of scopes and roles for each level, and an agreement test compares the scopes with the contract and the roles with the realm file. The use cases declare their levels in the third pull request of WP1.7, WP1.10 binds the table to the endpoints, and WP3.5 proves it against the real realm.
 - id: REQ-IDN-003
   title: JWT validation checks issuer audience algorithms and clock skew
   statement: JWT validation enforces exact issuer and audience checks, allows only RS256 and ES256, tolerates no more than 30 seconds of clock skew, and accepts JWKS rotation.

@@ -25,6 +25,9 @@ internal static class ArchitectureRules
     private const string ServiceLocator =
         @"^(System\.IServiceProvider|Microsoft\.Extensions\.DependencyInjection\.(IServiceScopeFactory|IServiceScope|ActivatorUtilities))$";
 
+    // A port that grows past this number of operations is asking its callers to depend on more than they use. Split it by capability instead.
+    private const int MaxPortMembers = 5;
+
     public static IReadOnlyList<NamedRule> All { get; } =
     [
         new(
@@ -63,6 +66,14 @@ internal static class ArchitectureRules
             "REQ-ARC-005",
             (layers, strict) => Finish(Classes().That().Are(layers.ProductionClasses).And().HaveNameEndingWith("Handler").Should().NotBePublic().AndShould().BeSealed(), strict)),
 
+        new(
+            "application-ports-are-segregated",
+            "REQ-ARC-003",
+            (layers, strict) => Finish(
+                Types().That().Are(layers.Application).And().FollowCustomPredicate(type => type is Interface, "are interfaces")
+                    .Should().FollowCustomCondition(type => DeclaredMemberCount(type) <= MaxPortMembers, $"declare at most {MaxPortMembers} members", $"declares more than {MaxPortMembers} members"),
+                strict)),
+
         // Compiler-generated static fields, such as the cache of a lambda, are not state that a developer can reach. Constants cannot change, and the members of an enum are constants.
         new(
             "no-static-mutable-fields-outside-the-composition-root",
@@ -79,6 +90,13 @@ internal static class ArchitectureRules
             "REQ-ARC-005",
             (layers, strict) => Finish(PropertyMembers().That().AreStatic().And().AreDeclaredIn(layers.OutsideComposition).Should().BeImmutable(), strict)),
     ];
+
+    // The operations of an interface: its properties and its methods, without the accessors of the properties.
+    private static int DeclaredMemberCount(IType type) =>
+        type.Members.OfType<PropertyMember>().Count() + type.Members.OfType<MethodMember>().Count(method => !IsAccessor(method.Name));
+
+    private static bool IsAccessor(string name) =>
+        name.StartsWith("get_", StringComparison.Ordinal) || name.StartsWith("set_", StringComparison.Ordinal);
 
     // The layers a type may not depend on, as a set of types. Both layers are loaded, so a set can describe them.
     private static GivenTypesConjunction AnyOf(IObjectProvider<IType> first, IObjectProvider<IType> second) =>
