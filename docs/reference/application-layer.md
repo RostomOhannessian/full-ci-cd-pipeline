@@ -3,7 +3,7 @@ title: "Application layer"
 description: "The handler interfaces, the results and typed errors with their mapping to the error catalog, the permission table, the decorator order, and the ports of the catalog application layer."
 audience: [learners, contributors, maintainers]
 type: reference
-tools: []
+tools: [fluentvalidation]
 last-verified: 2026-11-01
 owner: "@RostomOhannessian"
 ---
@@ -11,8 +11,7 @@ owner: "@RostomOhannessian"
 # Application layer
 
 The application layer is the project [`src/Catalog.Application`](../../src/Catalog.Application/Catalog.Application.csproj). It holds the use cases of the catalog and the ports that the outer layers implement. It references the domain model and the base class library only
-([ADR-0032](../adr/0032-decorator-pipeline-and-application-results.md)). The decorators that wrap a handler live in `Catalog.CrossCutting`, the registration lives in the composition root, and the adapters of the ports arrive with the persistence (WP1.8), the cache (WP1.9),
-and the endpoints (WP1.10). The first pull request of WP1.7 delivers the results, the errors, the permission table, and the ports that this page describes. The pipeline (second pull request) and the use cases (third pull request) are planned.
+([ADR-0032](../adr/0032-decorator-pipeline-and-application-results.md)). The decorator code is in `Catalog.CrossCutting`, the registration lives in the composition root, and the adapters of the ports arrive with the persistence (WP1.8), the cache (WP1.9), and the endpoints (WP1.10). The first pull request of WP1.7 delivered the results, the errors, the permission table, and the ports, and the second delivered the pipeline. The use cases (third pull request) are planned.
 
 ## Handler interfaces
 
@@ -63,7 +62,19 @@ the realm file.
 ## Decorator order
 
 Commands pass through telemetry and logging, validation, authorization, idempotency (when the command has a key), and the transaction before the handler. Queries pass through telemetry, validation, authorization, and the query cache (for marked queries) before the handler. The reason for each position is in
-[ADR-0032](../adr/0032-decorator-pipeline-and-application-results.md). The decorators and the tests of their order are planned in the second pull request of WP1.7.
+[ADR-0032](../adr/0032-decorator-pipeline-and-application-results.md).
+
+The decorators are in `src/Catalog.CrossCutting/Decorators`, and [`CommandPipeline.Compose` and `QueryPipeline.Compose`](../../src/Catalog.CrossCutting/Decorators/Pipelines.cs) are the only places that name them, so the order is plain code. The composition root calls `Compose` once for each handler that a feature registers
+(WP1.10, planned). A rule of `Catalog.Architecture.Tests` fails when a decorator names another decorator.
+
+| Decorator | Used by | What it does |
+| --- | --- | --- |
+| `TelemetryCommandDecorator`, `TelemetryQueryDecorator` | Commands, queries | Observes the run through `IUseCaseTelemetry`, and reports a success, a refusal, or a fault |
+| `ValidationCommandDecorator`, `ValidationQueryDecorator` | Commands, queries | Runs every FluentValidation validator and refuses with all the messages at once, with the fields written as JSON paths of the contract |
+| `AuthorizationCommandDecorator`, `AuthorizationQueryDecorator` | Commands, queries | Checks the access level of the request against the permission table |
+| `IdempotencyCommandDecorator` | Commands with a key | Reserves the key, replays the first result, refuses a different request with the same key, and registers the hook that writes the record in the transaction |
+| `TransactionCommandDecorator` | Commands | Runs the handler in the unit of work, and wakes the outbox after a successful commit |
+| `QueryCacheDecorator` | Queries that implement `ICachedQuery` | Serves the result from the cache and loads it on a miss |
 
 ## Ports
 
@@ -87,6 +98,6 @@ characters. The read stores that the queries need are defined with the queries i
 
 Each test names the requirement that it proves, and `governance trace` reads the names ([the traceability report](../testing/traceability.md)).
 
-- `tests/Catalog.Application.Tests` holds the unit tests of the results, the mapping table, the permission table, the tag, the key, and the identifier generator. The permission test is exhaustive, and the tag test is a property test.
+- `tests/Catalog.Application.Tests` holds the unit tests of the results, the mapping table, the permission table, the tag, the key, the identifier generator, and every decorator. The permission test is exhaustive, and the tag test is a property test. `PipelineOrderTests` runs requests through the production chains over fakes that share one journal and asserts the order and every short circuit.
 - `tests/Catalog.Contract.Tests/ApplicationAgreementTests.cs` holds the mapping table to the error catalog and the permission table to the contract and the realm file.
-- `tests/Catalog.Architecture.Tests` holds the rule that keeps the ports small, with a violating fixture that shows it failing.
+- `tests/Catalog.Architecture.Tests` holds the rule that keeps the ports small and the rule that only a pipeline names the decorators, each with a violating fixture that shows it failing.

@@ -2,7 +2,7 @@
 # carrying its ID, so they need no entry here. Each entry names a file that must exist. `governance trace` reads this file, checks every
 # path, and renders docs/testing/traceability.md. The schema is evidence.schema.json, and ADR-0022 explains the rules.
 schema-version: 1
-last-verified: '2026-10-12'
+last-verified: '2026-11-01'
 entries:
   - requirements: [REQ-GOV-001]
     kind: docs
@@ -134,3 +134,8 @@ entries:
     path: docs/reference/domain-model.md
     summary: The domain model page lists the eight events with their properties, the error codes, the rules, and the lifecycle, and a test parses the page and fails when it disagrees with the events and the error codes of the model.
     recorded: '2026-10-12'
+  - requirements: [REQ-APP-002, REQ-APP-003]
+    kind: docs
+    path: docs/adr/0032-decorator-pipeline-and-application-results.md
+    summary: ADR-0032 records the outermost-first order of the command and the query decorators and the reason for each position, and the tests of PipelineOrderTests run the production chains and assert the same order.
+    recorded: '2026-11-01'

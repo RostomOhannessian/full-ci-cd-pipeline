@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using ArchUnitNET.Domain;
 using ArchUnitNET.Fluent;
 using ArchUnitNET.Fluent.Syntax.Elements.Types;
@@ -27,6 +28,10 @@ internal static class ArchitectureRules
 
     // A port that grows past this number of operations is asking its callers to depend on more than they use. Split it by capability instead.
     private const int MaxPortMembers = 5;
+
+    // A decorator wraps a handler through the handler interface, and only a pipeline type names the decorators, so the order of the chain is written in one place (ADR-0032).
+    // A generic class has the arity in its name, as in TelemetryCommandDecorator`2.
+    private const string DecoratorName = @"Decorator(`\d+)?$";
 
     public static IReadOnlyList<NamedRule> All { get; } =
     [
@@ -74,6 +79,14 @@ internal static class ArchitectureRules
                     .Should().FollowCustomCondition(type => DeclaredMemberCount(type) <= MaxPortMembers, $"declare at most {MaxPortMembers} members", $"declares more than {MaxPortMembers} members"),
                 strict)),
 
+        new(
+            "decorators-are-composed-only-by-pipelines",
+            "REQ-APP-002",
+            (layers, strict) => Finish(
+                Classes().That().Are(layers.CrossCutting).And().HaveNameMatching(DecoratorName)
+                    .Should().FollowCustomCondition(type => !NamesAnotherDecorator(type), "name no other decorator", "names another decorator"),
+                strict)),
+
         // Compiler-generated static fields, such as the cache of a lambda, are not state that a developer can reach. Constants cannot change, and the members of an enum are constants.
         new(
             "no-static-mutable-fields-outside-the-composition-root",
@@ -90,6 +103,12 @@ internal static class ArchitectureRules
             "REQ-ARC-005",
             (layers, strict) => Finish(PropertyMembers().That().AreStatic().And().AreDeclaredIn(layers.OutsideComposition).Should().BeImmutable(), strict)),
     ];
+
+    // A decorator may name itself, as a generic class does for its own closed type.
+    private static bool NamesAnotherDecorator(Class type) =>
+        type.Dependencies.Any(dependency =>
+            dependency.Target.FullName != type.FullName
+            && Regex.IsMatch(dependency.Target.Name, DecoratorName, RegexOptions.CultureInvariant, TimeSpan.FromSeconds(1)));
 
     // The operations of an interface: its properties and its methods, without the accessors of the properties.
     private static int DeclaredMemberCount(IType type) =>

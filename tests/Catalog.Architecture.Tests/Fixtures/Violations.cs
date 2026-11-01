@@ -82,6 +82,12 @@ namespace Catalog.Architecture.Tests.Fixtures.Violations.Infrastructure
 
 namespace Catalog.Architecture.Tests.Fixtures.Violations.CrossCutting
 {
+    // Breaks "decorators-are-composed-only-by-pipelines": a decorator that names another decorator fixes the order of the chain outside the pipeline.
+    public sealed class ChainingDecorator
+    {
+        private readonly DirectDatabaseDecorator _next = new();
+    }
+
     // Breaks "cross-cutting-does-not-depend-on-infrastructure-or-the-composition-root".
     public sealed class DirectDatabaseDecorator
     {

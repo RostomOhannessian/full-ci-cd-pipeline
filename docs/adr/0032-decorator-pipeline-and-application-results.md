@@ -6,10 +6,11 @@ date: 2026-11-01
 decision-makers: ["@RostomOhannessian"]
 supersedes: []
 superseded-by: []
-tools: []
+tools: [fluentvalidation]
 related-adrs: ["0004", "0012", "0016", "0026", "0028", "0029"]
 evidence:
   - src/Catalog.Application
+  - src/Catalog.CrossCutting
   - tests/Catalog.Application.Tests
   - tests/Catalog.Architecture.Tests/ArchitectureRules.cs
   - tests/Catalog.Contract.Tests/ApplicationAgreementTests.cs
@@ -72,7 +73,7 @@ flowchart LR
 
 Endpoint policies (authentication and scope) run before the pipeline, at the HTTP edge. The pipeline repeats the scope check together with the role check because Keycloak does not withhold a scope (R21), so the use case does not trust that the edge did it.
 
-The idempotency record must be written in the same transaction as the effect (plan section 8.4), although the idempotency step sits outside the transaction step. They cooperate through the unit of work. The idempotency decorator asks the store to reserve the key, and it registers a hook with `IUnitOfWork.BeforeCommit`. The transaction decorator runs the handler and calls the hooks inside the transaction, just before the commit, and the hook writes the record of the result through `IIdempotencyStore.CompleteAsync`. If the work fails, the decorator releases the reservation so the caller can retry. The transaction decorator knows nothing about idempotency.
+The idempotency record must be written in the same transaction as the effect (plan section 8.4), although the idempotency step sits outside the transaction step. They cooperate through the unit of work. The idempotency decorator asks the store to reserve the key, and it registers a hook with `IUnitOfWork.BeforeCommit`. The transaction decorator runs the handler through `IUnitOfWork.ExecuteAsync`, which calls the hooks inside the transaction, just before the commit, and the hook writes the record of the result through `IIdempotencyStore.CompleteAsync`. If the work fails, the decorator releases the reservation so the caller can retry. The transaction decorator knows nothing about idempotency.
 
 After a successful commit the transaction decorator calls `IOutboxDispatcher.DispatchCommittedAsync` on a best-effort basis, because the outbox processor is the guarantee ([ADR-0012](0012-domain-events-outbox-vs-direct-orchestration.md)).
 
@@ -90,7 +91,7 @@ The Application stays free of libraries: `application-depends-on-domain-and-the-
 
 A feature registers its handlers through an extension method on `IFeatureRegistry`, which the Application defines, such as `registry.AddProducts()`. The method names each handler explicitly, in a fixed order. The composition root implements `IFeatureRegistry` over `IServiceCollection` and composes each chain with the pipeline types of CrossCutting. The `IServiceProvider` therefore appears only in the composition root, where the rule allows it, and the handlers stay `internal sealed` because the registry receives them as type arguments that the Application passes. Registration extension tests record what a feature registers (WP1.7), and an integration test resolves each handler through the real container (WP1.10).
 
-Scrutor is not used. Its decoration needs factory delegates over `IServiceProvider` in CrossCutting, which the service-locator rule forbids, it discovers decoration by scanning or by open generics so the order lives in registration side effects, and it adds a dependency that the hand-written chain does not need.
+Scrutor is not used. Its decoration needs factory delegates over `IServiceProvider` in CrossCutting, which the service-locator rule forbids, it discovers decoration by scanning or by open generics so the order lives in registration side effects, and it adds a dependency that the hand-written chain does not need. FluentValidation 12.1.1 is the one package that this decision adds (Apache-2.0, no dependency on net8.0 or later, checked 2026-11-01), and Dependabot proposes later versions.
 
 ### Authorization
 
@@ -116,7 +117,7 @@ A caller needs the scope and one of the roles. A caller without the scope gets `
 ### Confirmation
 
 - WP1.7, first pull request: the results, the error cases, the mapping table, the permission table, the ports, and the identifier generator have unit tests (`tests/Catalog.Application.Tests`). The rule `application-ports-are-segregated` fails on a port with more than five operations, and the agreement tests in `tests/Catalog.Contract.Tests/ApplicationAgreementTests.cs` hold the tables to the catalog, the contract, and the realm.
-- WP1.7, second pull request: unit tests for every decorator and for the order of the chain (REQ-APP-002, REQ-APP-003), and the registration extension tests (REQ-APP-006).
+- WP1.7, second pull request: `CommandPipeline` and `QueryPipeline` in `src/Catalog.CrossCutting/Decorators` compose the decorators, and `tests/Catalog.Application.Tests/PipelineOrderTests.cs` runs requests through the production chains over fakes that share one journal and asserts the order and every short circuit (REQ-APP-002, REQ-APP-003). Each decorator also has its own tests. The rule `decorators-are-composed-only-by-pipelines` fails when a decorator names another decorator, with a violating fixture. The registration extension tests (REQ-APP-006) arrive with the features in the third pull request.
 - WP1.7, third pull request: the use cases, their validators, and the architecture rules for handlers (REQ-APP-001, REQ-ARC-003, REQ-ARC-005).
 - WP1.10: the endpoints bind the tables, and integration tests prove the order and the status codes through HTTP.
 

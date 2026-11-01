@@ -228,7 +228,8 @@
       "catalog.crosscutting": {
         "type": "Project",
         "dependencies": {
-          "Catalog.Application": "[1.0.0, )"
+          "Catalog.Application": "[1.0.0, )",
+          "FluentValidation": "[12.1.1, )"
         }
       },
       "catalog.domain": {
@@ -239,6 +240,12 @@
         "dependencies": {
           "Catalog.Application": "[1.0.0, )"
         }
+      },
+      "FluentValidation": {
+        "type": "CentralTransitive",
+        "requested": "[12.1.1, )",
+        "resolved": "12.1.1",
+        "contentHash": "EPpkIe1yh1a0OXyC100oOA8WMbZvqUu5plwhvYcb7oSELfyUZzfxV48BLhvs3kKo4NwG7MGLNgy1RJiYtT8Dpw=="
       }
     }
   }

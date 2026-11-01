@@ -37,4 +37,10 @@
     <PackageVersion Include="Microsoft.Extensions.TimeProvider.Testing" Version="10.10.0" />
   </ItemGroup>
 
+  <!-- Catalog.CrossCutting (ADR-0032). FluentValidation is Apache-2.0 and has no dependency on net8.0 or later. The version is the one of plan section 17. 12.2.0 was released on
+       2026-10-10, and this ADR keeps the planned version until Dependabot proposes the update. Checked on 2026-11-01. -->
+  <ItemGroup>
+    <PackageVersion Include="FluentValidation" Version="12.1.1" />
+  </ItemGroup>
+
 </Project>
