@@ -49,6 +49,10 @@ public sealed class ArchitectureRulesTests
         ["no-service-locator-outside-the-composition-root"] = "ServiceLocatorUser",
         ["application-ports-are-segregated"] = "IEverythingStore",
         ["decorators-are-composed-only-by-pipelines"] = "ChainingDecorator",
+        ["handlers-implement-a-handler-interface"] = "UntypedHandler",
+        ["pipeline-code-uses-no-reflection-or-activator"] = "ReflectiveDispatcher",
+        ["query-handlers-depend-on-no-write-port"] = "GreedyQueryHandler",
+        ["command-handlers-depend-on-no-read-store"] = "NosyCommandHandler",
         ["handlers-are-internal-and-sealed"] = "CreateProductHandler",
         ["no-static-mutable-fields-outside-the-composition-root"] = "GlobalCounter",
         ["no-static-mutable-properties-outside-the-composition-root"] = "StaticSettings",
@@ -79,6 +83,10 @@ public sealed class ArchitectureRulesTests
     public void Production_ports_are_segregated() => AssertProductionFollowsRulesFor("REQ-ARC-003");
 
     [Fact]
+    [Trait("Requirement", "REQ-APP-001")]
+    public void Production_handlers_implement_the_handler_interfaces_and_no_pipeline_code_uses_reflection() => AssertProductionFollowsRulesFor("REQ-APP-001");
+
+    [Fact]
     [Trait("Requirement", "REQ-APP-002")]
     public void Production_decorators_are_composed_only_by_pipelines() => AssertProductionFollowsRulesFor("REQ-APP-002");
 
@@ -90,6 +98,7 @@ public sealed class ArchitectureRulesTests
     [Trait("Requirement", "REQ-ARC-001")]
     [Trait("Requirement", "REQ-ARC-002")]
     [Trait("Requirement", "REQ-ARC-003")]
+    [Trait("Requirement", "REQ-APP-001")]
     [Trait("Requirement", "REQ-APP-002")]
     [Trait("Requirement", "REQ-ARC-005")]
     public void Every_requirement_has_at_least_one_rule_and_every_rule_has_a_violating_fixture()
@@ -98,7 +107,7 @@ public sealed class ArchitectureRulesTests
             ArchitectureRules.All.Select(rule => rule.Id).Order(StringComparer.Ordinal),
             ReportedType.Keys.Order(StringComparer.Ordinal));
         Assert.Equal(
-            ["REQ-APP-002", "REQ-ARC-001", "REQ-ARC-002", "REQ-ARC-003", "REQ-ARC-005"],
+            ["REQ-APP-001", "REQ-APP-002", "REQ-ARC-001", "REQ-ARC-002", "REQ-ARC-003", "REQ-ARC-005"],
             ArchitectureRules.All.Select(rule => rule.Requirement).Distinct().Order(StringComparer.Ordinal));
     }
 
@@ -107,6 +116,7 @@ public sealed class ArchitectureRulesTests
     [Trait("Requirement", "REQ-ARC-001")]
     [Trait("Requirement", "REQ-ARC-002")]
     [Trait("Requirement", "REQ-ARC-003")]
+    [Trait("Requirement", "REQ-APP-001")]
     [Trait("Requirement", "REQ-APP-002")]
     [Trait("Requirement", "REQ-ARC-005")]
     public void A_strict_rule_passes_on_conforming_code_and_matches_at_least_one_type(string ruleId)
@@ -121,6 +131,7 @@ public sealed class ArchitectureRulesTests
     [Trait("Requirement", "REQ-ARC-001")]
     [Trait("Requirement", "REQ-ARC-002")]
     [Trait("Requirement", "REQ-ARC-003")]
+    [Trait("Requirement", "REQ-APP-001")]
     [Trait("Requirement", "REQ-APP-002")]
     [Trait("Requirement", "REQ-ARC-005")]
     public void A_rule_fails_and_names_the_type_that_breaks_it(string ruleId)

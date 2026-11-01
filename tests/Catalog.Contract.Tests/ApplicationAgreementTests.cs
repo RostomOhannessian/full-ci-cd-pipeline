@@ -1,3 +1,6 @@
+using Catalog.Application.Categories;
+using Catalog.Application.Messaging;
+using Catalog.Application.Products;
 using Catalog.Application.Results;
 using Catalog.Application.Security;
 using Catalog.Contract.Tests.Support;
@@ -54,6 +57,49 @@ public sealed class ApplicationAgreementTests
             Assert.Contains($"\"name\": \"{role}\"", realm, StringComparison.Ordinal);
         }
     }
+
+    [Fact]
+    [Trait("Requirement", "REQ-IDN-002")]
+    public void Every_use_case_asks_for_the_scope_that_the_contract_names_for_its_operation()
+    {
+        Dictionary<string, string> asked = new()
+        {
+            ["listCategories"] = ScopeOf<ListCategories>(),
+            ["createCategory"] = ScopeOf<CreateCategory>(),
+            ["getCategory"] = ScopeOf<GetCategory>(),
+            ["updateCategory"] = ScopeOf<RenameCategory>(),
+            ["discontinueCategory"] = ScopeOf<DiscontinueCategory>(),
+            ["listProducts"] = ScopeOf<ListProducts>(),
+            ["createProduct"] = ScopeOf<CreateProduct>(),
+            ["getProduct"] = ScopeOf<GetProduct>(),
+            ["updateProduct"] = ScopeOf<UpdateProduct>(),
+            ["discontinueProduct"] = ScopeOf<DiscontinueProduct>(),
+        };
+
+        Assert.Equal(ContractOperation.All.Select(operation => operation.OperationId).Order(StringComparer.Ordinal), asked.Keys.Order(StringComparer.Ordinal));
+
+        foreach (var operation in ContractOperation.All)
+        {
+            Assert.Equal(Assert.Single(operation.Scopes), asked[operation.OperationId]);
+        }
+    }
+
+    [Fact]
+    [Trait("Requirement", "REQ-IDN-002")]
+    public void The_scopes_follow_the_permission_matrix_of_the_plan()
+    {
+        Assert.Equal("catalog.read", ScopeOf<GetProduct>());
+        Assert.Equal("catalog.read", ScopeOf<ListCategories>());
+        Assert.Equal("catalog.write", ScopeOf<CreateProduct>());
+        Assert.Equal("catalog.write", ScopeOf<UpdateProduct>());
+        Assert.Equal("catalog.admin", ScopeOf<DiscontinueProduct>());
+        Assert.Equal("catalog.admin", ScopeOf<CreateCategory>());
+        Assert.Equal("catalog.admin", ScopeOf<RenameCategory>());
+        Assert.Equal("catalog.admin", ScopeOf<DiscontinueCategory>());
+    }
+
+    private static string ScopeOf<TRequest>()
+        where TRequest : IProtectedRequest => PermissionPolicy.For(TRequest.RequiredAccess).Scope;
 
     [Fact]
     [Trait("Requirement", "REQ-IDN-002")]

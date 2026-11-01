@@ -31,9 +31,41 @@ namespace Catalog.Architecture.Tests.Fixtures.Clean.Application
         Domain.Widget Find();
     }
 
-    internal sealed class CreateWidgetHandler
+    public interface ICommandHandler<in TCommand, TResult>
     {
-        public Domain.Widget Handle() => new();
+        TResult Handle(TCommand command);
+    }
+
+    public interface IQueryHandler<in TQuery, TResult>
+    {
+        TResult Handle(TQuery query);
+    }
+
+    public interface IWidgetRepository
+    {
+        void Add(Domain.Widget widget);
+    }
+
+    public interface IWidgetReadStore
+    {
+        Domain.Widget Find();
+    }
+
+    // A command handler writes through the repository, and a query handler reads through the read store.
+    internal sealed class CreateWidgetHandler(IWidgetRepository repository) : ICommandHandler<string, Domain.Widget>
+    {
+        public Domain.Widget Handle(string command)
+        {
+            var widget = new Domain.Widget();
+            repository.Add(widget);
+
+            return widget;
+        }
+    }
+
+    internal sealed class GetWidgetHandler(IWidgetReadStore store) : IQueryHandler<string, Domain.Widget>
+    {
+        public Domain.Widget Handle(string query) => store.Find();
     }
 }
 

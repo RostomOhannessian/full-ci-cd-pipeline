@@ -17,8 +17,8 @@ internal sealed record NamedRule(string Id, string Requirement, Func<LayerSet, b
 
 /// <summary>
 /// The type-level rules from plan section 8.1. The reference rules in <see cref="ReferencePolicy"/> cover project and package references.
-/// Rules about endpoints (for example, that they depend only on handler interfaces) are added with the endpoints in WP1.10, and
-/// interface-based handler rules are added with the handler interfaces in WP1.7.
+/// Rules about endpoints (for example, that they depend only on handler interfaces) are added with the endpoints in WP1.10. The rules about
+/// handlers, ports, and decorators arrived with the application layer (WP1.7, ADR-0032).
 /// </summary>
 internal static class ArchitectureRules
 {
@@ -32,6 +32,17 @@ internal static class ArchitectureRules
     // A decorator wraps a handler through the handler interface, and only a pipeline type names the decorators, so the order of the chain is written in one place (ADR-0032).
     // A generic class has the arity in its name, as in TelemetryCommandDecorator`2.
     private const string DecoratorName = @"Decorator(`\d+)?$";
+
+    // The two handler interfaces of plan section 8.2, matched by name so the fixtures can declare their own. A generic type has the arity in its name.
+    private const string CommandHandlerInterface = @"\.ICommandHandler`2$";
+    private const string QueryHandlerInterface = @"\.IQueryHandler`2$";
+
+    // Ports that write (a query must not need them) and the ports that read (a command must not need them).
+    private const string WritePorts = @"^(IUnitOfWork|I\w+Repository|IIdempotencyStore|IOutboxDispatcher)$";
+    private const string ReadPorts = @"^I\w+ReadStore$";
+
+    // Anything that looks a member up or calls it by name is runtime dispatch, which the explicit pipeline replaces. Reading the name of a type is not, so MemberInfo and Type stay allowed.
+    private const string Reflection = @"^(System\.Reflection\.(MethodInfo|MethodBase|ConstructorInfo|PropertyInfo|FieldInfo|Assembly|Emit(\..*)?)|System\.Activator)$";
 
     public static IReadOnlyList<NamedRule> All { get; } =
     [
@@ -80,6 +91,35 @@ internal static class ArchitectureRules
                 strict)),
 
         new(
+            "handlers-implement-a-handler-interface",
+            "REQ-APP-001",
+            (layers, strict) => Finish(
+                Classes().That().Are(layers.Application).And().HaveNameEndingWith("Handler")
+                    .Should().FollowCustomCondition(type => Implements(type, CommandHandlerInterface) || Implements(type, QueryHandlerInterface), "implement a handler interface", "implements neither handler interface"),
+                strict)),
+
+        new(
+            "pipeline-code-uses-no-reflection-or-activator",
+            "REQ-APP-001",
+            (layers, strict) => Finish(Types().That().Are(AnyOf(layers.Application, layers.CrossCutting)).Should().NotDependOnAnyTypesThat().HaveFullNameMatching(Reflection), strict)),
+
+        new(
+            "query-handlers-depend-on-no-write-port",
+            "REQ-ARC-003",
+            (layers, strict) => Finish(
+                Classes().That().Are(layers.Application).And().FollowCustomPredicate(type => Implements(type, QueryHandlerInterface), "implement the query handler interface")
+                    .Should().NotDependOnAnyTypesThat().HaveNameMatching(WritePorts),
+                strict)),
+
+        new(
+            "command-handlers-depend-on-no-read-store",
+            "REQ-ARC-003",
+            (layers, strict) => Finish(
+                Classes().That().Are(layers.Application).And().FollowCustomPredicate(type => Implements(type, CommandHandlerInterface), "implement the command handler interface")
+                    .Should().NotDependOnAnyTypesThat().HaveNameMatching(ReadPorts),
+                strict)),
+
+        new(
             "decorators-are-composed-only-by-pipelines",
             "REQ-APP-002",
             (layers, strict) => Finish(
@@ -103,6 +143,9 @@ internal static class ArchitectureRules
             "REQ-ARC-005",
             (layers, strict) => Finish(PropertyMembers().That().AreStatic().And().AreDeclaredIn(layers.OutsideComposition).Should().BeImmutable(), strict)),
     ];
+
+    private static bool Implements(Class type, string interfacePattern) =>
+        type.ImplementedInterfaces.Any(@interface => Regex.IsMatch(@interface.FullName, interfacePattern, RegexOptions.CultureInvariant, TimeSpan.FromSeconds(1)));
 
     // A decorator may name itself, as a generic class does for its own closed type.
     private static bool NamesAnotherDecorator(Class type) =>
