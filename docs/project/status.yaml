@@ -19,6 +19,9 @@ resume:
     - number: 30
       title: "feat(application): add results, typed errors, permissions, and ports"
       branch: "wp/1.7-application-layer"
+    - number: 31
+      title: "feat(crosscutting): add the decorator pipeline of commands and queries"
+      branch: "wp/1.7-application-pipeline"
   environment-notes:
     - "Open the Dev Container, or install Git, Docker (running), and the .NET SDK 10.0.401 and follow docs/tutorials/native-setup.md. Run `./dev doctor` first (on Windows, `./dev` in PowerShell or `.\\dev` in cmd.exe), then `./dev bootstrap` to install the pinned script tools and create .env, and `./dev test scripts` for the Pester tests. The documentation gate runs through the docker compose commands (markdownlint, links, spelling, diagrams, secrets, secrets-worktree), the documentation auditor through `dotnet run --project tools/Documentation.Auditor -- audit`, the site build through `pwsh tools/ci/Invoke-DocFx.ps1 -Command build`, the .NET gate through the dotnet commands in AGENTS.md, and the governance checks through `dotnet run --project tools/Governance.Auditor -- <command>`."
     - "The local stack is `./dev compose up`, `./dev compose check`, and `./dev compose down`. It needs about 3 GB of Docker memory, binds 127.0.0.1 only, and keeps its secrets in the git-ignored .env, which never moves between machines. Delete _site and .docfx before the working-tree secret scan, because the site build output triggers false findings."
@@ -339,7 +342,7 @@ phases:
         state: in_progress
         branch: "wp/1.7-application-pipeline"
         issue: 9
-        pull-request: 30
+        pull-request: 31
         depends-on: ["WP1.6"]
         evidence:
           - "src/Catalog.Application/"
