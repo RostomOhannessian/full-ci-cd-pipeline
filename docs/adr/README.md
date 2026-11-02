@@ -36,7 +36,7 @@ The rules for writing them are in [ADR-0001](0001-record-architecture-decisions.
 | [0009](0009-workload-identity-oidc-federation.md) | Use Vault-backed OIDC federation for workloads and automation | proposed | WP3.3 |
 | [0010](0010-promotion-engine-kargo.md) | Use Kargo for promotion pull requests | proposed | WP4.5 |
 | [0011](0011-gitops-vs-traditional-cicd.md) | Adopt pull-based GitOps with Argo CD | proposed | WP4.3 |
-| [0012](0012-domain-events-outbox-vs-direct-orchestration.md) | Use a transactional outbox for domain events | proposed | WP1.8 |
+| [0012](0012-domain-events-outbox-vs-direct-orchestration.md) | Use a transactional outbox for domain events | accepted | Accepted 2026-11-02 in WP1.8 |
 | [0013](0013-shift-left-security-toolchain.md) | Adopt a layered shift-left security toolchain | proposed | WP2.5 |
 | [0014](0014-iac-scanning-trivy-as-tfsec-successor.md) | Use Trivy for infrastructure-as-code scanning | proposed | WP3.1 |
 | [0015](0015-gateway-api-with-envoy-gateway.md) | Use Gateway API with Envoy Gateway as the only entry point | proposed | WP3.2 |

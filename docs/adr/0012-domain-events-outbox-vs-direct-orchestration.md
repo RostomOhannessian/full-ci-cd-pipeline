@@ -1,7 +1,7 @@
 ---
 title: "ADR-0012: Use a transactional outbox for domain events"
 description: "Record domain events and persist them with a transactional outbox so post-commit work is reliable without adding a full message broker."
-status: proposed
+status: accepted
 date: 2026-10-04
 decision-makers: ["@RostomOhannessian"]
 accepted-in: "WP1.8"
@@ -146,3 +146,16 @@ The decision is accepted only if WP1.8 and WP1.9 prove the failure handling:
 - .NET ecosystem verification: [../research/2026-10-04-dotnet-ecosystem-verification.md](../research/2026-10-04-dotnet-ecosystem-verification.md) (checked 2026-10-04)
 - ADR-0016 cache design: [./0016-cache-implementation-fusioncache.md](./0016-cache-implementation-fusioncache.md) (checked 2026-10-04)
 - ADR-0004 license policy: [./0004-licensing-and-dependency-license-policy.md](./0004-licensing-and-dependency-license-policy.md) (checked 2026-10-04)
+
+## Acceptance record
+
+**2026-11-02, WP1.8.** The status changed from proposed to accepted. The text above is unchanged. The record below is the evidence for each item of the confirmation that names WP1.8. The tests ran on Linux in the pinned SDK image with the Docker socket, and the Windows host ran the other test projects ([the evidence records](../testing/evidence/2026-11-02-outbox-idempotency-run.md)).
+
+| Confirmation item | Evidence |
+| --- | --- |
+| A crash between commit and dispatch | `OutboxProcessorTests` writes the rows through the interceptor and the unit of work, never calls the dispatcher, and the processor delivers them. A processor that stops after a handler and before the done mark delivers the message again after the lease ends, and a processor that dies after it leased loses the message to another one ([ADR-0035](0035-outbox-processor-design.md)) |
+| Duplicate delivery and idempotent handlers with receipts | A retry skips the handlers that have a receipt, a processor whose lease ended cannot finish the message, and the slow processor's receipt keeps the handler from running twice (`OutboxProcessorTests`) |
+| A poison message and the dead-letter behavior with a metric | A message that fails `MaxAttempts` times becomes `DeadLetter`, increments `catalog.outbox.dead_lettered`, logs an error, and is never leased again. The alert that watches the metric is planned in WP1.11 (`OutboxProcessorTests`) |
+| Credential rotation during delivery | `CredentialRotationTests` rotates the credential and ends the grace period in the middle of a batch of four messages, and all four end as done with their receipts ([ADR-0037](0037-credential-rotation-and-pool-clearing.md)) |
+
+The item that names WP1.9, cache invalidation that still converges when the outbox is the fallback path, stays open and is proven there. Two decisions were added for the parts that this ADR left open: the processor design ([ADR-0035](0035-outbox-processor-design.md)) and the idempotency store ([ADR-0036](0036-idempotency-store.md)). Delivery is at least once, so every handler must be idempotent, and ordering is guaranteed only within one message, as plan section 8.4 says.
