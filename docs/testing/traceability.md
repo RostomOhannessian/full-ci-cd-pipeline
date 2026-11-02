@@ -106,7 +106,7 @@ A requirement is in scope once every work package that delivers it is completed,
 | `REQ-DATA-003` | The outbox delivers at least once and records receipts | WP1.8, WP4.4 | Not yet due | None | None |
 | `REQ-DATA-004` | Idempotency records persist request fingerprints for 24 hours | WP1.8, WP1.10 | Not yet due | None | None |
 | `REQ-DATA-005` | Database connections rotate credentials without disabling pooling | WP1.0, WP1.8, WP3.3, WP3.4 | Not yet due | None | None |
-| `REQ-DATA-006` | Only the migrator identity applies schema changes | WP1.8, WP3.8, WP4.4 | Covered | [MigrationPolicyTests.cs](../../tests/Catalog.Architecture.Tests/MigrationPolicyTests.cs), [MigrationTests.cs](../../tests/Catalog.Infrastructure.Tests/MigrationTests.cs) | None |
+| `REQ-DATA-006` | Only the migrator identity applies schema changes | WP1.8, WP3.8, WP4.4 | Covered | [MigrationPolicyTests.cs](../../tests/Catalog.Architecture.Tests/MigrationPolicyTests.cs), [MigrationTests.cs](../../tests/Catalog.Infrastructure.Tests/MigrationTests.cs) | manual: [database-migration.md](../runbooks/database-migration.md) |
 | `REQ-DATA-007` | Seed data is created through the API and never by migrations | WP1.8, WP1.13 | Not yet due | None | None |
 | `REQ-DATA-008` | Destructive schema changes use expand and contract | WP1.12, WP4.4, WP4.6 | Not yet due | None | None |
 
@@ -220,7 +220,7 @@ A requirement is in scope once every work package that delivers it is completed,
 
 | Requirement | Title | Delivered by | State | Tests | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| `REQ-QUA-001` | Integration suites use real SQL Server Valkey and Keycloak containers | WP1.8, WP1.10, WP4.2 | Covered | [ContainerFixtureTests.cs](../../tests/Catalog.Infrastructure.Tests/ContainerFixtureTests.cs) | None |
+| `REQ-QUA-001` | Integration suites use real SQL Server Valkey and Keycloak containers | WP1.8, WP1.10, WP4.2 | Covered | [ContainerFixtureTests.cs](../../tests/Catalog.Infrastructure.Tests/ContainerFixtureTests.cs) | manual: [2026-11-02-persistence-linux-run.md](evidence/2026-11-02-persistence-linux-run.md) |
 | `REQ-QUA-002` | The suite matrix blocks changes at the right depth | WP1.1, WP1.8, WP1.10, WP2.2, WP3.1, WP3.6, WP4.2, WP4.8 | Covered | [TestSummaryTests.cs](../../tests/Governance.Auditor.Tests/TestSummaryTests.cs) | None |
 | `REQ-QUA-003` | Traceability fails when an in-scope requirement lacks proof | WP0.2, WP1.2, WP1.13, WP4.8 | Covered | [RepositorySelfCheckTests.cs](../../tests/Governance.Auditor.Tests/RepositorySelfCheckTests.cs), [TraceCommandTests.cs](../../tests/Governance.Auditor.Tests/TraceCommandTests.cs), [TraceTests.cs](../../tests/Governance.Auditor.Tests/TraceTests.cs) | None |
 | `REQ-QUA-004` | Tests remain deterministic across hosts and reruns | WP1.1, WP1.6, WP1.8, WP4.8 | Covered | [TestProjectConventionTests.cs](../../tests/Catalog.Architecture.Tests/TestProjectConventionTests.cs), [DomainEventTests.cs](../../tests/Catalog.Domain.Tests/DomainEventTests.cs), [IdentifierTests.cs](../../tests/Catalog.Domain.Tests/IdentifierTests.cs), and 1 more | None |
