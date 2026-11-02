@@ -97,6 +97,7 @@ sigstore
 slnx
 slsa
 spiffe
+shortstat
 sqlclient
 syft
 targetdir

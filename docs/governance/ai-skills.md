@@ -3,7 +3,7 @@ title: "AI skills governance"
 description: "How this repository configures GitHub Copilot, which repository-owned skills it plans to keep, and how external skills are reviewed before any installation."
 type: reference
 audience: [maintainers, contributors]
-last-verified: 2026-10-12
+last-verified: 2026-11-01
 owner: "@RostomOhannessian"
 ---
 
@@ -38,7 +38,7 @@ The planned repository skill set comes from plan section 13.2. Five of the skill
 | [`/documentation-auditor`](../../.github/skills/documentation-auditor/SKILL.md) | WP1.3, WP1.12 | Runs `documentation audit`, explains the findings, and drafts the missing sections of a tool page from the template | exists |
 | `/test-plan-evaluator` | WP1.12 | Runs `governance trace` and proposes cases for uncovered requirements | planned in WP1.12 |
 | [`/session-boundary-advisor`](../../.github/skills/session-boundary-advisor/SKILL.md) | WP1.14 | Runs `governance session` at the start and the end of a session and says whether the next task belongs in a fresh session or in this one, with the handoff gaps and the kickoff prompt | exists |
-| [`/ai-usage-recorder`](../../.github/skills/ai-usage-recorder/SKILL.md) | WP1.15 | Reads the usage of the current session from the local session store with fixed queries, appends its slices to the ledger, and runs `governance usage validate`, `render`, and `estimate`. It is the one skill that writes a ledger, and it never edits an older record | exists |
+| [`/ai-usage-recorder`](../../.github/skills/ai-usage-recorder/SKILL.md) | WP1.15 | Reads the usage of the current session from the local session store with fixed queries (from the cloud store, as derived usage, only when the local store has no rows for it), appends its slices to the ledger, and runs `governance usage validate`, `render`, and `estimate`. It is the one skill that writes a ledger, and it never edits an older record | exists |
 | [`/adr-assistant`](../../.github/skills/adr-assistant/SKILL.md) | WP0.5 | Scaffolds or updates ADRs from the repository template and evidence rules | exists |
 | [`/tool-doc-author`](../../.github/skills/tool-doc-author/SKILL.md) | WP0.5 | Scaffolds tool pages and inventory entries from repository templates | exists |
 | [`/session-handoff`](../../.github/skills/session-handoff/SKILL.md) | WP0.5, WP1.14, WP1.15 | Updates status and the **Resume here** section, records the AI usage of the session with `/ai-usage-recorder`, runs the session boundary check and hands over the kickoff prompt, then reminds the maintainer to push | exists |
@@ -55,10 +55,13 @@ the prompts are data in `governance/policies/session-policy.yaml`, so the skill 
 ([ADR-0030](../adr/0030-session-boundaries-and-ai-paired-delivery.md), [session boundaries](../explanation/session-boundaries.md)).
 
 The usage recorder is the one skill with a write scope on a record, and it is narrow. It reads the local session store, which is a per-machine
-file that holds the sessions of every repository on the machine, with queries that the skill states and that a test checks. It appends records of
+file that holds the sessions of every repository on the machine, with queries that the skill states and that a test checks. When the local
+store has no rows for the session it reads the cloud copy of the same session history with the same read-only tool, selects only counts and
+numbers, and marks what it records as derived. It appends records of
 its own session to `docs/project/ai-usage.yaml`, and it never edits or deletes an older record, never writes the record of another session, and
 never stores prompt text, a file path, or an account name. The ledger has a schema that rejects any other field, `governance usage validate`
-checks the rules that the schema cannot express, and CI fails when `AI-USAGE.md` differs from what the ledger renders, so a skill that writes
+checks the rules that the schema cannot express (including that the AIU of a derived row follows from its tokens and prices), and CI fails
+when `AI-USAGE.md` differs from what the ledger renders, so a skill that writes
 something wrong is caught and not trusted. `/session-handoff` runs the skill before the session boundary check
 ([ADR-0031](../adr/0031-ai-usage-ledger-and-estimate.md), [AI usage statistics](../explanation/ai-usage-statistics.md)).
 

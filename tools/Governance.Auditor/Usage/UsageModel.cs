@@ -16,6 +16,9 @@ internal static class UsageVocabulary
     public const string Windowed = "windowed";
     public const string Main = "main";
     public const string SubAgent = "sub-agent";
+    public const string Store = "store";
+    public const string Derived = "derived";
+    public const string Unknown = "unknown";
 
     /// <summary>The kinds of work that a slice of a session can be. Only <see cref="Delivery"/> belongs to one work package and feeds the estimate.</summary>
     public static IReadOnlyList<string> Activities { get; } = [Delivery, Fix, Planning, Coordination];
@@ -24,7 +27,11 @@ internal static class UsageVocabulary
 
     public static IReadOnlyList<string> Agents { get; } = [Main, SubAgent];
 
-    public static IReadOnlyList<string> Efforts { get; } = ["none", "low", "medium", "high", "xhigh", "max", "unspecified"];
+    /// <summary>Where the numbers of a row come from: the session store, which reports them, or the token counts of the cloud store, from which they are computed.</summary>
+    public static IReadOnlyList<string> Sources { get; } = [Store, Derived];
+
+    /// <summary>The reasoning efforts. <see cref="Unknown"/> is only for a derived row, because the cloud store does not report the effort.</summary>
+    public static IReadOnlyList<string> Efforts { get; } = ["none", "low", "medium", "high", "xhigh", "max", "unspecified", Unknown];
 
     public static IReadOnlyList<string> Sizes { get; } = ["S", "M", "L"];
 
@@ -46,10 +53,25 @@ internal sealed record UsageWindow
     public required DateTimeOffset To { get; init; }
 }
 
+/// <summary>The AIU for each million tokens of each kind that the store charged for a model, which a derived row used to compute its AIU.</summary>
+internal sealed record UsagePrices
+{
+    public required decimal FreshInput { get; init; }
+
+    public required decimal CacheRead { get; init; }
+
+    public required decimal CacheWrite { get; init; }
+
+    public required decimal Output { get; init; }
+}
+
 /// <summary>What one model at one reasoning effort did, as the main agent or as sub-agents, inside one slice.</summary>
 internal sealed record UsageRow
 {
     public required string Model { get; init; }
+
+    /// <summary>Where the numbers come from. A row without a source is read from the store, so every record written before derived rows stays as it was.</summary>
+    public string Source { get; init; } = UsageVocabulary.Store;
 
     public required string ReasoningEffort { get; init; }
 
@@ -61,6 +83,9 @@ internal sealed record UsageRow
 
     public required decimal Aiu { get; init; }
 
+    /// <summary>The prices that a derived row used. A row that is read from the store has none, because the store reports the AIU of every call.</summary>
+    public UsagePrices? Prices { get; init; }
+
     public required long FreshInputTokens { get; init; }
 
     public required long CacheReadTokens { get; init; }
@@ -69,7 +94,8 @@ internal sealed record UsageRow
 
     public required long OutputTokens { get; init; }
 
-    public required long ReasoningTokens { get; init; }
+    /// <summary>The reasoning tokens, or null when they are unknown, which only a derived row may say.</summary>
+    public long? ReasoningTokens { get; init; }
 
     public required long PeakContextTokens { get; init; }
 
@@ -78,6 +104,15 @@ internal sealed record UsageRow
     /// <summary>Every token that the calls sent in, which is what the store calls the input tokens and which includes the cache reads and writes.</summary>
     [JsonIgnore]
     public long InputTokens => FreshInputTokens + CacheReadTokens + CacheWriteTokens;
+
+    [JsonIgnore]
+    public bool IsDerived => string.Equals(Source, UsageVocabulary.Derived, StringComparison.Ordinal);
+
+    /// <summary>The AIU that the tokens and the prices of a derived row give, or null when the row names no prices.</summary>
+    [JsonIgnore]
+    public decimal? ComputedAiu => Prices is { } prices
+        ? ((FreshInputTokens * prices.FreshInput) + (CacheReadTokens * prices.CacheRead) + (CacheWriteTokens * prices.CacheWrite) + (OutputTokens * prices.Output)) / 1_000_000m
+        : null;
 }
 
 /// <summary>One slice of a session: a window that belongs to one phase or work package and one kind of activity.</summary>
@@ -105,6 +140,10 @@ internal sealed record UsageRecord
 
     [JsonIgnore]
     public decimal Aiu => Usage.Sum(row => row.Aiu);
+
+    /// <summary>The part of the AIU that was computed from token counts and not read from the store.</summary>
+    [JsonIgnore]
+    public decimal DerivedAiu => Usage.Where(row => row.IsDerived).Sum(row => row.Aiu);
 
     [JsonIgnore]
     public int Calls => Usage.Sum(row => row.Calls);

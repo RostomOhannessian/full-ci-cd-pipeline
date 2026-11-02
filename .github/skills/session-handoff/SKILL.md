@@ -30,7 +30,7 @@ session and prints the kickoff prompt for it.
 - Edit Markdown and YAML files.
 - Run the governance status commands (`dotnet run --project tools/Governance.Auditor -- status validate` and `status render`).
 - Run the session boundary check (`governance session`, which only reads) with `dotnet run --project tools/Governance.Auditor -- session --moment end`.
-- Run `/ai-usage-recorder`, which reads the local session store without writing to it, appends the records of this session to the ledger, and runs `dotnet run --project tools/Governance.Auditor -- usage validate`, `usage render`, and `usage estimate`.
+- Run `/ai-usage-recorder`, which reads the local session store (or, only when the local store has no rows for the session, the cloud store) without writing to either, appends the records of this session to the ledger, and runs `dotnet run --project tools/Governance.Auditor -- usage validate`, `usage render`, and `usage estimate`.
 - Run the Docker lint commands and check that relative link targets exist.
 - No Git write commands, no pushes, and no mirror operations.
 

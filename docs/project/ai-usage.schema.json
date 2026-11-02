@@ -84,19 +84,22 @@
       }
     },
     "usageRow": {
+      "description": "What one model at one reasoning effort did, as the main agent or as sub-agents, in a slice. A row is read from the session store (source store, the default, so every older row stays valid) or derived from the token counts of the cloud store (source derived), which reports no AIU, no reasoning effort, and no reasoning tokens. A derived row names the prices that it used, its effort is unknown, and it has no reasoning tokens. governance usage validate checks that coupling, and that the AIU of a derived row follows from its tokens and prices.",
       "type": "object",
       "additionalProperties": false,
       "required": [
         "model", "reasoning-effort", "agent", "calls", "aiu", "fresh-input-tokens", "cache-read-tokens", "cache-write-tokens",
-        "output-tokens", "reasoning-tokens", "peak-context-tokens", "model-seconds"
+        "output-tokens", "peak-context-tokens", "model-seconds"
       ],
       "properties": {
         "model": { "type": "string", "pattern": "^[a-z0-9][a-z0-9.-]*$", "maxLength": 60 },
-        "reasoning-effort": { "enum": ["none", "low", "medium", "high", "xhigh", "max", "unspecified"] },
+        "source": { "enum": ["store", "derived"] },
+        "reasoning-effort": { "enum": ["none", "low", "medium", "high", "xhigh", "max", "unspecified", "unknown"] },
         "agent": { "enum": ["main", "sub-agent"] },
         "request-multiplier": { "type": "number", "minimum": 0 },
         "calls": { "type": "integer", "minimum": 1 },
         "aiu": { "type": "number", "minimum": 0 },
+        "prices": { "$ref": "#/$defs/prices" },
         "fresh-input-tokens": { "$ref": "#/$defs/count" },
         "cache-read-tokens": { "$ref": "#/$defs/count" },
         "cache-write-tokens": { "$ref": "#/$defs/count" },
@@ -104,6 +107,18 @@
         "reasoning-tokens": { "$ref": "#/$defs/count" },
         "peak-context-tokens": { "$ref": "#/$defs/count" },
         "model-seconds": { "$ref": "#/$defs/count" }
+      }
+    },
+    "prices": {
+      "description": "The AIU for each million tokens of each kind that the local session store charged for the model, which a derived row used to compute its AIU.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fresh-input", "cache-read", "cache-write", "output"],
+      "properties": {
+        "fresh-input": { "type": "number", "minimum": 0 },
+        "cache-read": { "type": "number", "minimum": 0 },
+        "cache-write": { "type": "number", "minimum": 0 },
+        "output": { "type": "number", "minimum": 0 }
       }
     }
   }

@@ -11,7 +11,7 @@ owner: "@RostomOhannessian"
 
 This page is generated from [ai-usage.yaml](ai-usage.yaml), which is the source of truth, by `governance usage render`. Do not edit it by hand. A session adds its own records with the `/ai-usage-recorder` skill, then runs the command and commits both files. CI fails when this page differs from the command's output. Last updated 2026-10-12.
 
-The unit is the AI unit (AIU) that the Copilot session store reports for each model call. [How to read the ledger, the attribution rules, and the estimate](../explanation/ai-usage-statistics.md) explain the columns. To estimate the work that remains, run `dotnet run --project tools/Governance.Auditor -- usage estimate`.
+The unit is the AI unit (AIU) that the Copilot session store reports for each model call. Derived AIU is the part that was computed from token counts and recorded prices instead, because only the cloud copy of the store held the calls, and it is a floor. [How to read the ledger, the attribution rules, and the estimate](../explanation/ai-usage-statistics.md) explain the columns. To estimate the work that remains, run `dotnet run --project tools/Governance.Auditor -- usage estimate`.
 
 ## Totals
 
@@ -21,6 +21,7 @@ The unit is the AI unit (AIU) that the Copilot session store reports for each mo
 | Slices (records) | 19 |
 | Calls | 3,487 |
 | AIU | 27,643 |
+| Derived AIU | 0 (0.0%) |
 | Model time | 12.9 hours |
 | Period | 2026-08-22 to 2026-10-12 |
 | Peak context | 760,572 tokens in one call (session 1667626f) |
@@ -30,28 +31,28 @@ The unit is the AI unit (AIU) that the Copilot session store reports for each mo
 
 Delivery is the work of a work package. Planning is the work on the plan itself, and coordination is a session that starts, monitors, or hands over other sessions.
 
-| Phase | Name | Delivery AIU | Planning AIU | Coordination AIU | Fix AIU | Total AIU | Calls |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| 0 | Foundation and early publication | 5,133 | 3,989 | 0 | 0 | 9,122 | 845 |
-| 1 | API core, data layer, and engineering foundation | 16,318 | 406 | 1,619 | 178 | 18,521 | 2,642 |
+| Phase | Name | Delivery AIU | Planning AIU | Coordination AIU | Fix AIU | Total AIU | Calls | Derived share |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 0 | Foundation and early publication | 5,133 | 3,989 | 0 | 0 | 9,122 | 845 | 0.0% |
+| 1 | API core, data layer, and engineering foundation | 16,318 | 406 | 1,619 | 178 | 18,521 | 2,642 | 0.0% |
 
 - Phase 0 is recorded at phase level: Phase 0 was built in one session before work packages were tracked one by one, so its usage is recorded at phase level. WP0.1 to WP0.7 have no records of their own. Its pull requests changed 112 files, with 14,527 additions and 97 deletions.
 
 ## By work package
 
-The completed work packages and what it cost to deliver each. Changed lines are the additions and deletions of its pull request. Exact means that one session held the work package alone, and windowed means that its window was derived from a session that held more.
+The completed work packages and what it cost to deliver each. Changed lines are the additions and deletions of its pull request. Exact means that one session held the work package alone, and windowed means that its window was derived from a session that held more. Derived is the share of its AIU that was computed from token counts and not read from the store.
 
-| Work package | Size | Title | AIU | Calls | Model minutes | Peak context | Compactions | User turns | Changed lines | AIU per 1,000 lines | Confidence |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| WP1.0 | S | Risk spikes | 1,337 | 179 | 32 | 421,089 | 0 | 3 | 726 | 1,841 | windowed |
-| WP1.1 | M | Solution and build foundation | 1,355 | 163 | 35 | 755,467 | 1 | 3 | 2,806 | 483 | windowed |
-| WP1.2 | M | Governance core | 1,889 | 282 | 53 | 758,942 | 1 | 1 | 10,849 | 174 | exact |
-| WP1.3 | M | Documentation toolchain | 1,934 | 295 | 51 | 760,572 | 1 | 1 | 7,222 | 268 | exact |
-| WP1.4 | L | Developer environment | 3,271 | 553 | 90 | 721,597 | 1 | 1 | 8,441 | 388 | windowed |
-| WP1.5 | M | Contract v1 design | 1,934 | 284 | 53 | 670,069 | 0 | 2 | 4,926 | 393 | windowed |
-| WP1.6 | M | Domain model | 1,889 | 336 | 55 | 687,304 | 1 | 4 | 5,041 | 375 | windowed |
-| WP1.14 | S | Session boundaries | 1,474 | 196 | 35 | 525,136 | 0 | 1 | 3,392 | 434 | exact |
-| WP1.15 | M | AI usage statistics | 1,236 | 177 | 35 | 520,070 | 0 | 3 | 4,023 | 307 | exact |
+| Work package | Size | Title | AIU | Calls | Model minutes | Peak context | Compactions | User turns | Changed lines | AIU per 1,000 lines | Confidence | Derived |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| WP1.0 | S | Risk spikes | 1,337 | 179 | 32 | 421,089 | 0 | 3 | 726 | 1,841 | windowed | 0.0% |
+| WP1.1 | M | Solution and build foundation | 1,355 | 163 | 35 | 755,467 | 1 | 3 | 2,806 | 483 | windowed | 0.0% |
+| WP1.2 | M | Governance core | 1,889 | 282 | 53 | 758,942 | 1 | 1 | 10,849 | 174 | exact | 0.0% |
+| WP1.3 | M | Documentation toolchain | 1,934 | 295 | 51 | 760,572 | 1 | 1 | 7,222 | 268 | exact | 0.0% |
+| WP1.4 | L | Developer environment | 3,271 | 553 | 90 | 721,597 | 1 | 1 | 8,441 | 388 | windowed | 0.0% |
+| WP1.5 | M | Contract v1 design | 1,934 | 284 | 53 | 670,069 | 0 | 2 | 4,926 | 393 | windowed | 0.0% |
+| WP1.6 | M | Domain model | 1,889 | 336 | 55 | 687,304 | 1 | 4 | 5,041 | 375 | windowed | 0.0% |
+| WP1.14 | S | Session boundaries | 1,474 | 196 | 35 | 525,136 | 0 | 1 | 3,392 | 434 | exact | 0.0% |
+| WP1.15 | M | AI usage statistics | 1,236 | 177 | 35 | 520,070 | 0 | 3 | 4,023 | 307 | exact | 0.0% |
 
 ## Observed AIU by size class
 
@@ -65,7 +66,7 @@ The size classes are the focused effort of plan section 5.7, and the weights are
 
 ## By model and effort
 
-Tokens are the sums over the calls. Fresh input is the input that was not served from the cache, and reasoning tokens are part of the output tokens. A sub-agent is a helper that the main agent started, often with a different model. Effort is unspecified for the calls that compact a conversation.
+Tokens are the sums over the calls. Fresh input is the input that was not served from the cache, and reasoning tokens are part of the output tokens. A sub-agent is a helper that the main agent started, often with a different model. Effort is unspecified for the calls that compact a conversation. A row with an unknown effort is derived: its AIU was computed from token counts and recorded prices, because the store that held the calls does not report the effort or the reasoning tokens.
 
 | Model | Effort | Agent | Calls | AIU | Share | Fresh input | Cache read | Cache write | Output | Reasoning |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |

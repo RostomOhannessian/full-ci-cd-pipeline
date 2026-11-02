@@ -13,6 +13,18 @@ internal static class UsageSamples
 
     public static string Ledger => Golden.Read("usage/ai-usage.yaml");
 
+    public const string DerivedPrices = "        prices:\n          fresh-input: 200\n          cache-read: 10\n          cache-write: 250\n          output: 1000\n";
+
+    /// <summary>
+    /// The valid ledger with the usage of its second work package read from the cloud store: derived, with the prices that it used, an
+    /// unknown effort, and no reasoning tokens. At those prices the 3,000 fresh, 900,000 cached, 40,000 cache-write, and 20,000 output
+    /// tokens are 39.6 AIU.
+    /// </summary>
+    public static string DerivedLedger => Edit(
+        (
+            "        reasoning-effort: xhigh\n        agent: main\n        calls: 30\n        aiu: 400.0\n        fresh-input-tokens: 3000\n        cache-read-tokens: 900000\n        cache-write-tokens: 40000\n        output-tokens: 20000\n        reasoning-tokens: 5000\n",
+            "        source: derived\n        reasoning-effort: unknown\n        agent: main\n        calls: 30\n        aiu: 39.6\n" + DerivedPrices + "        fresh-input-tokens: 3000\n        cache-read-tokens: 900000\n        cache-write-tokens: 40000\n        output-tokens: 20000\n"));
+
     /// <summary>The valid ledger with each pair applied: the text to find, and the text to put in its place.</summary>
     public static string Edit(params (string Find, string Replace)[] edits) => Edit(Ledger, edits);
 

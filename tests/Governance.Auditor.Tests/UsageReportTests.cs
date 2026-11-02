@@ -74,6 +74,67 @@ public sealed class UsageRenderTests
 
     [Fact]
     [Trait("Requirement", "REQ-AI-005")]
+    public async Task The_report_says_which_share_of_the_AIU_is_derived_in_total_by_phase_and_by_work_package()
+    {
+        using var repository = UsageSamples.Repository(UsageSamples.DerivedLedger);
+
+        var result = await CliRunner.RunAsync(repository, "usage", "render");
+        var page = repository.Read(UsageFile.PagePath);
+
+        Assert.Equal(0, result.ExitCode);
+        Golden.AssertMatches(page, "usage/AI-USAGE.derived.expected.txt");
+
+        // 39.6 of 240.1 AIU is derived, and it all sits in the delivery of WP1.2.
+        Assert.Contains("| Derived AIU | 40 (16.5%) |", page, StringComparison.Ordinal);
+        Assert.Contains("| 1 | Sample phase | 160 | 50 | 0 | 30 | 240 | 52 | 16.5% |", page, StringComparison.Ordinal);
+        Assert.Contains("| WP1.1 | S | First | 121 | 14 | 3 | 20,000 | 0 | 2 | 450 | 268 | exact | 0.0% |", page, StringComparison.Ordinal);
+        Assert.Contains("| WP1.2 | M | Second | 40 | 30 | 10 | 60,000 | 1 | 3 | 2,000 | 20 | windowed | 100.0% |", page, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    [Trait("Requirement", "REQ-AI-005")]
+    public async Task A_derived_row_shows_an_unknown_effort_and_unknown_reasoning_and_is_never_added_to_a_row_that_the_store_reported()
+    {
+        using var repository = UsageSamples.Repository(UsageSamples.DerivedLedger);
+
+        await CliRunner.RunAsync(repository, "usage", "render");
+        var page = repository.Read(UsageFile.PagePath);
+
+        Assert.Contains("| `model-a` | unknown | main | 30 | 40 | 16.5% | 3,000 | 900,000 | 40,000 | 20,000 | unknown |", page, StringComparison.Ordinal);
+        Assert.Contains("| `model-a` | xhigh | main | 13 | 130 | 54.1% | 1,300 | 140,000 | 7,000 | 5,000 | 1,200 |", page, StringComparison.Ordinal);
+        Assert.Contains("A row with an unknown effort is derived", page, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    [Trait("Requirement", "REQ-AI-005")]
+    public async Task A_report_of_a_ledger_without_derived_usage_says_that_none_of_the_AIU_is_derived()
+    {
+        using var repository = UsageSamples.Repository();
+
+        await CliRunner.RunAsync(repository, "usage", "render");
+        var page = repository.Read(UsageFile.PagePath);
+
+        Assert.Contains("| Derived AIU | 0 (0.0%) |", page, StringComparison.Ordinal);
+        Assert.Contains("| 1 | Sample phase | 521 | 50 | 0 | 30 | 601 | 52 | 0.0% |", page, StringComparison.Ordinal);
+        Assert.DoesNotContain("| unknown |", page, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    [Trait("Requirement", "REQ-AI-005")]
+    public async Task Rendering_a_ledger_with_derived_usage_twice_gives_the_same_bytes()
+    {
+        using var repository = UsageSamples.Repository(UsageSamples.DerivedLedger);
+
+        await CliRunner.RunAsync(repository, "usage", "render");
+        var first = repository.Read(UsageFile.PagePath);
+        var check = await CliRunner.RunAsync(repository, "usage", "render", "--check");
+
+        Assert.Equal(0, check.ExitCode);
+        Assert.Equal(first, repository.Read(UsageFile.PagePath));
+    }
+
+    [Fact]
+    [Trait("Requirement", "REQ-AI-005")]
     public async Task Check_passes_on_a_current_page_and_fails_on_a_page_that_differs_from_the_ledger()
     {
         using var repository = UsageSamples.Repository();
@@ -159,6 +220,50 @@ public sealed class UsageEstimateTests
         Assert.Contains("    L: no completed work package of this size", result.Output, StringComparison.Ordinal);
         Assert.Contains("WP2.1 (L, planned): 867 to 1,567, median 1,217 (scaled by weight, no work package of this size is completed)", result.Output, StringComparison.Ordinal);
         Assert.Contains("No completed work package has the size L", result.Output, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    [Trait("Requirement", "REQ-AI-005")]
+    public async Task The_estimate_says_how_much_of_each_observation_is_derived_and_still_uses_it()
+    {
+        using var repository = UsageSamples.Repository(UsageSamples.DerivedLedger);
+
+        var result = await CliRunner.RunAsync(repository, "usage", "estimate");
+
+        Assert.Equal(0, result.ExitCode);
+        Assert.Contains("  derived (share of the AIU of each observation): WP1.2 100.0%", result.Output, StringComparison.Ordinal);
+        Assert.Contains("has derived AIU (WP1.2, 100.0% of its AIU)", result.Output, StringComparison.Ordinal);
+        Assert.Contains("a derived AIU is a floor", result.Output, StringComparison.Ordinal);
+        Assert.Contains("WP1.3 (M, planned): 40 to 40, median 40 (by size, 1 observed, so the range is a single point)", result.Output, StringComparison.Ordinal);
+        Golden.AssertMatches(result.Output, "usage/estimate.derived.expected.txt");
+    }
+
+    [Fact]
+    [Trait("Requirement", "REQ-AI-005")]
+    public async Task The_json_of_the_estimate_names_the_derived_share_of_each_observation()
+    {
+        using var repository = UsageSamples.Repository(UsageSamples.DerivedLedger);
+
+        var result = await CliRunner.RunAsync(repository, "usage", "estimate", "--json");
+
+        var observed = JsonDocument.Parse(result.Output).RootElement.GetProperty("observed").EnumerateArray().ToDictionary(item => item.GetProperty("id").GetString()!);
+        Assert.Equal(0, observed["WP1.1"].GetProperty("derivedShare").GetDouble());
+        Assert.Equal(1, observed["WP1.2"].GetProperty("derivedShare").GetDouble());
+        Assert.Equal(39.6, observed["WP1.2"].GetProperty("aiu").GetDouble());
+    }
+
+    [Fact]
+    [Trait("Requirement", "REQ-AI-005")]
+    public async Task An_estimate_of_a_ledger_without_derived_usage_has_no_derived_line_and_no_derived_caveat()
+    {
+        using var repository = UsageSamples.Repository();
+
+        var text = await CliRunner.RunAsync(repository, "usage", "estimate");
+        var json = await CliRunner.RunAsync(repository, "usage", "estimate", "--json");
+
+        Assert.DoesNotContain("derived (share of the AIU", text.Output, StringComparison.Ordinal);
+        Assert.DoesNotContain("derived AIU", text.Output, StringComparison.Ordinal);
+        Assert.Equal(0, JsonDocument.Parse(json.Output).RootElement.GetProperty("observed").EnumerateArray().Sum(item => item.GetProperty("derivedShare").GetDouble()));
     }
 
     [Fact]
