@@ -2,6 +2,7 @@ using Catalog.Infrastructure.Persistence;
 using Catalog.Infrastructure.Persistence.Reading;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Xunit;
 
 namespace Catalog.Infrastructure.Tests.Support;
@@ -38,14 +39,19 @@ public sealed class CatalogDatabaseFixture(SqlServerFixture server) : IAsyncLife
         await Server.DropDatabaseAsync(_name);
     }
 
-    /// <summary>Creates a write context for the database, with the options that production uses.</summary>
-    public CatalogDbContext NewContext()
+    /// <summary>Creates a write context for the database, with the options that production uses and the interceptors that a test names.</summary>
+    /// <param name="interceptors">The interceptors, such as the outbox interceptor.</param>
+    public CatalogDbContext NewContext(params IInterceptor[] interceptors)
     {
         var builder = new DbContextOptionsBuilder<CatalogDbContext>();
-        builder.UseCatalogSqlServer(ConnectionString);
+        builder.UseCatalogSqlServer(ConnectionString).AddInterceptors(interceptors);
 
         return new CatalogDbContext(builder.Options);
     }
+
+    /// <summary>Creates a factory of write contexts for the processor and the cleanup, which make a context for each pass.</summary>
+    /// <param name="interceptors">The interceptors that each context gets.</param>
+    public IDbContextFactory<CatalogDbContext> NewContextFactory(params IInterceptor[] interceptors) => new TestContextFactory(() => NewContext(interceptors));
 
     /// <summary>Creates a read context for the database.</summary>
     public CatalogReadContext NewReadContext()
@@ -55,6 +61,10 @@ public sealed class CatalogDatabaseFixture(SqlServerFixture server) : IAsyncLife
 
         return new CatalogReadContext(builder.Options);
     }
+
+    /// <summary>Deletes the outbox rows and their receipts, so a test sees only the rows that its own steps write.</summary>
+    public Task ResetOutboxAsync() =>
+        SqlServerFixture.ExecuteAsync(ConnectionString, "DELETE FROM catalog.OutboxReceipts; DELETE FROM catalog.OutboxMessages;");
 
     /// <summary>Deletes every row of the catalog, children first, so a test starts from an empty database.</summary>
     public Task ResetAsync() =>
@@ -67,4 +77,11 @@ public sealed class CatalogDatabaseFixture(SqlServerFixture server) : IAsyncLife
             DELETE FROM catalog.Products;
             DELETE FROM catalog.Categories;
             """);
+}
+
+/// <summary>A context factory that makes each context with a delegate.</summary>
+/// <param name="create">Makes a context.</param>
+internal sealed class TestContextFactory(Func<CatalogDbContext> create) : IDbContextFactory<CatalogDbContext>
+{
+    public CatalogDbContext CreateDbContext() => create();
 }

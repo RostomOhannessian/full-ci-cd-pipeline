@@ -3,6 +3,7 @@ using Catalog.Application.Results;
 using Catalog.Domain.Categories;
 using Catalog.Domain.Products;
 using Catalog.Domain.Tests.Support;
+using Catalog.Infrastructure.Outbox;
 using Catalog.Infrastructure.Persistence;
 using Catalog.Infrastructure.Persistence.Reading;
 using Microsoft.Extensions.Time.Testing;
@@ -19,11 +20,12 @@ public sealed class CatalogScope : IAsyncDisposable
 
     /// <summary>Initializes a new instance of the <see cref="CatalogScope"/> class.</summary>
     /// <param name="database">The database of the test class.</param>
-    public CatalogScope(CatalogDatabaseFixture database)
+    /// <param name="outboxClock">The clock of the outbox interceptor, which a scope that writes outbox rows needs. A scope without it writes none.</param>
+    public CatalogScope(CatalogDatabaseFixture database, TimeProvider? outboxClock = null)
     {
         ArgumentNullException.ThrowIfNull(database);
 
-        Context = database.NewContext();
+        Context = outboxClock is null ? database.NewContext() : database.NewContext(new OutboxInterceptor(outboxClock, () => TestIds.V7(Counters.Next())));
         _readContext = database.NewReadContext();
         Products = new ProductRepository(Context);
         Categories = new CategoryRepository(Context);
