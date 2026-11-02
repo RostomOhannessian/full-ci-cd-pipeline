@@ -52,6 +52,7 @@
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.14" />
     <PackageVersion Include="Microsoft.Data.SqlClient" Version="7.1.1" />
     <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="10.0.14" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.14" />
   </ItemGroup>
 
   <!-- Catalog.Infrastructure.Tests (ADR-0034). Testcontainers is MIT licensed. 4.16.0 exists (checked 2026-11-01), and the repository keeps the 4.15.0 of plan section 17 that spike 1.d ran
