@@ -1,9 +1,20 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <!-- Infrastructure implements the ports that Application defines, and references Application only (plan section 8.1). -->
+  <!-- Infrastructure implements the ports that Application defines, and references Application only (plan section 8.1). It owns the persistence of the catalog (EF Core on SQL Server),
+       the transactional outbox, the idempotency store, and the sources of database credentials (WP1.8, ADR-0033). -->
 
   <ItemGroup>
     <ProjectReference Include="..\Catalog.Application\Catalog.Application.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" />
+    <PackageReference Include="Microsoft.Data.SqlClient" />
+  </ItemGroup>
+
+  <!-- The design-time package is for the dotnet-ef tool only (migrations, the bundle, and the idempotent script), so it never reaches a consumer of this project. -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" PrivateAssets="all" IncludeAssets="runtime; build; native; contentfiles; analyzers" />
   </ItemGroup>
 
 </Project>
