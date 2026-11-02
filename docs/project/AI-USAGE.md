@@ -3,13 +3,13 @@ title: "AI usage"
 description: "What the AI-paired sessions of this project cost, by phase, work package, model, and effort, and the observed AIU for each size class."
 type: status
 audience: [maintainers, contributors, learners]
-last-verified: 2026-10-12
+last-verified: 2026-11-01
 owner: "@RostomOhannessian"
 ---
 
 # AI usage
 
-This page is generated from [ai-usage.yaml](ai-usage.yaml), which is the source of truth, by `governance usage render`. Do not edit it by hand. A session adds its own records with the `/ai-usage-recorder` skill, then runs the command and commits both files. CI fails when this page differs from the command's output. Last updated 2026-10-12.
+This page is generated from [ai-usage.yaml](ai-usage.yaml), which is the source of truth, by `governance usage render`. Do not edit it by hand. A session adds its own records with the `/ai-usage-recorder` skill, then runs the command and commits both files. CI fails when this page differs from the command's output. Last updated 2026-11-01.
 
 The unit is the AI unit (AIU) that the Copilot session store reports for each model call. Derived AIU is the part that was computed from token counts and recorded prices instead, because only the cloud copy of the store held the calls, and it is a floor. [How to read the ledger, the attribution rules, and the estimate](../explanation/ai-usage-statistics.md) explain the columns. To estimate the work that remains, run `dotnet run --project tools/Governance.Auditor -- usage estimate`.
 
@@ -17,13 +17,13 @@ The unit is the AI unit (AIU) that the Copilot session store reports for each mo
 
 | Measure | Value |
 | --- | --- |
-| Sessions | 8 |
-| Slices (records) | 19 |
-| Calls | 3,487 |
-| AIU | 27,643 |
-| Derived AIU | 0 (0.0%) |
-| Model time | 12.9 hours |
-| Period | 2026-08-22 to 2026-10-12 |
+| Sessions | 9 |
+| Slices (records) | 20 |
+| Calls | 3,822 |
+| AIU | 30,242 |
+| Derived AIU | 2,599 (8.6%) |
+| Model time | 13.7 hours |
+| Period | 2026-08-22 to 2026-11-02 |
 | Peak context | 760,572 tokens in one call (session 1667626f) |
 | Compactions | 6 |
 
@@ -34,7 +34,7 @@ Delivery is the work of a work package. Planning is the work on the plan itself,
 | Phase | Name | Delivery AIU | Planning AIU | Coordination AIU | Fix AIU | Total AIU | Calls | Derived share |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | 0 | Foundation and early publication | 5,133 | 3,989 | 0 | 0 | 9,122 | 845 | 0.0% |
-| 1 | API core, data layer, and engineering foundation | 16,318 | 406 | 1,619 | 178 | 18,521 | 2,642 | 0.0% |
+| 1 | API core, data layer, and engineering foundation | 18,917 | 406 | 1,619 | 178 | 21,120 | 2,977 | 12.3% |
 
 - Phase 0 is recorded at phase level: Phase 0 was built in one session before work packages were tracked one by one, so its usage is recorded at phase level. WP0.1 to WP0.7 have no records of their own. Its pull requests changed 112 files, with 14,527 additions and 97 deletions.
 
@@ -51,6 +51,7 @@ The completed work packages and what it cost to deliver each. Changed lines are 
 | WP1.4 | L | Developer environment | 3,271 | 553 | 90 | 721,597 | 1 | 1 | 8,441 | 388 | windowed | 0.0% |
 | WP1.5 | M | Contract v1 design | 1,934 | 284 | 53 | 670,069 | 0 | 2 | 4,926 | 393 | windowed | 0.0% |
 | WP1.6 | M | Domain model | 1,889 | 336 | 55 | 687,304 | 1 | 4 | 5,041 | 375 | windowed | 0.0% |
+| WP1.7 | L | Application layer | 2,599 | 335 | 46 | 658,362 | 0 | 2 | 6,599 | 394 | exact | 100.0% |
 | WP1.14 | S | Session boundaries | 1,474 | 196 | 35 | 525,136 | 0 | 1 | 3,392 | 434 | exact | 0.0% |
 | WP1.15 | M | AI usage statistics | 1,236 | 177 | 35 | 520,070 | 0 | 3 | 4,023 | 307 | exact | 0.0% |
 
@@ -62,7 +63,7 @@ The size classes are the focused effort of plan section 5.7, and the weights are
 | --- | --- | --- | --- | --- | --- |
 | S | 2 | 1,337 | 1,405 | 1,474 | 2,811 |
 | M | 6 | 1,236 | 1,889 | 1,934 | 630 |
-| L | 1 | 3,271 | 3,271 | 3,271 | 503 |
+| L | 2 | 2,599 | 2,935 | 3,271 | 452 |
 
 ## By model and effort
 
@@ -70,14 +71,15 @@ Tokens are the sums over the calls. Fresh input is the input that was not served
 
 | Model | Effort | Agent | Calls | AIU | Share | Fresh input | Cache read | Cache write | Output | Reasoning |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `claude-sonnet-5.5` | xhigh | main | 2,183 | 15,771 | 57.1% | 4,454 | 812,685,407 | 15,101,396 | 3,474,171 | 1,352,781 |
-| `claude-sonnet-5.5` | max | main | 267 | 3,286 | 11.9% | 540 | 109,560,772 | 1,694,395 | 670,943 | 359,068 |
-| `claude-sonnet-5` | max | sub-agent | 228 | 1,979 | 7.2% | 456 | 33,911,498 | 2,424,933 | 694,892 | 420,606 |
-| `claude-opus-5.5` | max | main | 47 | 1,920 | 6.9% | 100 | 13,431,481 | 2,055,935 | 311,617 | 178,379 |
-| `claude-sonnet-5.5` | xhigh | sub-agent | 425 | 1,776 | 6.4% | 868 | 75,540,018 | 1,865,329 | 553,819 | 321,169 |
-| `gpt-5.4` | medium | sub-agent | 261 | 1,463 | 5.3% | 1,336,349 | 25,492,480 | 0 | 327,463 | 127,820 |
-| `claude-sonnet-5.5` | medium | main | 30 | 999 | 3.6% | 84 | 10,239,327 | 3,544,771 | 10,569 | 214 |
-| `claude-opus-5.5` | high | main | 1 | 249 | 0.9% | 4 | 0 | 483,866 | 3,568 | 69 |
+| `claude-sonnet-5.5` | xhigh | main | 2,183 | 15,771 | 52.1% | 4,454 | 812,685,407 | 15,101,396 | 3,474,171 | 1,352,781 |
+| `claude-sonnet-5.5` | max | main | 267 | 3,286 | 10.9% | 540 | 109,560,772 | 1,694,395 | 670,943 | 359,068 |
+| `claude-sonnet-5.5` | unknown | main | 335 | 2,599 | 8.6% | 678 | 136,021,378 | 3,264,360 | 422,425 | unknown |
+| `claude-sonnet-5` | max | sub-agent | 228 | 1,979 | 6.5% | 456 | 33,911,498 | 2,424,933 | 694,892 | 420,606 |
+| `claude-opus-5.5` | max | main | 47 | 1,920 | 6.3% | 100 | 13,431,481 | 2,055,935 | 311,617 | 178,379 |
+| `claude-sonnet-5.5` | xhigh | sub-agent | 425 | 1,776 | 5.9% | 868 | 75,540,018 | 1,865,329 | 553,819 | 321,169 |
+| `gpt-5.4` | medium | sub-agent | 261 | 1,463 | 4.8% | 1,336,349 | 25,492,480 | 0 | 327,463 | 127,820 |
+| `claude-sonnet-5.5` | medium | main | 30 | 999 | 3.3% | 84 | 10,239,327 | 3,544,771 | 10,569 | 214 |
+| `claude-opus-5.5` | high | main | 1 | 249 | 0.8% | 4 | 0 | 483,866 | 3,568 | 69 |
 | `claude-sonnet-5.5` | unspecified | main | 6 | 111 | 0.4% | 24 | 4,236,053 | 36,437 | 53,337 | 0 |
 | `gpt-5.6-sol` | max | main | 39 | 90 | 0.3% | 117 | 1,895,008 | 178,240 | 45,586 | 20,939 |
 
@@ -95,3 +97,4 @@ A session is an opaque ID, shown by its first eight characters. A session that s
 | `2072a7ae` | 1 | 196 | 1,474 | 525,136 | 0 | 2026-10-12 | 2026-10-12 |
 | `e16afa95` | 2 | 177 | 1,236 | 520,070 | 0 | 2026-10-12 | 2026-10-12 |
 | `74a18e87` | 1 | 61 | 178 | 200,489 | 0 | 2026-10-12 | 2026-10-12 |
+| `0e6780b7` | 1 | 335 | 2,599 | 658,362 | 0 | 2026-11-01 | 2026-11-02 |

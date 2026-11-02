@@ -3,11 +3,14 @@
 #
 # - The numbers come from the Copilot session store through the /ai-usage-recorder skill. `governance usage validate` checks this file,
 #   and `governance usage render` writes AI-USAGE.md from it, so never edit that page by hand.
+# - A usage row marked `source: derived` was computed from the token counts of the cloud store, because the local store had no rows for
+#   the session. It names the prices that it used, its effort is unknown, it has no reasoning tokens, and it is a floor (ADR-0031, the
+#   update of 2026-11-01).
 # - A slice is a window of one session that belongs to one phase or work package and one kind of activity. Every call is in one slice.
 # - An older record is never edited. A new session adds its own records.
 # - The ledger holds opaque session IDs and numbers only: no prompt text, no file paths, and no account names.
 schema-version: 1
-updated: 2026-10-12
+updated: 2026-11-01
 waivers:
   - phase: 0
     reason: "Phase 0 was built in one session before work packages were tracked one by one, so its usage is recorded at phase level. WP0.1 to WP0.7 have no records of their own."
@@ -52,6 +55,11 @@ changes:
     files: 83
     additions: 4950
     deletions: 91
+  - work-package: "WP1.7"
+    pull-requests: [30, 31, 32]
+    files: 98
+    additions: 6513
+    deletions: 86
   - work-package: "WP1.14"
     pull-requests: [26]
     files: 43
@@ -706,3 +714,33 @@ records:
         reasoning-tokens: 18187
         peak-context-tokens: 643011
         model-seconds: 271
+  - session: "0e6780b7-af4f-4327-8e1d-2e4600e58a5f"
+    phase: 1
+    work-package: "WP1.7"
+    activity: delivery
+    confidence: exact
+    window:
+      from: "2026-11-01T18:19:18.732Z"
+      to: "2026-11-02T03:44:02.746Z"
+    user-turns: 2
+    compactions: 0
+    note: "One session held WP1.7 alone. Derived from the cloud store, because the local store has no rows for the session, at the local prices last seen on 2026-10-12. The cloud events end with an idle event after the last call and their counts agree, but cloud events can lag, so this is a floor and is not claimed to be complete."
+    usage:
+      - model: claude-sonnet-5.5
+        source: derived
+        reasoning-effort: unknown
+        agent: main
+        request-multiplier: 1.0
+        calls: 335
+        aiu: 2598.864
+        prices:
+          fresh-input: 200
+          cache-read: 10
+          cache-write: 250
+          output: 1000
+        fresh-input-tokens: 678
+        cache-read-tokens: 136021378
+        cache-write-tokens: 3264360
+        output-tokens: 422425
+        peak-context-tokens: 658362
+        model-seconds: 2779
