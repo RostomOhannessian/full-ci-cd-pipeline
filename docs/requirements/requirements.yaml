@@ -149,7 +149,7 @@ requirements:
   - snapshot
   evidence: event snapshots and outbox tests
   status: in_progress
-  notes: WP1.6 delivers eight sealed event records that carry EventType, SchemaVersion 1, and an OccurredAt that comes from the TimeProvider, with a golden list of the properties of each event that fails when a shape changes. The event snapshots and the outbox tests arrive in WP1.8.
+  notes: WP1.6 delivers eight sealed event records that carry EventType, SchemaVersion 1, and an OccurredAt that comes from the TimeProvider, with a golden list of the properties of each event that fails when a shape changes. WP1.8 adds the JSON snapshot of each event, a check that every event type has one, and the outbox tests (ADR-0035).
 - id: REQ-DOM-005
   title: Category assignment requires an active category
   statement: A product may be assigned only to a category that exists and is active at the time of the command.
@@ -303,7 +303,7 @@ requirements:
   - contract
   evidence: idempotency replay and conflict cases
   status: in_progress
-  notes: The contract requires the Idempotency-Key header on both creates, with the 400, 409, and 422 answers, and tests check the format of the key. The idempotency store arrives in WP1.8, and the replay and conflict cases in WP1.10.
+  notes: The contract requires the Idempotency-Key header on both creates, with the 400, 409, and 422 answers, and tests check the format of the key. The idempotency store is delivered in WP1.8 (ADR-0036), and the replay and conflict cases over HTTP arrive in WP1.10.
 - id: REQ-API-005
   title: Errors use RFC 9457 Problem Details
   statement: Errors are returned as application/problem+json with RFC 9457 Problem Details whose type URIs resolve to the published error catalog and whose payloads include traceId and per-field validation messages when relevant.
@@ -809,7 +809,7 @@ requirements:
   - ci
   evidence: test fixtures and replayable seeds
   status: in_progress
-  notes: WP1.1 declares the assembly parallelism and the invariant culture. WP1.6 adds FakeTimeProvider, identifiers built from a counter, synthetic builders, and CsCheck property tests whose failing seed is printed and replays the failure through CsCheck_Seed, and a test shows that one scenario gives the same events on every run. The container images of the integration tests arrive in WP1.8, and the flaky-test policy in WP4.8.
+  notes: WP1.1 declares the assembly parallelism and the invariant culture. WP1.6 adds FakeTimeProvider, identifiers built from a counter, synthetic builders, and CsCheck property tests whose failing seed is printed and replays the failure through CsCheck_Seed, and a test shows that one scenario gives the same events on every run. The container images of the integration tests are pinned by digest in WP1.8 (ADR-0034), and the flaky-test policy arrives in WP4.8.
 - id: REQ-QUA-005
   title: Coverage stays above the initial thresholds
   statement: Line coverage stays at or above 90 percent for Domain, 85 percent for Application, and 80 percent across the solution excluding generated code and migrations, and branch coverage stays at or above 80 percent for Domain and Application.

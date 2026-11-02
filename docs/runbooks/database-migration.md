@@ -18,7 +18,7 @@ Use it when a pull request adds a migration under `src/Catalog.Infrastructure/Pe
 
 - **Blast radius:** the catalog database. A migration changes the schema that every replica of the API uses, and the previous release of the API must still work against it (expand and contract, plan section 8.10).
 - **Reversible:** no. The schema never rolls back, because `Down` is never run in a deployment. The way back is described under "Roll back".
-- **Phase of the current migration:** `InitialCreate` is an **expand** step: it creates the schema `catalog` on an empty database and drops nothing.
+- **Phase of the current migrations:** `InitialCreate` is an **expand** step: it creates the schema `catalog` on an empty database and drops nothing. `CaseSensitiveIdempotencyKeys` changes the collation of the two key columns of `IdempotencyRecords`. It drops the primary key of that table and creates it again, and it keeps every row, so it is an expand step for a table that holds only records of the last 24 hours. A stricter comparison cannot make two existing keys collide.
 - **Needs confirmation from:** the owner reviews each migration (CODEOWNERS covers `src/**/Migrations`). A destructive change needs the `migration:contract-phase` label, an ADR or a runbook entry, and the owner's review.
 
 ## Before you start
@@ -35,7 +35,7 @@ Use it when a pull request adds a migration under `src/Catalog.Infrastructure/Pe
    dotnet tool run dotnet-ef migrations script --idempotent --project src/Catalog.Infrastructure --startup-project src/Catalog.Infrastructure --context CatalogDbContext --output artifacts/catalog.sql
    ```
 
-   Expected output: the file `artifacts/catalog.sql` exists. Look for `DROP`, `ALTER ... DROP`, a rename, a narrowing `ALTER COLUMN`, and a new `NOT NULL` column without a default, which are the destructive changes. If you see one, stop and follow the contract-phase rule above.
+   Expected output: the file `artifacts/catalog.sql` exists. Look for `DROP`, `ALTER ... DROP`, a rename, a narrowing `ALTER COLUMN`, and a new `NOT NULL` column without a default, which are the destructive changes. If you see one, stop and follow the contract-phase rule above. The drop of the primary key of `IdempotencyRecords` in the second migration is a known step that is followed by `ADD CONSTRAINT`. If you apply the script by hand with `sqlcmd`, pass `-I`, because the script creates filtered indexes, which need `QUOTED_IDENTIFIER` on, and `sqlcmd` turns it off by default (error 1934).
 
 2. Generate the migration bundle in the scratch copy.
 
@@ -51,10 +51,11 @@ Use it when a pull request adds a migration under `src/Catalog.Infrastructure/Pe
    ./artifacts/efbundle.exe --connection "Server=<host>,<port>;Database=catalog;User Id=<migrator>;Password=<password>;Encrypt=true"
    ```
 
-   Expected output for a database at the previous migration:
+   Expected output for an empty database (a database at the first migration prints only the second line):
 
    ```text
    Applying migration '20261102045650_InitialCreate'.
+   Applying migration '20261102054823_CaseSensitiveIdempotencyKeys'.
    Done.
    ```
 
@@ -89,3 +90,4 @@ The schema never rolls back, and an application rollback never touches it. The p
 | Date | Who | Environment | Result | Changes made to this runbook |
 | --- | --- | --- | --- | --- |
 | 2026-11-02 | AI-paired session (WP1.8) | Windows host, a throwaway SQL Server 2022 container of the digest that compose.yaml pins, the `sa` login of that container | Pass: the bundle applied `InitialCreate`, a second run applied nothing, and the six tables existed | First version |
+| 2026-11-02 | AI-paired session (WP1.8, outbox and idempotency) | The same throwaway container, the idempotent script applied with `sqlcmd -I` from a second throwaway database | Pass: the script applied both migrations, a second run changed nothing, `CallerId` and `Key` had the collation `Latin1_General_100_BIN2`, and `PK_IdempotencyRecords` existed. Without `-I` the run failed with error 1934. A plain `ALTER COLUMN` of a key column failed with error 5074, which is why the second migration drops the key. The bundle was not rebuilt for the second migration, which `MigrationTests` applies through the same `Migrate` call | Added the `-I` note, the second migration, and the expected output of an empty database |

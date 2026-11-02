@@ -107,8 +107,9 @@ The application defines the ports, and a rule of `Catalog.Architecture.Tests` fa
 | --- | --- | --- |
 | `IProductRepository`, `ICategoryRepository` | Load aggregates with their version, add new ones, and read the version after a save | `ProductRepository` and `CategoryRepository`, in `Catalog.Infrastructure` (WP1.8) |
 | `IUnitOfWork` | Run the work of a command in one transaction, save inside it, and run hooks before the commit | `EfUnitOfWork`, in `Catalog.Infrastructure` (WP1.8) |
-| `IIdempotencyStore` | Reserve a key, record the first result in the transaction of the command, and release a failed reservation | Persistence (WP1.8, planned) |
-| `IOutboxDispatcher` | Wake the dispatcher of the node after a commit, on a best-effort basis | Persistence (WP1.8, planned) |
+| `IIdempotencyStore` | Reserve a key, record the first result in the transaction of the command, and release a failed reservation | `IdempotencyStore`, in `Catalog.Infrastructure` (WP1.8, [ADR-0036](../adr/0036-idempotency-store.md)) |
+| `IOutboxDispatcher` | Wake the dispatcher of the node after a commit, on a best-effort basis | `OutboxDispatcher`, in `Catalog.Infrastructure` (WP1.8, [ADR-0035](../adr/0035-outbox-processor-design.md)) |
+| `IOutboxMessageHandler` | Take one message of the outbox, idempotently, and report failure by throwing | The handlers of the follow-on work, which arrive with the cache (WP1.9, planned). The processor of WP1.8 calls every registered one |
 | `ICatalogCache` | Return a cached result or load it, and remove the entries of a tag | Caching (WP1.9, planned) |
 | `ICurrentPrincipal` | Give the caller, its scopes, and its roles | API (WP1.10, planned) |
 | `IUseCaseTelemetry` | Observe a use case: trace, count, and log its outcome | Observability (WP1.11, planned) |
