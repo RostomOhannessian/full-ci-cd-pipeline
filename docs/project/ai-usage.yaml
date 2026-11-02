@@ -10,7 +10,7 @@
 # - An older record is never edited. A new session adds its own records.
 # - The ledger holds opaque session IDs and numbers only: no prompt text, no file paths, and no account names.
 schema-version: 1
-updated: 2026-11-01
+updated: 2026-11-02
 waivers:
   - phase: 0
     reason: "Phase 0 was built in one session before work packages were tracked one by one, so its usage is recorded at phase level. WP0.1 to WP0.7 have no records of their own."
@@ -774,3 +774,33 @@ records:
         output-tokens: 182650
         peak-context-tokens: 452780
         model-seconds: 1240
+  - session: "a41f0966-9319-41f7-8efd-468f1f7ca66a"
+    phase: 1
+    work-package: "WP1.8"
+    activity: delivery
+    confidence: exact
+    window:
+      from: "2026-11-02T04:42:07.248Z"
+      to: "2026-11-02T06:45:50.604Z"
+    user-turns: 1
+    compactions: 1
+    note: "One session held WP1.8 alone. Derived from the cloud store, because the local store has no rows for the session, at the local prices last seen on 2026-10-12. A floor: the cloud events end at 06:45:50Z, about half an hour before this record was written, so the later calls (close-out and handoff) are missing. The usage events and the model call successes agree at 474; no sub-agent ran."
+    usage:
+      - model: claude-sonnet-5.5
+        source: derived
+        reasoning-effort: unknown
+        agent: main
+        request-multiplier: 1.0
+        calls: 474
+        aiu: 2869.925
+        prices:
+          fresh-input: 200
+          cache-read: 10
+          cache-write: 250
+          output: 1000
+        fresh-input-tokens: 952
+        cache-read-tokens: 191310317
+        cache-write-tokens: 1162523
+        output-tokens: 666001
+        peak-context-tokens: 701959
+        model-seconds: 4518
