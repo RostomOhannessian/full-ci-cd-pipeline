@@ -15,17 +15,19 @@ namespace Catalog.Domain.Products;
 /// </remarks>
 public sealed class Product : AggregateRoot<ProductId>
 {
-    private Product(ProductId id, Sku sku, ProductName name, Description? description, Money price, CategoryId categoryId, DateTimeOffset now)
+    // Every parameter has the name of a property, so the persistence layer can call this constructor to load a stored product (ADR-0033). The price is the exception: EF Core cannot bind a constructor
+    // parameter to a complex property, so it sets Price after the call, and the constructor holds a placeholder that never survives a load. Create is the only code that makes a new product, and it sets the price.
+    private Product(ProductId id, Sku sku, ProductName name, Description? description, CategoryId categoryId, LifecycleStatus status, DateTimeOffset createdAt, DateTimeOffset updatedAt)
         : base(id)
     {
         Sku = sku;
         Name = name;
         Description = description;
-        Price = price;
+        Price = Money.Zero(Currency.Usd);
         CategoryId = categoryId;
-        Status = LifecycleStatus.Active;
-        CreatedAt = now;
-        UpdatedAt = now;
+        Status = status;
+        CreatedAt = createdAt;
+        UpdatedAt = updatedAt;
     }
 
     /// <summary>Gets the SKU, which never changes.</summary>
@@ -78,7 +80,7 @@ public sealed class Product : AggregateRoot<ProductId>
         }
 
         var now = clock.GetUtcNow();
-        var product = new Product(id, sku, name, description, price, category.Id, now);
+        var product = new Product(id, sku, name, description, category.Id, LifecycleStatus.Active, now, now) { Price = price };
         product.Raise(new ProductCreated(id, sku, name, description, price, category.Id, now));
 
         return DomainResult.Success<Product>(product);

@@ -4,14 +4,14 @@ description: "The two aggregates, the value objects and their rules, the lifecyc
 audience: [learners, contributors, maintainers]
 type: reference
 tools: [awesomeassertions, cscheck, stryker-net]
-last-verified: 2026-10-12
+last-verified: 2026-11-02
 owner: "@RostomOhannessian"
 ---
 
 # Domain model
 
 The domain model is the project [`src/Catalog.Domain`](../../src/Catalog.Domain/Catalog.Domain.csproj). It holds the rules of the product catalog and nothing else: it references the base class library only, so it has no database, no framework, no clock, and no identifier generator
-in it ([ADR-0029](../adr/0029-domain-model-and-mutation-baseline.md)). The use cases that call it arrive in WP1.7 (planned), the persistence in WP1.8 (planned), and the HTTP endpoints in WP1.10 (planned). The version 1 contract that the model agrees with is in [the API contract](api-contract.md).
+in it ([ADR-0029](../adr/0029-domain-model-and-mutation-baseline.md)). The use cases that call it are in [the application layer](application-layer.md), the persistence is in [the persistence page](persistence.md) (WP1.8), and the HTTP endpoints arrive in WP1.10 (planned). The version 1 contract that the model agrees with is in [the API contract](api-contract.md).
 
 ## The aggregates
 
@@ -126,5 +126,5 @@ Each test names the requirement that it proves, and `governance trace` reads the
 ## What is not here yet
 
 - The `IIdGenerator` port and its default implementation, `GuidV7IdGenerator`, are in [the application layer](application-layer.md) (WP1.7). The use cases arrive in the third pull request of WP1.7 (planned).
-- The mapping to the database, the row version, the outbox, and the payload snapshots of the events arrive in WP1.8 (planned).
+- The mapping to the database and the row version are in [the persistence page](persistence.md) (WP1.8). The model changed three constructors and gained `IHasDomainEvents` so EF Core can load it, and no rule changed ([ADR-0029](../adr/0029-domain-model-and-mutation-baseline.md), the update of 2026-11-02). The outbox and the payload snapshots of the events arrive in the next pull request of WP1.8 (planned).
 - The endpoints and the served contract arrive in WP1.10 (planned).

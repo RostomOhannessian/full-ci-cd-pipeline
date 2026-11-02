@@ -116,6 +116,17 @@ the error catalog without a try block.
 - A client needs a currency, a precision, or a text bound that the contract does not allow, and the contract and the model change together.
 - The maintainer approves a nightly mutation job, or a mutation score below 70 percent appears in a report.
 
+## Update on 2026-11-02: the shape that the persistence mapping needs
+
+WP1.8 found that EF Core cannot load the aggregates through their constructors as they were, and the "Revisit when" trigger above says that the change is made here first. No rule of the model changed, and the Domain still references the base class library only. [ADR-0033](0033-ef-core-mapping-read-model-and-migrations.md) records the decision, and this section records the change to the model:
+
+- The private constructors of `Category` and `Product` take every stored value by the name of its property (`status`, `createdAt`, `updatedAt`, and the others), and `Create` passes the initial values. EF Core binds a constructor parameter to a property of the same name.
+- `Product` leaves the price out of its constructor, and `Create` sets it, because EF Core 10.0.14 cannot bind a constructor parameter to a complex property (checked 2026-11-02). EF Core sets the price after the call, and the constructor holds a placeholder that never survives a load.
+- The private constructor of `Money` gives the amount the decimal places of its currency, so a yen price that the column returns as `1500.00` loads as `1500` and prints like a new one. The constructor refuses nothing, because `Create` is the only door for new values.
+- `AggregateRoot<TId>` implements the new `IHasDomainEvents`, the non-generic face that the outbox interceptor reads, so it can collect the events of every tracked aggregate without knowing the identifier type.
+
+The Domain tests, the contract agreement tests, and the Application tests pass without a change to a rule, and the round-trip tests of `tests/Catalog.Infrastructure.Tests` prove the loading.
+
 ## Further reading
 
 - [RFC 9562: Universally Unique IDentifiers (UUIDs)](https://www.rfc-editor.org/rfc/rfc9562.html) (checked 2026-10-12)

@@ -16,9 +16,11 @@ public sealed record Money
     /// <summary>The first amount that is too large, which is 10 to the power of <see cref="MaxIntegerDigits"/>.</summary>
     public const decimal Limit = 1_000_000_000_000m;
 
+    // The persistence layer calls this constructor to load a stored amount (ADR-0033), and Create calls it with an amount that is already right. The column keeps the decimal places of the widest currency, so the
+    // amount gets the places of its own currency here, and a loaded price prints like a new one. The constructor never refuses a value, because Create is the only door for new ones.
     private Money(decimal amount, Currency currency)
     {
-        Amount = amount;
+        Amount = WithScale(decimal.Round(amount, currency.MinorUnits, MidpointRounding.ToZero), currency.MinorUnits);
         Currency = currency;
     }
 

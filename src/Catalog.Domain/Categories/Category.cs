@@ -8,13 +8,14 @@ namespace Catalog.Domain.Categories;
 /// </summary>
 public sealed class Category : AggregateRoot<CategoryId>
 {
-    private Category(CategoryId id, CategoryName name, DateTimeOffset now)
+    // Every parameter has the name of a property, so the persistence layer can call this constructor to load a stored category (ADR-0033). Create is the only code that makes a new one.
+    private Category(CategoryId id, CategoryName name, LifecycleStatus status, DateTimeOffset createdAt, DateTimeOffset updatedAt)
         : base(id)
     {
         Name = name;
-        Status = LifecycleStatus.Active;
-        CreatedAt = now;
-        UpdatedAt = now;
+        Status = status;
+        CreatedAt = createdAt;
+        UpdatedAt = updatedAt;
     }
 
     /// <summary>Gets the name.</summary>
@@ -43,7 +44,7 @@ public sealed class Category : AggregateRoot<CategoryId>
         ArgumentNullException.ThrowIfNull(clock);
 
         var now = clock.GetUtcNow();
-        var category = new Category(id, name, now);
+        var category = new Category(id, name, LifecycleStatus.Active, now, now);
         category.Raise(new CategoryCreated(id, name, now));
 
         return category;

@@ -5,7 +5,7 @@ namespace Catalog.Domain.Common;
 /// that it accepts, and the persistence layer reads and clears them when it saves (plan section 8.4).
 /// </summary>
 /// <typeparam name="TId">The type of the identifier.</typeparam>
-public abstract class AggregateRoot<TId>
+public abstract class AggregateRoot<TId> : IHasDomainEvents
     where TId : notnull
 {
     private readonly List<IDomainEvent> _events = [];
