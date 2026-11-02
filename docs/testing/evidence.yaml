@@ -169,3 +169,13 @@ entries:
     path: docs/adr/0035-outbox-processor-design.md
     summary: ADR-0035 records the lease, the fence, the receipts, the retries and the dead-letter state, the wake-up, the cleanup, and the payload contract of the outbox, and ADR-0036 records the reservation, the replay, the takeover, and the exact comparison of the idempotency store.
     recorded: '2026-11-02'
+  - requirements: [REQ-DATA-005]
+    kind: manual
+    path: docs/testing/evidence/2026-11-02-credential-rotation-run.md
+    summary: The credential suites ran against a real SQL Server 2022 container in the pinned Linux SDK image with the Docker socket mounted. New connections switch to the new login while the pool is reused, the old login has no session after the grace period, work in flight finishes, the old login can be revoked, and no secret reaches a log, a message, or a data bag. The Windows host blocked the freshly built test assembly, and the record says so.
+    recorded: '2026-11-02'
+  - requirements: [REQ-DATA-005]
+    kind: docs
+    path: docs/adr/0037-credential-rotation-and-pool-clearing.md
+    summary: ADR-0037 records the cached source, the interceptor, the single connection string function, the janitor and the order rotate, switch, clear, revoke, the handling of a bad file, and the rule that no credential value reaches any text.
+    recorded: '2026-11-02'
