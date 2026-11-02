@@ -11,7 +11,7 @@ owner: "@RostomOhannessian"
 # Application layer
 
 The application layer is the project [`src/Catalog.Application`](../../src/Catalog.Application/Catalog.Application.csproj). It holds the use cases of the catalog and the ports that the outer layers implement. It references the domain model and the base class library only
-([ADR-0032](../adr/0032-decorator-pipeline-and-application-results.md)). The decorator code is in `Catalog.CrossCutting`, the registration lives in the composition root, and the adapters of the ports arrive with the persistence (WP1.8), the cache (WP1.9), and the endpoints (WP1.10). The first pull request of WP1.7 delivered the results, the errors, the permission table, and the ports, and the second delivered the pipeline. The use cases (third pull request) are planned.
+([ADR-0032](../adr/0032-decorator-pipeline-and-application-results.md)). The decorator code is in `Catalog.CrossCutting`, the registration lives in the composition root, and the adapters of the ports arrive with the persistence (WP1.8), the cache (WP1.9), and the endpoints (WP1.10). WP1.7 delivered the results, the errors, the permission table, and the ports (first pull request), the pipeline (second), and the use cases with their read stores, validators, and registration (third).
 
 ## Handler interfaces
 
@@ -76,6 +76,29 @@ The decorators are in `src/Catalog.CrossCutting/Decorators`, and [`CommandPipeli
 | `TransactionCommandDecorator` | Commands | Runs the handler in the unit of work, and wakes the outbox after a successful commit |
 | `QueryCacheDecorator` | Queries that implement `ICachedQuery` | Serves the result from the cache and loads it on a miss |
 
+## Use cases
+
+Each operation of [the API contract](api-contract.md) has one request and one handler. A request is a public record that declares its access level, and a handler is an `internal sealed` class that the feature registers. The views are plain records (identifiers as `Guid`, the price as an amount and a currency code, and the version as the token of an `EntityTag`), so the API maps them to the contract and the idempotency store keeps them as JSON.
+
+| Operation | Request | Level | Refusals that the handler adds to the pipeline's |
+| --- | --- | --- | --- |
+| `listCategories` | `ListCategories` | Read | None |
+| `createCategory` | `CreateCategory` | Admin | None |
+| `getCategory` | `GetCategory` | Read | `NotFound` |
+| `updateCategory` | `RenameCategory` | Admin | `PreconditionRequired`, `NotFound`, `PreconditionFailed` |
+| `discontinueCategory` | `DiscontinueCategory` | Admin | `PreconditionRequired`, `NotFound`, `PreconditionFailed` |
+| `listProducts` | `ListProducts` | Read | None |
+| `createProduct` | `CreateProduct` | Write | A validation error on `categoryId` when the category does not exist or is discontinued, and `Conflict` for a SKU in use |
+| `getProduct` | `GetProduct` | Read | `NotFound` |
+| `updateProduct` | `UpdateProduct` | Write | `PreconditionRequired`, `NotFound`, `PreconditionFailed`, a validation error on `categoryId`, and `Conflict` for a discontinued product |
+| `discontinueProduct` | `DiscontinueProduct` | Admin | `PreconditionRequired`, `NotFound`, `PreconditionFailed` |
+
+- A command that changes a resource needs `If-Match`. The handler checks that the caller sent a version before it looks anything up, and then compares it with the version that the repository loaded. After the work, the handler calls `IUnitOfWork.SaveChangesAsync`, so the new version of the row is known inside the transaction.
+- `GetProduct` and `ListProducts` implement `ICachedQuery`. A product has the key `product:{id}` and the tag `product:{id}`, and a list has the key `products:list:{hash}` and the tags `products:list` and `category:{id}`. The cache decorator uses them, and WP1.9 turns them into FusionCache entries.
+- A list has a page size of 1 to 100 (20 by default) and an opaque, versioned cursor over a keyset position (`PageCursor`). A cursor that was made for another sort order is refused. `IProductReadStore` and `ICategoryReadStore` return one row more than the page size, and the handler turns the extra row into `NextCursor`.
+- The validators are in `Catalog.CrossCutting.Validation`. Each runs the factories of the value objects of the domain model for the fields of its request and reports every failure, so the `errors` member names all invalid fields at once. A handler still refuses a broken rule when no validator runs.
+- `AddCategories` and `AddProducts` register the handlers through `IFeatureRegistry`, in a fixed order. The composition root implements the registry (WP1.10).
+
 ## Ports
 
 The application defines the ports, and a rule of `Catalog.Architecture.Tests` fails when an interface of the application declares more than five operations, so a caller depends only on what it uses.
@@ -90,14 +113,16 @@ The application defines the ports, and a rule of `Catalog.Architecture.Tests` fa
 | `ICurrentPrincipal` | Give the caller, its scopes, and its roles | API (WP1.10, planned) |
 | `IUseCaseTelemetry` | Observe a use case: trace, count, and log its outcome | Observability (WP1.11, planned) |
 | `IIdGenerator` | Create the identifier of a new product or category | `GuidV7IdGenerator`, in this layer |
+| `IProductReadStore`, `ICategoryReadStore` | Read one view, or a page of views after a keyset position, without loading an aggregate | Persistence (WP1.8, planned) |
 
 `GuidV7IdGenerator` calls `Guid.CreateVersion7` with the time of the injected `TimeProvider`, so identifiers sort by creation time, and a test passes a generator that counts. `EntityTag` is the version of a stored resource as a token that is safe in a URL, and `IdempotencyKey` is a key of 1 to 128 printable ASCII
-characters. The read stores that the queries need are defined with the queries in the third pull request of WP1.7 (planned).
+characters.
 
 ## How it is tested
 
 Each test names the requirement that it proves, and `governance trace` reads the names ([the traceability report](../testing/traceability.md)).
 
-- `tests/Catalog.Application.Tests` holds the unit tests of the results, the mapping table, the permission table, the tag, the key, the identifier generator, and every decorator. The permission test is exhaustive, and the tag test is a property test. `PipelineOrderTests` runs requests through the production chains over fakes that share one journal and asserts the order and every short circuit.
-- `tests/Catalog.Contract.Tests/ApplicationAgreementTests.cs` holds the mapping table to the error catalog and the permission table to the contract and the realm file.
-- `tests/Catalog.Architecture.Tests` holds the rule that keeps the ports small and the rule that only a pipeline names the decorators, each with a violating fixture that shows it failing.
+- `tests/Catalog.Application.Tests` holds the unit tests of the results, the mapping table, the permission table, the tag, the key, the identifier generator, the paging, every decorator, every validator, the registration, and the ten use cases. The permission test is exhaustive, and the tag and the cursor tests are property tests. `PipelineOrderTests` runs requests through the production chains over fakes that share one journal and asserts the order and every short circuit, and the use case tests run each handler through the same chain over an in-memory catalog that has versions and an outbox of events.
+- `tests/Catalog.Contract.Tests/ApplicationAgreementTests.cs` holds the mapping table to the error catalog, the permission table to the contract and the realm file, and the access level of each request to the scope of its operation.
+- `tests/Catalog.Architecture.Tests` holds the rules of the layer: ports stay small, only a pipeline names the decorators, handlers implement a handler interface, no pipeline code uses reflection, a query handler uses no write port, and a command handler uses no read store. Each has a violating fixture that shows it failing.
+- The mutation score of the application tests is 96.92 percent (checked 2026-11-01), and [the evidence record](../testing/evidence/2026-11-01-application-mutation-baseline.md) explains each survivor.

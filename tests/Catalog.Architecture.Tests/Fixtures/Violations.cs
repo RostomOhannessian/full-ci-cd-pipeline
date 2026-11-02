@@ -45,6 +45,61 @@ namespace Catalog.Architecture.Tests.Fixtures.Violations.Application
     {
     }
 
+    public interface ICommandHandler<in TCommand, TResult>
+    {
+        TResult Handle(TCommand command);
+    }
+
+    public interface IQueryHandler<in TQuery, TResult>
+    {
+        TResult Handle(TQuery query);
+    }
+
+    public interface IUnitOfWork
+    {
+        void Commit();
+    }
+
+    public interface IWidgetReadStore
+    {
+        void Find();
+    }
+
+    // Breaks "handlers-implement-a-handler-interface": a handler that no endpoint can inject through the interface of plan section 8.2.
+    internal sealed class UntypedHandler
+    {
+    }
+
+    // Breaks "query-handlers-depend-on-no-write-port": a query that needs the unit of work can write.
+    internal sealed class GreedyQueryHandler(IUnitOfWork unitOfWork) : IQueryHandler<string, string>
+    {
+        public string Handle(string query)
+        {
+            unitOfWork.Commit();
+
+            return query;
+        }
+    }
+
+    // Breaks "command-handlers-depend-on-no-read-store": a command that reads through the query side skips the aggregate that holds the rules.
+    internal sealed class NosyCommandHandler(IWidgetReadStore store) : ICommandHandler<string, string>
+    {
+        public string Handle(string command)
+        {
+            store.Find();
+
+            return command;
+        }
+    }
+
+    // Breaks "pipeline-code-uses-no-reflection-or-activator": it looks a method up by name at run time.
+    public sealed class ReflectiveDispatcher
+    {
+        private readonly System.Reflection.MethodInfo? _method = typeof(ReflectiveDispatcher).GetMethod("Dispatch");
+
+        public void Dispatch() => _ = _method;
+    }
+
     // Breaks "no-static-mutable-fields-outside-the-composition-root".
     public sealed class GlobalCounter
     {

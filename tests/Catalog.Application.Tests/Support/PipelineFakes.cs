@@ -135,8 +135,8 @@ internal sealed class RecordingPrincipal(Journal journal, TestPrincipal inner) :
     public IReadOnlySet<string> Roles => inner.Roles;
 }
 
-/// <summary>A unit of work that runs the work, the hooks, and the commit in the order that the real one does, and records each step.</summary>
-internal sealed class FakeUnitOfWork(Journal journal) : IUnitOfWork
+/// <summary>A unit of work that runs the work, the hooks, and the commit in the order that the real one does, and records each step. A save writes the in-memory catalog, when there is one.</summary>
+internal sealed class FakeUnitOfWork(Journal journal, InMemoryCatalog? catalog = null) : IUnitOfWork
 {
     private readonly List<Func<object, CancellationToken, Task>> _hooks = [];
 
@@ -146,6 +146,7 @@ internal sealed class FakeUnitOfWork(Journal journal) : IUnitOfWork
     {
         Saves++;
         journal.Add("uow:save");
+        catalog?.Save();
 
         return Task.CompletedTask;
     }

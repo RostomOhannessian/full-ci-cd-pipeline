@@ -12,6 +12,7 @@ evidence:
   - src/Catalog.Application
   - src/Catalog.CrossCutting
   - tests/Catalog.Application.Tests
+  - docs/testing/evidence/2026-11-01-application-mutation-baseline.md
   - tests/Catalog.Architecture.Tests/ArchitectureRules.cs
   - tests/Catalog.Contract.Tests/ApplicationAgreementTests.cs
 ---
@@ -85,7 +86,7 @@ After a successful commit the transaction decorator calls `IOutboxDispatcher.Dis
 | CrossCutting | One decorator for each step, the pipeline types that compose them in the order above, and the FluentValidation validators |
 | Api | The registration over `IServiceCollection`, and the adapters of the ports that need the token (WP1.10) |
 
-The Application stays free of libraries: `application-depends-on-domain-and-the-bcl-only` allows no type outside the Domain and the base class library, and this ADR keeps that rule as it is. The validators use FluentValidation (Apache-2.0, plan section 17), so they live next to the validation decorator in CrossCutting, which may use any permitted package. They check the shape of a request and report every invalid field at once. The domain model still refuses each broken rule, so a validator never has to repeat one.
+The Application stays free of libraries: `application-depends-on-domain-and-the-bcl-only` allows no type outside the Domain and the base class library, and this ADR keeps that rule as it is. The validators use FluentValidation (Apache-2.0, plan section 17), so they live next to the validation decorator in CrossCutting, which may use any permitted package. They run the factory of each value object of the domain model for the fields of a request, so a validator reuses each rule, reports every invalid field at once, and never writes a rule a second time. The handlers still refuse a broken rule on their own, so the model stays the last line.
 
 ### Registration
 
@@ -118,7 +119,7 @@ A caller needs the scope and one of the roles. A caller without the scope gets `
 
 - WP1.7, first pull request: the results, the error cases, the mapping table, the permission table, the ports, and the identifier generator have unit tests (`tests/Catalog.Application.Tests`). The rule `application-ports-are-segregated` fails on a port with more than five operations, and the agreement tests in `tests/Catalog.Contract.Tests/ApplicationAgreementTests.cs` hold the tables to the catalog, the contract, and the realm.
 - WP1.7, second pull request: `CommandPipeline` and `QueryPipeline` in `src/Catalog.CrossCutting/Decorators` compose the decorators, and `tests/Catalog.Application.Tests/PipelineOrderTests.cs` runs requests through the production chains over fakes that share one journal and asserts the order and every short circuit (REQ-APP-002, REQ-APP-003). Each decorator also has its own tests. The rule `decorators-are-composed-only-by-pipelines` fails when a decorator names another decorator, with a violating fixture. The registration extension tests (REQ-APP-006) arrive with the features in the third pull request.
-- WP1.7, third pull request: the use cases, their validators, and the architecture rules for handlers (REQ-APP-001, REQ-ARC-003, REQ-ARC-005).
+- WP1.7, third pull request: the ten use cases (five for categories and five for products) with their read stores and validators, run through the production chain over an in-memory catalog (`CategoryUseCaseTests`, `ProductUseCaseTests`, `ProductQueryTests`), the registration tests (`RegistrationTests`, REQ-APP-006), and four more architecture rules, each with a violating fixture: handlers implement a handler interface, pipeline code uses no reflection, query handlers use no write port, and command handlers use no read store (REQ-APP-001, REQ-ARC-003, REQ-ARC-005). The Application mutation baseline scores 96.92 percent ([the evidence record](../testing/evidence/2026-11-01-application-mutation-baseline.md), REQ-QUA-006).
 - WP1.10: the endpoints bind the tables, and integration tests prove the order and the status codes through HTTP.
 
 ## Pros and cons of the options
