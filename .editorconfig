@@ -105,6 +105,11 @@ csharp_style_namespace_declarations = block_scoped:silent
 [*.{ps1,psm1,psd1}]
 indent_size = 4
 
+# Code that the dotnet-ef tool writes: the migrations and the snapshot of the model. Regenerating it overwrites any edit, so the style and quality rules do not apply to it
+# (it is reviewed as a diff of the schema, and the CODEOWNERS file asks for the review of the owner). The coverage thresholds exclude it too.
+[src/**/Migrations/*.cs]
+generated_code = true
+
 [*.{cmd,bat}]
 end_of_line = crlf
 
