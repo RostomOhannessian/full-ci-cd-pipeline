@@ -744,3 +744,33 @@ records:
         output-tokens: 422425
         peak-context-tokens: 658362
         model-seconds: 2779
+  - session: "6f91000a-906b-432f-abfd-b4117e12bf7d"
+    phase: 1
+    work-package: "WP1.15"
+    activity: fix
+    confidence: windowed
+    window:
+      from: "2026-11-02T03:53:57.218Z"
+      to: "2026-11-02T04:25:51.102Z"
+    user-turns: 1
+    compactions: 0
+    note: "The session that built the cloud fallback of the recorder and then completed WP1.7, attributed to the fix as a whole, so it is windowed. Derived from the cloud store at the local prices last seen on 2026-10-12. The cloud events lagged by about 13 minutes while the session ran on, so this is a floor and later calls are a later slice."
+    usage:
+      - model: claude-sonnet-5.5
+        source: derived
+        reasoning-effort: unknown
+        agent: main
+        request-multiplier: 1.0
+        calls: 132
+        aiu: 687.132
+        prices:
+          fresh-input: 200
+          cache-read: 10
+          cache-write: 250
+          output: 1000
+        fresh-input-tokens: 266
+        cache-read-tokens: 40307852
+        cache-write-tokens: 405400
+        output-tokens: 182650
+        peak-context-tokens: 452780
+        model-seconds: 1240
