@@ -2,13 +2,13 @@
 title: "Threat model"
 description: "The design-time threat model: assets, actors, trust boundaries, and the planned controls, updated as each phase builds them."
 audience: [maintainers, learners]
-last-verified: 2026-11-01
+last-verified: 2026-11-02
 owner: "@RostomOhannessian"
 ---
 
 # Threat model
 
-**Status: version 1, written in Phase 0 and updated in WP1.1, WP1.2, WP1.3, WP1.4, WP1.5, WP1.6, WP1.14, and WP1.15.** This model describes the *planned* system. A control is delivered only when the
+**Status: version 1, written in Phase 0 and updated in WP1.1, WP1.2, WP1.3, WP1.4, WP1.5, WP1.6, WP1.8, WP1.14, and WP1.15.** This model describes the *planned* system. A control is delivered only when the
 Delivered column says so, and every other control names the phase that delivers it. Each phase updates it, and Phase 4 finalizes it. A work package
 that changes a trust boundary, a data flow, or a credential must update this page (Definition of Done item 7 in [CONTRIBUTING.md](../../CONTRIBUTING.md)).
 
@@ -149,6 +149,7 @@ The boundary between a contributor's machine, the Dev Container, the downloads t
 | The Valkey ACL user can read or write another environment's keys, or flush the cache | Tampering, Elevation of privilege | The default user is off, and the application user starts from `-@all`, adds the measured commands, and reaches only its key and channel patterns. `dev compose check` tries the forbidden actions and expects a refusal. WP1.9 narrows the patterns to the final key scheme | WP1.4 delivered the Compose ACL and the check on 2026-10-10; WP1.9 narrows it |
 | The third-party `devcontainers/ci` action is compromised and runs in the onboarding job | Tampering, Elevation of privilege | The action is pinned by commit SHA, the job has `contents: read` and no secrets, `push` is `never`, and the workflow runs only for paths that the Dev Container uses, weekly, and by hand | WP1.4 delivered 2026-10-10 |
 | The mutation run executes repository code, and a dependency that it restores, as root in a container that has network access, and Stryker.NET rewrites source files | Tampering, Elevation of privilege | The `mutation` service mounts the repository read-only and copies it to a scratch directory in the container, and the copy leaves out `.git`, `.dev`, and the git-ignored `.env`, so no secret is in the container. The only writable mount is `TestResults/mutation`. The image is pinned by digest, the restore is locked and uses the repository's NuGet source mapping and signature rules ([ADR-0020](../adr/0020-dependency-intake-controls.md)), and the tool is pinned with `rollForward` off. No hosted workflow runs it yet, so no token or secret is in reach | WP1.6 delivered 2026-10-12 |
+| The test run starts containers through the Docker socket, and the `linux-tests` service of `tools/lint/compose.yaml` mounts the socket itself, so code in the test process controls the Docker daemon of the host (root-equivalent on a Linux host) | Elevation of privilege | The exception is limited to one service on a developer machine: no CI job and no service of the Compose stack mounts the socket, the repository mount is read-only, the image is pinned by digest, the restore is locked and signed ([ADR-0020](../adr/0020-dependency-intake-controls.md)), and the comment on the service names the exception. The Testcontainers reaper image is pinned by digest and runs without the privileged flag. The hosted runner has Docker and runs the suites directly. Accepted as a residual risk below ([ADR-0034](../adr/0034-integration-test-database-strategy-and-linux-run.md)) | WP1.8 delivered 2026-11-02 |
 
 ### TB3: Public Sigstore
 
@@ -186,7 +187,9 @@ The boundary between a contributor's machine, the Dev Container, the downloads t
 | Direct access from another namespace or environment | Elevation of privilege | NetworkPolicy, cluster-internal services only, a policy that forbids external services in the data namespace | Phase 3 (WP3.2, WP3.4, WP3.6) |
 | Credential theft or reuse | Information disclosure | Per-workload dynamic credentials with revocation that ends sessions, and TLS | Phase 3 (WP3.4) |
 | Cross-environment cache access or poisoning | Tampering | Per-environment ACL users limited to their key prefix and channels, TLS | Phase 1 (WP1.9), Phase 3 (WP3.4) |
-| SQL injection | Tampering | Parameterized queries through EF Core and input validation | Phase 1 (WP1.8, WP1.10) |
+| SQL injection | Tampering | Parameterized queries through EF Core and input validation. The persistence layer builds no statement from text that a caller sent | Persistence layer delivered in WP1.8 on 2026-11-02; input validation in Phase 1 (WP1.10) |
+| An application replica, or an attacker who holds the application identity, changes the schema | Tampering, Elevation of privilege | Only the migrator identity changes the schema, by running the migration bundle. The application identity has data rights only, and a test shows that it can neither create the schema nor alter a table, while the migrator can migrate. No production assembly calls `Migrate`, `EnsureCreated`, or `EnsureDeleted`, and an architecture test reads the member references of each built assembly to hold it ([ADR-0033](../adr/0033-ef-core-mapping-read-model-and-migrations.md)). The migration files are under CODEOWNERS | Code and tests delivered in WP1.8 on 2026-11-02; the identities in the cluster in Phase 3 (WP3.4, WP3.8) |
+| A row is changed by hand to hold a value that the model refuses, and a handler acts on it | Tampering | Every value object is rebuilt through its `Create` when a row loads, so a refused value fails loudly and never becomes an aggregate that looks valid. The row version stops a stale write | WP1.8 delivered 2026-11-02 |
 | Data loss | Denial of service | Backup job and a rehearsed restore | Phase 3 (WP3.4) |
 
 ### TB7: Secrets tier
@@ -212,6 +215,7 @@ The boundary between a contributor's machine, the Dev Container, the downloads t
 - **A compromised workstation can reach the local cluster.** The cluster is disposable and holds only synthetic data, but the host is part of the trust base.
 - **The Compose stack uses static credentials, and SQL Server runs with its `sa` login.** The stack is disposable, binds only to loopback, holds only synthetic data, and gets random secrets on every machine. Phase 3 replaces the static logins with Vault-managed ones (plan section 8.8).
 - **The Dev Container is privileged** (risk R22).
+- **The Linux test run mounts the Docker socket.** The `linux-tests` service of `tools/lint/compose.yaml` gives the test container control of the Docker daemon of the host, which Testcontainers needs to start SQL Server. It is limited to one service on a developer machine, and the first alternative to weigh is a socket proxy or rootless containers ([ADR-0034](../adr/0034-integration-test-database-strategy-and-linux-run.md)).
 - **Standard NetworkPolicy cannot filter egress by hostname.** Internet egress is limited to a few controllers on port 443. Cilium is the documented upgrade path.
 - **Vault is licensed under the BSL.** It is used only as a tool ([ADR-0004](../adr/0004-licensing-and-dependency-license-policy.md)).
 - **Public transparency logs record signing metadata** ([ADR-0013](../adr/0013-shift-left-security-toolchain.md)).

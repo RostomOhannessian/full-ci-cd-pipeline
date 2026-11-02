@@ -18,6 +18,7 @@ descr
 diataxis
 docfx
 dockerfiles
+efbundle
 efcore
 exfiltrates
 exfiltration
@@ -81,6 +82,7 @@ rekor
 replayable
 reportgenerator
 reporttypes
+respawn
 retriable
 rollouts
 rostom

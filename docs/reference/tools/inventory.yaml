@@ -257,7 +257,7 @@ entries:
       - https://www.microsoft.com/en-us/sql-server/sql-server-downloads
       - https://learn.microsoft.com/en-us/sql/linux/containers/deploy
       - https://go.microsoft.com/fwlink/?linkid=866658
-    adrs: ["0012", "0018", "0019", "0026"]
+    adrs: ["0012", "0018", "0019", "0026", "0033", "0034"]
     notes: compose.yaml (WP1.4) runs the 2022-latest image at digest sha256:4402d880dd4c34bfa7d8705e56a86cd6c88da80a1f6bbbe741f999e76264a090, which reported server 16.0.4295.3 (RTM-CU27, Developer edition, x64) on 2026-10-10. Starting the container sets ACCEPT_EULA=Y, which accepts Microsoft's terms for the Developer edition, and those terms allow development and test use and not production use. The project uses the image for teaching and testing, links no SQL Server code, and does not redistribute the image. Microsoft documents SQL Server container images as supported only on x86-64 Linux hosts, with Rosetta 2, Prism, and QEMU not tested or supported (checked 2026-10-06). Measure memory from the container cgroup, because SQL Server's own memory views overstate it inside a container. With MSSQL_MEMORY_LIMIT_MB set to 2048, the idle stack measured about 1.1 GiB for this container (docker stats, 2026-10-10).
     detect: ["image:mcr.microsoft.com/mssql/server"]
   - id: valkey
@@ -683,18 +683,20 @@ entries:
     category: dotnet-library
     tier: A
     lifecycle: adopt
-    usage: planned
+    usage: in-use
     introduced: phase-1
     purpose: Maps aggregates to SQL Server and hosts migrations, idempotency, and outbox persistence.
     license: MIT
-    license-source: https://github.com/dotnet/efcore
-    version: "v10.0.12"
+    license-source: https://www.nuget.org/packages/Microsoft.EntityFrameworkCore.SqlServer/10.0.14/license
+    version: "10.0.14"
     repo: https://github.com/dotnet/efcore
     sources:
       - https://github.com/dotnet/efcore
-      - https://github.com/dotnet/efcore/releases/tag/v10.0.12
+      - https://github.com/dotnet/efcore/releases/tag/v10.0.14
       - https://learn.microsoft.com/en-us/ef/core/
-    adrs: ["0012", "0018"]
+    adrs: ["0012", "0018", "0033"]
+    notes: WP1.8 uses the SQL Server provider and the design-time package 10.0.14 (checked 2026-11-02), with the dotnet-ef local tool at the same version for migrations, the bundle, and the idempotent script. The provider depends on Microsoft.Data.SqlClient 6.1.7, and the solution pins 7.1.1 (see the sqlclient entry). EF Core 10.0.14 cannot bind a constructor parameter to a complex property, so the price of a product is set after the constructor runs (ADR-0033). The design-time package never reaches a consumer of the project (PrivateAssets all).
+    detect: ["nuget:Microsoft.EntityFrameworkCore.SqlServer", "nuget:Microsoft.EntityFrameworkCore.Design", "dotnet-tool:dotnet-ef"]
   - id: fluentvalidation
     name: FluentValidation
     category: dotnet-library
@@ -802,7 +804,7 @@ entries:
     category: dotnet-library
     tier: C
     lifecycle: adopt
-    usage: planned
+    usage: in-use
     introduced: phase-1
     purpose: Holds the native Windows networking library that Microsoft.Data.SqlClient depends on, so the driver runs on a Windows host.
     license: Microsoft Software License Terms
@@ -812,13 +814,13 @@ entries:
       - https://www.nuget.org/packages/Microsoft.Data.SqlClient.SNI.runtime/7.1.0
       - https://aka.ms/sqlclientproject
     adrs: ["0004", "0020"]
-    notes: The package is the one native part of the SQL Server driver. It was the only package that the gate could not map to an allowed license when WP1.8 added SqlClient (checked 2026-11-03). It holds native Windows libraries only (runtimes/win-x64, win-x86, and win-arm64) under Microsoft Software License Terms, which are not OSI-approved. The terms allow use to develop and test applications, and distribution of the object code only inside an application with protective terms for distributors and users and an indemnity for Microsoft (checked 2026-11-03 in the package's LICENSE.txt). It is acceptable here only because no shipped artifact contains it. The Phase 2 images are Linux-only, and a publish for a Linux runtime identifier does not copy it (checked 2026-11-03 on a real publish). ADR-0004 records the exception for this exact package and version, the conditions that end it, and which checks are enforced today and which are planned. The usage changes to in-use in WP1.8, which adds the dependency.
+    notes: The package is the one native part of the SQL Server driver. It was the only package that the gate could not map to an allowed license when WP1.8 added SqlClient (checked 2026-11-03). It holds native Windows libraries only (runtimes/win-x64, win-x86, and win-arm64) under Microsoft Software License Terms, which are not OSI-approved. The terms allow use to develop and test applications, and distribution of the object code only inside an application with protective terms for distributors and users and an indemnity for Microsoft (checked 2026-11-03 in the package's LICENSE.txt). It is acceptable here only because no shipped artifact contains it. The Phase 2 images are Linux-only, and a publish for a Linux runtime identifier does not copy it (checked 2026-11-03 on a real publish). ADR-0004 records the exception for this exact package and version, the conditions that end it, and which checks are enforced today and which are planned. WP1.8 adds the dependency, as a transitive package of SqlClient (checked 2026-11-03).
   - id: sqlclient
     name: Microsoft.Data.SqlClient
     category: dotnet-library
     tier: C
     lifecycle: adopt
-    usage: planned
+    usage: in-use
     introduced: phase-1
     purpose: Connects the API, migrator, and tests to SQL Server.
     license: MIT
@@ -827,8 +829,27 @@ entries:
     sources:
       - https://www.nuget.org/packages/Microsoft.Data.SqlClient
       - https://aka.ms/sqlclientproject
-    adrs: ["0018"]
-    notes: Spikes 1.d and 1.e (2026-10-06) ran 7.1.1 with EF Core 10.0.12 without warnings. A connection interceptor can set the connection string with a rotated credential before each open while pooling stays on, and SqlConnection.ClearPool on a connection built from the old credential's string clears the old pool. The pool key is the full connection string, so build the string with one shared helper. The loaded assembly reports version 7.0.0.0 for package 7.1.1.
+    adrs: ["0018", "0033"]
+    notes: Spikes 1.d and 1.e (2026-10-06) ran 7.1.1 with EF Core 10.0.12 without warnings, and WP1.8 runs it with 10.0.14 (checked 2026-11-02). A connection interceptor can set the connection string with a rotated credential before each open while pooling stays on, and SqlConnection.ClearPool on a connection built from the old credential's string clears the old pool. The pool key is the full connection string, so build the string with one shared helper. The loaded assembly reports version 7.0.0.0 for package 7.1.1. It does not support the invariant globalization mode, so the test project of the persistence layer turns that mode off. Version 7.1.1 depends on System.Security.Cryptography.Pkcs 9.0.18, which has two advisories (GHSA-2fmv-rv2c-59x7 and GHSA-846f-f764-76mx, patched in 9.0.21 and 10.0.13), so Directory.Packages.props pins that transitive package to 10.0.14 (ADR-0020, ADR-0033). The package also depends on Microsoft.Data.SqlClient.SNI.runtime 7.1.0, a native Windows library under Microsoft Software License Terms. The license exception for it is the amendment of 2026-11-03 to ADR-0004, and the entry sqlclient-sni-runtime records it (checked 2026-11-03).
+    detect: ["nuget:Microsoft.Data.SqlClient"]
+  - id: system-security-cryptography-pkcs
+    name: System.Security.Cryptography.Pkcs
+    category: dotnet-library
+    tier: C
+    lifecycle: adopt
+    usage: in-use
+    introduced: phase-1
+    purpose: Holds a transitive dependency of SqlClient at a patched version, so the restore passes the vulnerability audit.
+    license: MIT
+    license-source: https://www.nuget.org/packages/System.Security.Cryptography.Pkcs/10.0.14/license
+    version: "10.0.14"
+    sources:
+      - https://www.nuget.org/packages/System.Security.Cryptography.Pkcs
+      - https://github.com/advisories/GHSA-846f-f764-76mx
+      - https://github.com/advisories/GHSA-2fmv-rv2c-59x7
+    adrs: ["0020", "0033"]
+    notes: The repository never calls this package. Microsoft.Data.SqlClient 7.1.1 depends on version 9.0.18, which has two advisories (GHSA-2fmv-rv2c-59x7, moderate, and GHSA-846f-f764-76mx, high, patched in 9.0.21 and 10.0.13), and NuGet audit fails the restore on them. Directory.Packages.props pins it to 10.0.14, the version that matches the runtime of the solution, through central transitive pinning (ADR-0020). Remove the pin when a SqlClient release depends on a patched version (checked 2026-11-02).
+    detect: ["nuget:System.Security.Cryptography.Pkcs"]
   - id: system-commandline
     name: System.CommandLine
     category: dotnet-library
@@ -2507,7 +2528,7 @@ entries:
     category: test-tool
     tier: A
     lifecycle: adopt
-    usage: planned
+    usage: in-use
     introduced: phase-1
     purpose: Brings up SQL Server, Valkey, and Keycloak dependencies for repeatable integration tests.
     license: MIT
@@ -2518,8 +2539,9 @@ entries:
       - https://www.nuget.org/packages/Testcontainers
       - https://github.com/testcontainers/testcontainers-dotnet
       - https://dotnet.testcontainers.org/
-    adrs: ["0018"]
-    notes: Spike 1.d (2026-10-06) started a digest-pinned SQL Server 2022 image in about 6 seconds from a shared xUnit v3 assembly fixture on Windows x86-64. Pin images by digest and always set a generated password, because the SQL Server builder's default password is a well-known constant and its parameterless constructor is obsolete. The builder sets ACCEPT_EULA to Y on the user's behalf. The reaper container (Ryuk) runs privileged with Docker socket access by default, and its default image is already digest-pinned, so list it in the threat model when CI first uses Testcontainers.
+    adrs: ["0018", "0034"]
+    notes: Spike 1.d (2026-10-06) started a digest-pinned SQL Server 2022 image in about 6 seconds from a shared xUnit v3 assembly fixture on Windows x86-64, and WP1.8 runs the same pattern for the persistence suites on Windows and in the Linux SDK image (checked 2026-11-02). Pin images by digest and always set a generated password, because the SQL Server builder's default password is a well-known constant and its parameterless constructor is obsolete. The builder sets ACCEPT_EULA to Y on the user's behalf. The reaper container (Ryuk) is pinned by digest in the fixture, and it runs without the privileged flag on Docker Desktop. It mounts the Docker socket, and so does the linux-tests service of tools/lint/compose.yaml, which is a reviewed exception for a developer machine (ADR-0034, docs/security/threat-model.md). Version 4.16.0 exists (checked 2026-11-01), and the repository keeps the 4.15.0 that the spike ran until Dependabot proposes the update.
+    detect: ["nuget:Testcontainers.MsSql"]
   - id: verify
     name: Verify
     category: test-tool

@@ -20,8 +20,8 @@ A requirement is in scope once every work package that delivers it is completed,
 | Requirements | 123 |
 | In scope and covered | 20 |
 | In scope and missing proof | 0 |
-| Covered before they are due | 35 |
-| Not yet due | 68 |
+| Covered before they are due | 39 |
+| Not yet due | 64 |
 | Deferred or withdrawn | 0 |
 
 ## AI: AI enablement
@@ -64,7 +64,7 @@ A requirement is in scope once every work package that delivers it is completed,
 | --- | --- | --- | --- | --- | --- |
 | `REQ-ARC-001` | Layer references stay within Clean Architecture | WP1.1, WP1.6, WP1.7, WP1.8, WP1.10 | Covered | [ArchitectureRulesTests.cs](../../tests/Catalog.Architecture.Tests/ArchitectureRulesTests.cs), [AssemblyReferenceTests.cs](../../tests/Catalog.Architecture.Tests/AssemblyReferenceTests.cs), [ReferenceRulesTests.cs](../../tests/Catalog.Architecture.Tests/ReferenceRulesTests.cs) | None |
 | `REQ-ARC-002` | Api is the only composition root | WP1.1, WP1.10 | Covered | [ArchitectureRulesTests.cs](../../tests/Catalog.Architecture.Tests/ArchitectureRulesTests.cs) | None |
-| `REQ-ARC-003` | Application ports are interface-segregated | WP1.7, WP1.8, WP1.9 | Covered | [IdGeneratorTests.cs](../../tests/Catalog.Application.Tests/IdGeneratorTests.cs), [ArchitectureRulesTests.cs](../../tests/Catalog.Architecture.Tests/ArchitectureRulesTests.cs) | None |
+| `REQ-ARC-003` | Application ports are interface-segregated | WP1.7, WP1.8, WP1.9 | Covered | [IdGeneratorTests.cs](../../tests/Catalog.Application.Tests/IdGeneratorTests.cs), [ArchitectureRulesTests.cs](../../tests/Catalog.Architecture.Tests/ArchitectureRulesTests.cs), [RepositoryTests.cs](../../tests/Catalog.Infrastructure.Tests/RepositoryTests.cs) | None |
 | `REQ-ARC-004` | Endpoints depend on contracts and handler interfaces only | WP1.7, WP1.10 | Not yet due | None | None |
 | `REQ-ARC-005` | Handlers are sealed and state is not global | WP1.1, WP1.7 | Covered | [ArchitectureRulesTests.cs](../../tests/Catalog.Architecture.Tests/ArchitectureRulesTests.cs) | None |
 
@@ -101,12 +101,12 @@ A requirement is in scope once every work package that delivers it is completed,
 
 | Requirement | Title | Delivered by | State | Tests | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| `REQ-DATA-001` | The catalog schema uses concurrency tokens and keyset indexes | WP1.8 | Not yet due | None | None |
-| `REQ-DATA-002` | Each unit of work commits data and outbox rows together | WP1.8 | Not yet due | None | None |
+| `REQ-DATA-001` | The catalog schema uses concurrency tokens and keyset indexes | WP1.8 | Covered | [AggregateRoundTripTests.cs](../../tests/Catalog.Infrastructure.Tests/AggregateRoundTripTests.cs), [ReadStoreTests.cs](../../tests/Catalog.Infrastructure.Tests/ReadStoreTests.cs), [RepositoryTests.cs](../../tests/Catalog.Infrastructure.Tests/RepositoryTests.cs), and 2 more | None |
+| `REQ-DATA-002` | Each unit of work commits data and outbox rows together | WP1.8 | Covered | [UnitOfWorkTests.cs](../../tests/Catalog.Infrastructure.Tests/UnitOfWorkTests.cs) | None |
 | `REQ-DATA-003` | The outbox delivers at least once and records receipts | WP1.8, WP4.4 | Not yet due | None | None |
 | `REQ-DATA-004` | Idempotency records persist request fingerprints for 24 hours | WP1.8, WP1.10 | Not yet due | None | None |
 | `REQ-DATA-005` | Database connections rotate credentials without disabling pooling | WP1.0, WP1.8, WP3.3, WP3.4 | Not yet due | None | None |
-| `REQ-DATA-006` | Only the migrator identity applies schema changes | WP1.8, WP3.8, WP4.4 | Not yet due | None | None |
+| `REQ-DATA-006` | Only the migrator identity applies schema changes | WP1.8, WP3.8, WP4.4 | Covered | [MigrationPolicyTests.cs](../../tests/Catalog.Architecture.Tests/MigrationPolicyTests.cs), [MigrationTests.cs](../../tests/Catalog.Infrastructure.Tests/MigrationTests.cs) | None |
 | `REQ-DATA-007` | Seed data is created through the API and never by migrations | WP1.8, WP1.13 | Not yet due | None | None |
 | `REQ-DATA-008` | Destructive schema changes use expand and contract | WP1.12, WP4.4, WP4.6 | Not yet due | None | None |
 
@@ -129,8 +129,8 @@ A requirement is in scope once every work package that delivers it is completed,
 | `REQ-DOM-001` | Catalog aggregates use UUIDv7 identifiers | WP1.6, WP1.7 | Covered | [IdGeneratorTests.cs](../../tests/Catalog.Application.Tests/IdGeneratorTests.cs), [DomainAgreementTests.cs](../../tests/Catalog.Contract.Tests/DomainAgreementTests.cs), [IdentifierTests.cs](../../tests/Catalog.Domain.Tests/IdentifierTests.cs) | None |
 | `REQ-DOM-002` | Catalog value objects enforce normalization and bounds | WP1.6 | Covered | [DomainAgreementTests.cs](../../tests/Catalog.Contract.Tests/DomainAgreementTests.cs), [DescriptionAndSkuTests.cs](../../tests/Catalog.Domain.Tests/DescriptionAndSkuTests.cs), [DomainResultTests.cs](../../tests/Catalog.Domain.Tests/DomainResultTests.cs), and 3 more | None |
 | `REQ-DOM-003` | Discontinued products reject mutable changes | WP1.6, WP1.10 | Covered | [ProductUseCaseTests.cs](../../tests/Catalog.Application.Tests/ProductUseCaseTests.cs), [DomainAgreementTests.cs](../../tests/Catalog.Contract.Tests/DomainAgreementTests.cs), [ProductLifecyclePropertyTests.cs](../../tests/Catalog.Domain.Tests/ProductLifecyclePropertyTests.cs), and 1 more | None |
-| `REQ-DOM-004` | Domain events are versioned and time-stamped | WP1.6, WP1.8 | Covered | [DomainAgreementTests.cs](../../tests/Catalog.Contract.Tests/DomainAgreementTests.cs), [AggregateRootTests.cs](../../tests/Catalog.Domain.Tests/AggregateRootTests.cs), [CategoryTests.cs](../../tests/Catalog.Domain.Tests/CategoryTests.cs), and 2 more | docs: [domain-model.md](../reference/domain-model.md) |
-| `REQ-DOM-005` | Category assignment requires an active category | WP1.6, WP1.8 | Covered | [CategoryTests.cs](../../tests/Catalog.Domain.Tests/CategoryTests.cs), [ProductTests.cs](../../tests/Catalog.Domain.Tests/ProductTests.cs) | None |
+| `REQ-DOM-004` | Domain events are versioned and time-stamped | WP1.6, WP1.8 | Covered | [DomainAgreementTests.cs](../../tests/Catalog.Contract.Tests/DomainAgreementTests.cs), [AggregateRootTests.cs](../../tests/Catalog.Domain.Tests/AggregateRootTests.cs), [CategoryTests.cs](../../tests/Catalog.Domain.Tests/CategoryTests.cs), and 3 more | docs: [domain-model.md](../reference/domain-model.md) |
+| `REQ-DOM-005` | Category assignment requires an active category | WP1.6, WP1.8 | Covered | [CategoryTests.cs](../../tests/Catalog.Domain.Tests/CategoryTests.cs), [ProductTests.cs](../../tests/Catalog.Domain.Tests/ProductTests.cs), [AggregateRoundTripTests.cs](../../tests/Catalog.Infrastructure.Tests/AggregateRoundTripTests.cs) | None |
 
 ## DX: Developer experience and portability
 
@@ -220,10 +220,10 @@ A requirement is in scope once every work package that delivers it is completed,
 
 | Requirement | Title | Delivered by | State | Tests | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| `REQ-QUA-001` | Integration suites use real SQL Server Valkey and Keycloak containers | WP1.8, WP1.10, WP4.2 | Not yet due | None | None |
+| `REQ-QUA-001` | Integration suites use real SQL Server Valkey and Keycloak containers | WP1.8, WP1.10, WP4.2 | Covered | [ContainerFixtureTests.cs](../../tests/Catalog.Infrastructure.Tests/ContainerFixtureTests.cs) | None |
 | `REQ-QUA-002` | The suite matrix blocks changes at the right depth | WP1.1, WP1.8, WP1.10, WP2.2, WP3.1, WP3.6, WP4.2, WP4.8 | Covered | [TestSummaryTests.cs](../../tests/Governance.Auditor.Tests/TestSummaryTests.cs) | None |
 | `REQ-QUA-003` | Traceability fails when an in-scope requirement lacks proof | WP0.2, WP1.2, WP1.13, WP4.8 | Covered | [RepositorySelfCheckTests.cs](../../tests/Governance.Auditor.Tests/RepositorySelfCheckTests.cs), [TraceCommandTests.cs](../../tests/Governance.Auditor.Tests/TraceCommandTests.cs), [TraceTests.cs](../../tests/Governance.Auditor.Tests/TraceTests.cs) | None |
-| `REQ-QUA-004` | Tests remain deterministic across hosts and reruns | WP1.1, WP1.6, WP1.8, WP4.8 | Covered | [TestProjectConventionTests.cs](../../tests/Catalog.Architecture.Tests/TestProjectConventionTests.cs), [DomainEventTests.cs](../../tests/Catalog.Domain.Tests/DomainEventTests.cs), [IdentifierTests.cs](../../tests/Catalog.Domain.Tests/IdentifierTests.cs) | None |
+| `REQ-QUA-004` | Tests remain deterministic across hosts and reruns | WP1.1, WP1.6, WP1.8, WP4.8 | Covered | [TestProjectConventionTests.cs](../../tests/Catalog.Architecture.Tests/TestProjectConventionTests.cs), [DomainEventTests.cs](../../tests/Catalog.Domain.Tests/DomainEventTests.cs), [IdentifierTests.cs](../../tests/Catalog.Domain.Tests/IdentifierTests.cs), and 1 more | None |
 | `REQ-QUA-005` | Coverage stays above the initial thresholds | WP1.1, WP1.6, WP1.7 | Covered | None | policy: [coverage-thresholds.json](../../governance/policies/coverage-thresholds.json) |
 | `REQ-QUA-006` | Mutation testing reports and later gates domain test strength | WP1.0, WP1.6, WP1.7, WP4.8 | Covered | None | manual: [2026-10-12-domain-mutation-baseline.md](evidence/2026-10-12-domain-mutation-baseline.md), manual: [2026-11-01-application-mutation-baseline.md](evidence/2026-11-01-application-mutation-baseline.md) |
 | `REQ-QUA-007` | Flaky tests are quarantined and CI meets feedback budgets | WP1.1, WP2.2, WP4.8 | Not yet due | None | None |
