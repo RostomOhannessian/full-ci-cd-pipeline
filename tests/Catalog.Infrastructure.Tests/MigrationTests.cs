@@ -25,7 +25,7 @@ public sealed partial class MigrationTests(SqlServerFixture server) : IAsyncLife
     /// <inheritdoc />
     public async ValueTask DisposeAsync()
     {
-        SqlConnection.ClearAllPools();
+        // Dropping a database ends the sessions that use it. A global pool clear is avoided, because it would close the idle sessions that the credential tests of other classes count at the same time.
         foreach (var database in _databases)
         {
             await server.DropDatabaseAsync(database);
@@ -60,7 +60,7 @@ public sealed partial class MigrationTests(SqlServerFixture server) : IAsyncLife
             await context.Database.MigrateAsync(TestContext.Current.CancellationToken);
         }
 
-        const string columns = "SELECT TABLE_NAME, COLUMN_NAME, DATA_TYPE, IS_NULLABLE, CHARACTER_MAXIMUM_LENGTH, NUMERIC_PRECISION, NUMERIC_SCALE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = 'catalog' ORDER BY TABLE_NAME, COLUMN_NAME";
+        const string columns = "SELECT TABLE_NAME, COLUMN_NAME, DATA_TYPE, IS_NULLABLE, CHARACTER_MAXIMUM_LENGTH, NUMERIC_PRECISION, NUMERIC_SCALE, COLLATION_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = 'catalog' ORDER BY TABLE_NAME, COLUMN_NAME";
         const string indexes = "SELECT OBJECT_NAME(object_id), name, is_unique, filter_definition FROM sys.indexes WHERE object_id IN (SELECT object_id FROM sys.tables WHERE schema_id = SCHEMA_ID('catalog')) AND name IS NOT NULL ORDER BY 1, 2";
 
         (await SqlProbe.RowsAsync(scripted, columns)).Select(row => string.Join('|', row)).Should().Equal((await SqlProbe.RowsAsync(migrated, columns)).Select(row => string.Join('|', row)));
@@ -68,6 +68,32 @@ public sealed partial class MigrationTests(SqlServerFixture server) : IAsyncLife
 
         await using var after = Context(scripted);
         (await after.Database.GetPendingMigrationsAsync(TestContext.Current.CancellationToken)).Should().BeEmpty();
+    }
+
+    [Fact]
+    [Trait("Requirement", "REQ-DATA-006")]
+    public async Task The_collation_migration_keeps_the_rows_and_the_primary_key_of_a_database_that_ran_the_first_migration()
+    {
+        var (_, connection) = await NewDatabaseAsync("collation");
+        await using var context = Context(connection);
+        var migrator = context.GetService<IMigrator>();
+        var first = context.Database.GetMigrations().First();
+        await migrator.MigrateAsync(first, TestContext.Current.CancellationToken);
+        (await SqlProbe.ScalarAsync<string>(connection, "SELECT COLLATION_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'IdempotencyRecords' AND COLUMN_NAME = 'Key'")).Should().NotBe("Latin1_General_100_BIN2");
+        var fingerprint = new string('a', 64);
+        await SqlServerFixture.ExecuteAsync(
+            connection,
+            $"""
+            INSERT INTO catalog.IdempotencyRecords (CallerId, [Key], Fingerprint, [Status], Response, CreatedAt, ExpiresAt)
+            VALUES ('caller-a', 'key-1', '{fingerprint}', 'Completed', 'first-response', SYSDATETIMEOFFSET(), DATEADD(DAY, 1, SYSDATETIMEOFFSET()))
+            """);
+
+        await context.Database.MigrateAsync(TestContext.Current.CancellationToken);
+
+        (await SqlProbe.ScalarAsync<int>(connection, "SELECT COUNT(*) FROM catalog.IdempotencyRecords WHERE CallerId = 'caller-a' AND [Key] = 'key-1'")).Should().Be(1);
+        (await SqlProbe.ScalarAsync<int>(connection, "SELECT COUNT(*) FROM catalog.IdempotencyRecords WHERE CallerId = 'CALLER-A' AND [Key] = 'KEY-1'")).Should().Be(0);
+        (await SqlProbe.ScalarAsync<string>(connection, "SELECT COLLATION_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'IdempotencyRecords' AND COLUMN_NAME = 'CallerId'")).Should().Be("Latin1_General_100_BIN2");
+        (await SqlProbe.ScalarAsync<int>(connection, "SELECT COUNT(*) FROM sys.key_constraints WHERE name = 'PK_IdempotencyRecords' AND type = 'PK'")).Should().Be(1);
     }
 
     [Fact]
@@ -87,10 +113,19 @@ public sealed partial class MigrationTests(SqlServerFixture server) : IAsyncLife
         var migrator = await CreateLoginAsync(name, admin, "migrator", "db_ddladmin", "db_datareader", "db_datawriter");
         var application = await CreateLoginAsync(name, admin, "application", "db_datareader", "db_datawriter");
 
-        // The application identity cannot create the schema, so it cannot migrate.
+        // The attempt of the application identity ends with an error, but its pooled session keeps the application lock that EF Core takes during a migration (found 2026-11-02: the migrator below waited 30 seconds
+        // for it, and the test had passed only because the other classes cleared every pool when they ended). The session of the application identity is ended here, so the migrator starts without a waiting lock.
         await using (var denied = Context(application))
         {
             await denied.Invoking(context => context.Database.MigrateAsync(TestContext.Current.CancellationToken)).Should().ThrowAsync<SqlException>();
+        }
+
+        await SqlServerFixture.ExecuteAsync(
+            server.ServerConnectionString,
+            $"DECLARE @kill nvarchar(max) = N''; SELECT @kill += N'KILL ' + CAST(session_id AS nvarchar(10)) + N';' FROM sys.dm_exec_sessions WHERE login_name = N'{name}_application'; EXEC (@kill);");
+        using (var connection = new SqlConnection(application))
+        {
+            SqlConnection.ClearPool(connection);
         }
 
         (await SqlProbe.ScalarAsync<int>(admin, "SELECT COUNT(*) FROM sys.schemas WHERE name = 'catalog'")).Should().Be(0);

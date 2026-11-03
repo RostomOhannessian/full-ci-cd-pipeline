@@ -68,6 +68,9 @@ public sealed class IdempotencyRecordConfiguration : IEntityTypeConfiguration<Id
     /// <summary>The length of a fingerprint, which is the hexadecimal text of a SHA-256 hash.</summary>
     public const int FingerprintLength = 64;
 
+    /// <summary>The collation of the caller and the key: a binary collation, so the comparison is exact and case-sensitive.</summary>
+    public const string OpaqueTextCollation = "Latin1_General_100_BIN2";
+
     /// <inheritdoc />
     public void Configure(EntityTypeBuilder<IdempotencyRecord> builder)
     {
@@ -75,10 +78,11 @@ public sealed class IdempotencyRecordConfiguration : IEntityTypeConfiguration<Id
 
         builder.ToTable("IdempotencyRecords");
 
-        // A key belongs to one caller, so the pair is the identity. The key is printable ASCII of at most 128 characters (ADR-0028).
+        // A key belongs to one caller, so the pair is the identity. The key is printable ASCII of at most 128 characters (ADR-0028). Both parts are opaque and case-sensitive, so a binary collation compares them,
+        // because the default collation of SQL Server would treat the keys "Abc" and "abc" as one key and replay the result of the first for the second.
         builder.HasKey(record => new { record.CallerId, record.Key });
-        builder.Property(record => record.CallerId).HasMaxLength(CallerIdLength).IsRequired();
-        builder.Property(record => record.Key).HasMaxLength(Application.Idempotency.IdempotencyKey.MaxLength).IsUnicode(false).IsRequired();
+        builder.Property(record => record.CallerId).HasMaxLength(CallerIdLength).UseCollation(OpaqueTextCollation).IsRequired();
+        builder.Property(record => record.Key).HasMaxLength(Application.Idempotency.IdempotencyKey.MaxLength).IsUnicode(false).UseCollation(OpaqueTextCollation).IsRequired();
         builder.Property(record => record.Fingerprint).HasMaxLength(FingerprintLength).IsFixedLength().IsUnicode(false).IsRequired();
         builder.Property(record => record.Status).HasConversion<string>().HasMaxLength(StatusColumn.Length).IsUnicode(false).IsRequired();
         builder.Property(record => record.Response).IsRequired(false);

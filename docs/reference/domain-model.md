@@ -99,7 +99,7 @@ The model names a field the way the contract does, and `Within("price")` nests i
 ## Events
 
 Each accepted change records an event on the aggregate, oldest first, and the persistence layer reads and clears them when it saves. Every event carries `EventType`, which is the name of its type, `SchemaVersion`, which is 1, and `OccurredAt`, which comes from the `TimeProvider` that the operation received.
-The outbox (WP1.8, planned) stores them as JSON, so the shape of an event is a contract with the rows that are already stored. A test holds a golden list of the properties of each event, and it fails when one changes, which is the moment to raise `SchemaVersion` and to write the upgrade for the old payloads.
+The outbox of [the persistence layer](persistence.md) (WP1.8) stores them as JSON that a function writes by hand, so the shape of an event is a contract with the rows that are already stored. A test holds a golden list of the properties of each event, and a snapshot test holds the JSON of each one. Both fail when a shape changes, which is the moment to raise `SchemaVersion` and to write the upgrade for the old payloads.
 
 | Event | Recorded by | Properties |
 | --- | --- | --- |
@@ -126,5 +126,5 @@ Each test names the requirement that it proves, and `governance trace` reads the
 ## What is not here yet
 
 - The `IIdGenerator` port and its default implementation, `GuidV7IdGenerator`, are in [the application layer](application-layer.md) (WP1.7). The use cases arrive in the third pull request of WP1.7 (planned).
-- The mapping to the database and the row version are in [the persistence page](persistence.md) (WP1.8). The model changed three constructors and gained `IHasDomainEvents` so EF Core can load it, and no rule changed ([ADR-0029](../adr/0029-domain-model-and-mutation-baseline.md), the update of 2026-11-02). The outbox and the payload snapshots of the events arrive in the next pull request of WP1.8 (planned).
+- The mapping to the database and the row version are in [the persistence page](persistence.md) (WP1.8). The model changed three constructors and gained `IHasDomainEvents` so EF Core can load it, and no rule changed ([ADR-0029](../adr/0029-domain-model-and-mutation-baseline.md), the update of 2026-11-02). The outbox and the payload snapshots of the events are on the same page ([ADR-0035](../adr/0035-outbox-processor-design.md)).
 - The endpoints and the served contract arrive in WP1.10 (planned).

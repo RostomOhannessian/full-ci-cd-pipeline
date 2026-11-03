@@ -323,3 +323,22 @@ The driver also depends on `Microsoft.Data.SqlClient.SNI.runtime`, a native Wind
 - [GHSA-846f-f764-76mx](https://github.com/advisories/GHSA-846f-f764-76mx) (checked 2026-11-02)
 - [GHSA-2fmv-rv2c-59x7](https://github.com/advisories/GHSA-2fmv-rv2c-59x7) (checked 2026-11-02)
 - [System.Security.Cryptography.Pkcs 10.0.14 on NuGet](https://www.nuget.org/packages/System.Security.Cryptography.Pkcs/10.0.14) (checked 2026-11-02)
+
+## Microsoft.Extensions.Hosting.Abstractions
+
+**Purpose.** The abstractions of the .NET generic host: `IHostedService` and the `BackgroundService` base class. The outbox processor of the persistence layer runs as a `BackgroundService`, so the Infrastructure project can ship it without a reference to the host that starts it.
+
+**Rationale.** The package is the smallest one that holds `BackgroundService`, it is MIT licensed, and the allow-list of [ADR-0004](../../adr/0004-licensing-and-dependency-license-policy.md) accepts it. Version 10.0.14 matches EF Core 10.0.14 and the runtime of the solution (checked 2026-11-02, [ADR-0035](../../adr/0035-outbox-processor-design.md)). The Api project, which is the composition root, will reference the full host when WP1.10 creates it.
+
+**Setup.** The project names the package, and the central file holds the version.
+
+```xml
+<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
+```
+
+**Used by.** `src/Catalog.Infrastructure`, in `Outbox/OutboxBackgroundService.cs`.
+
+**Sources.**
+
+- [Microsoft.Extensions.Hosting.Abstractions 10.0.14 on NuGet](https://www.nuget.org/packages/Microsoft.Extensions.Hosting.Abstractions/10.0.14) (checked 2026-11-02)
+- [Background tasks with hosted services](https://learn.microsoft.com/aspnet/core/fundamentals/host/hosted-services) (checked 2026-11-02)

@@ -20,8 +20,8 @@ A requirement is in scope once every work package that delivers it is completed,
 | Requirements | 123 |
 | In scope and covered | 20 |
 | In scope and missing proof | 0 |
-| Covered before they are due | 39 |
-| Not yet due | 64 |
+| Covered before they are due | 41 |
+| Not yet due | 62 |
 | Deferred or withdrawn | 0 |
 
 ## AI: AI enablement
@@ -102,9 +102,9 @@ A requirement is in scope once every work package that delivers it is completed,
 | Requirement | Title | Delivered by | State | Tests | Evidence |
 | --- | --- | --- | --- | --- | --- |
 | `REQ-DATA-001` | The catalog schema uses concurrency tokens and keyset indexes | WP1.8 | Covered | [AggregateRoundTripTests.cs](../../tests/Catalog.Infrastructure.Tests/AggregateRoundTripTests.cs), [ReadStoreTests.cs](../../tests/Catalog.Infrastructure.Tests/ReadStoreTests.cs), [RepositoryTests.cs](../../tests/Catalog.Infrastructure.Tests/RepositoryTests.cs), and 2 more | None |
-| `REQ-DATA-002` | Each unit of work commits data and outbox rows together | WP1.8 | Covered | [UnitOfWorkTests.cs](../../tests/Catalog.Infrastructure.Tests/UnitOfWorkTests.cs) | None |
-| `REQ-DATA-003` | The outbox delivers at least once and records receipts | WP1.8, WP4.4 | Not yet due | None | None |
-| `REQ-DATA-004` | Idempotency records persist request fingerprints for 24 hours | WP1.8, WP1.10 | Not yet due | None | None |
+| `REQ-DATA-002` | Each unit of work commits data and outbox rows together | WP1.8 | Covered | [IdempotencyStoreTests.cs](../../tests/Catalog.Infrastructure.Tests/IdempotencyStoreTests.cs), [OutboxInterceptorTests.cs](../../tests/Catalog.Infrastructure.Tests/OutboxInterceptorTests.cs), [OutboxPayloadTests.cs](../../tests/Catalog.Infrastructure.Tests/OutboxPayloadTests.cs), and 2 more | manual: [2026-11-02-outbox-idempotency-run.md](evidence/2026-11-02-outbox-idempotency-run.md) |
+| `REQ-DATA-003` | The outbox delivers at least once and records receipts | WP1.8, WP4.4 | Covered | [OutboxBackgroundServiceTests.cs](../../tests/Catalog.Infrastructure.Tests/OutboxBackgroundServiceTests.cs), [OutboxBackoffTests.cs](../../tests/Catalog.Infrastructure.Tests/OutboxBackoffTests.cs), [OutboxProcessorTests.cs](../../tests/Catalog.Infrastructure.Tests/OutboxProcessorTests.cs), and 2 more | docs: [0035-outbox-processor-design.md](../adr/0035-outbox-processor-design.md), manual: [2026-11-02-outbox-idempotency-run.md](evidence/2026-11-02-outbox-idempotency-run.md) |
+| `REQ-DATA-004` | Idempotency records persist request fingerprints for 24 hours | WP1.8, WP1.10 | Covered | [IdempotencyStoreTests.cs](../../tests/Catalog.Infrastructure.Tests/IdempotencyStoreTests.cs), [PersistenceOptionsTests.cs](../../tests/Catalog.Infrastructure.Tests/PersistenceOptionsTests.cs) | docs: [0035-outbox-processor-design.md](../adr/0035-outbox-processor-design.md), manual: [2026-11-02-outbox-idempotency-run.md](evidence/2026-11-02-outbox-idempotency-run.md) |
 | `REQ-DATA-005` | Database connections rotate credentials without disabling pooling | WP1.0, WP1.8, WP3.3, WP3.4 | Not yet due | None | None |
 | `REQ-DATA-006` | Only the migrator identity applies schema changes | WP1.8, WP3.8, WP4.4 | Covered | [MigrationPolicyTests.cs](../../tests/Catalog.Architecture.Tests/MigrationPolicyTests.cs), [MigrationTests.cs](../../tests/Catalog.Infrastructure.Tests/MigrationTests.cs) | manual: [database-migration.md](../runbooks/database-migration.md) |
 | `REQ-DATA-007` | Seed data is created through the API and never by migrations | WP1.8, WP1.13 | Not yet due | None | None |
@@ -129,7 +129,7 @@ A requirement is in scope once every work package that delivers it is completed,
 | `REQ-DOM-001` | Catalog aggregates use UUIDv7 identifiers | WP1.6, WP1.7 | Covered | [IdGeneratorTests.cs](../../tests/Catalog.Application.Tests/IdGeneratorTests.cs), [DomainAgreementTests.cs](../../tests/Catalog.Contract.Tests/DomainAgreementTests.cs), [IdentifierTests.cs](../../tests/Catalog.Domain.Tests/IdentifierTests.cs) | None |
 | `REQ-DOM-002` | Catalog value objects enforce normalization and bounds | WP1.6 | Covered | [DomainAgreementTests.cs](../../tests/Catalog.Contract.Tests/DomainAgreementTests.cs), [DescriptionAndSkuTests.cs](../../tests/Catalog.Domain.Tests/DescriptionAndSkuTests.cs), [DomainResultTests.cs](../../tests/Catalog.Domain.Tests/DomainResultTests.cs), and 3 more | None |
 | `REQ-DOM-003` | Discontinued products reject mutable changes | WP1.6, WP1.10 | Covered | [ProductUseCaseTests.cs](../../tests/Catalog.Application.Tests/ProductUseCaseTests.cs), [DomainAgreementTests.cs](../../tests/Catalog.Contract.Tests/DomainAgreementTests.cs), [ProductLifecyclePropertyTests.cs](../../tests/Catalog.Domain.Tests/ProductLifecyclePropertyTests.cs), and 1 more | None |
-| `REQ-DOM-004` | Domain events are versioned and time-stamped | WP1.6, WP1.8 | Covered | [DomainAgreementTests.cs](../../tests/Catalog.Contract.Tests/DomainAgreementTests.cs), [AggregateRootTests.cs](../../tests/Catalog.Domain.Tests/AggregateRootTests.cs), [CategoryTests.cs](../../tests/Catalog.Domain.Tests/CategoryTests.cs), and 3 more | docs: [domain-model.md](../reference/domain-model.md) |
+| `REQ-DOM-004` | Domain events are versioned and time-stamped | WP1.6, WP1.8 | Covered | [DomainAgreementTests.cs](../../tests/Catalog.Contract.Tests/DomainAgreementTests.cs), [AggregateRootTests.cs](../../tests/Catalog.Domain.Tests/AggregateRootTests.cs), [CategoryTests.cs](../../tests/Catalog.Domain.Tests/CategoryTests.cs), and 5 more | docs: [domain-model.md](../reference/domain-model.md), manual: [2026-11-02-outbox-idempotency-run.md](evidence/2026-11-02-outbox-idempotency-run.md) |
 | `REQ-DOM-005` | Category assignment requires an active category | WP1.6, WP1.8 | Covered | [CategoryTests.cs](../../tests/Catalog.Domain.Tests/CategoryTests.cs), [ProductTests.cs](../../tests/Catalog.Domain.Tests/ProductTests.cs), [AggregateRoundTripTests.cs](../../tests/Catalog.Infrastructure.Tests/AggregateRoundTripTests.cs) | None |
 
 ## DX: Developer experience and portability

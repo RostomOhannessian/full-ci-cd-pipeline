@@ -10,7 +10,7 @@ owner: "@RostomOhannessian"
 
 # Persistence
 
-The persistence layer is the project [`src/Catalog.Infrastructure`](../../src/Catalog.Infrastructure/Catalog.Infrastructure.csproj). It implements the ports that the application layer defines, on SQL Server through EF Core ([ADR-0033](../adr/0033-ef-core-mapping-read-model-and-migrations.md)). It references the application layer only, and the Domain stays free of every attribute and framework type. This page describes what exists today. The outbox interceptor and processor, the idempotency store, and the credential sources are planned in the next pull requests of WP1.8, and the sections that describe them say so.
+The persistence layer is the project [`src/Catalog.Infrastructure`](../../src/Catalog.Infrastructure/Catalog.Infrastructure.csproj). It implements the ports that the application layer defines, on SQL Server through EF Core ([ADR-0033](../adr/0033-ef-core-mapping-read-model-and-migrations.md)). It references the application layer only, and the Domain stays free of every attribute and framework type. This page describes what exists today. The credential sources are planned in a later pull request of WP1.8, and the section that would describe them is not here yet.
 
 ## The schema
 
@@ -20,9 +20,9 @@ Every table is in the schema `catalog`, and so is the history of the migrations.
 | --- | --- | --- | --- |
 | `Categories` | The category aggregate | `Id` (a UUID version 7) | `RowVersion` (`rowversion`) |
 | `Products` | The product aggregate, with the price as two columns | `Id` (a UUID version 7) | `RowVersion` (`rowversion`) |
-| `OutboxMessages` | One domain event that waits for delivery, with its lease, attempts, and state (planned logic, the table exists) | `Id` | None |
+| `OutboxMessages` | One domain event that waits for delivery, with its lease, attempts, and state | `Id` | None |
 | `OutboxReceipts` | The proof that a handler took a message | `MessageId` and `Handler` | None |
-| `IdempotencyRecords` | One request with an idempotency key, for 24 hours (planned logic, the table exists) | `CallerId` and `Key` | None |
+| `IdempotencyRecords` | One request with an idempotency key, for 24 hours | `CallerId` and `Key`, both compared exactly (binary collation) | None |
 
 ### Columns of the aggregates
 
@@ -70,12 +70,48 @@ SQL Server orders a `uniqueidentifier` by its own rule, the last six bytes first
 | `ICategoryRepository` | `CategoryRepository` | The same for categories |
 | `IUnitOfWork` | `EfUnitOfWork` | Runs the work in one transaction, saves, runs the hooks, and commits. A stale write is `PreconditionFailed`, a taken SKU is `Conflict(SkuAlreadyExists)`, and every other failure rolls back and surfaces as an exception |
 | `IProductReadStore`, `ICategoryReadStore` | `ProductReadStore`, `CategoryReadStore` | Read a view, or a keyset page, from the read model. A cursor that a caller changed by hand returns no rows |
-| `IIdempotencyStore` | Planned in the second pull request of WP1.8 | Reserves a key, records the first result in the transaction of the command, and releases a failed reservation |
-| `IOutboxDispatcher` | Planned in the second pull request of WP1.8 | Wakes the processor of the node after a commit |
+| `IIdempotencyStore` | `IdempotencyStore` | Reserves a key, records the first result in the transaction of the command, and releases a failed reservation ([ADR-0036](../adr/0036-idempotency-store.md)) |
+| `IOutboxDispatcher` | `OutboxDispatcher` | Wakes the processor of the node after a commit ([ADR-0035](../adr/0035-outbox-processor-design.md)) |
+| `IOutboxMessageHandler` | Implemented by the handlers of the follow-on work, which arrive with WP1.9 | Takes one message of the outbox, and is idempotent |
+
+## The outbox
+
+A `SaveChangesInterceptor` (`OutboxInterceptor`) turns each recorded domain event of the tracked aggregates into a row of `OutboxMessages` in the same transaction as the change, and clears the events after the save. The payload is hand-written JSON that starts with `eventType`, `schemaVersion`, and `occurredAt`, and a snapshot test holds each of the eight shapes. A rollback leaves no row, and a failed save keeps the events on the aggregate.
+
+`OutboxProcessor` delivers the rows at least once, and `OutboxBackgroundService` runs it in a loop ([ADR-0035](../adr/0035-outbox-processor-design.md)):
+
+| Column | Meaning |
+| --- | --- |
+| `Status` | `Pending`, `Done`, or `DeadLetter` |
+| `Attempts` | The number of deliveries that were started, counted when the message is leased |
+| `NextAttemptAt` | When the message is due. A failure moves it by an exponential backoff with jitter |
+| `LeasedUntil`, `LeaseId` | The lease that one processor holds. Only the holder of the `LeaseId` can finish the message |
+| `CompletedAt` | When every handler took the message |
+| `LastError` | The name of the type of the last fault, never its message |
+
+- **Lease.** One statement takes the due rows with `UPDLOCK, READPAST, ROWLOCK`, so two processors take different rows and neither waits. A lease that ends makes the row due again.
+- **Receipts.** After a handler returns, a row `(MessageId, Handler)` records it, and a retry skips the handlers that have a receipt.
+- **Dead letter.** After `MaxAttempts` (8) failures the message becomes `DeadLetter`, the counter `catalog.outbox.dead_lettered` on the meter `Catalog.Outbox` goes up, and an error is logged. The alert that watches the counter is planned in WP1.11.
+- **Wake-up.** The dispatcher wakes the loop after a commit, and the loop polls every 5 seconds in any case.
+- **Cleanup.** Finished messages older than 7 days and expired idempotency records are deleted in batches. A dead-letter message stays.
+
+The settings are in `OutboxOptions` (batch size, lease, attempts, backoff, jitter, poll, retention), and the registration validates them at startup.
+
+## The idempotency store
+
+`IdempotencyStore` implements the three operations of the port ([ADR-0036](../adr/0036-idempotency-store.md)):
+
+| Operation | Runs | What it does |
+| --- | --- | --- |
+| `BeginAsync` | Outside the transaction | Inserts a reservation, or reads the record that exists, and answers `Reserved`, `Replay` (with the first result), `InProgress`, or `Reused` (another payload). It takes over a reservation older than 2 minutes |
+| `CompleteAsync` | In the transaction of the command, through `IUnitOfWork.BeforeCommit` | Sets the record to `Completed` with the response, and throws, rolling the effect back, when the reservation is gone |
+| `ReleaseAsync` | Outside the transaction | Deletes the reservation of a request that failed |
+
+A record lives 24 hours. The key and the caller are compared exactly, so `Abc` and `abc` are two keys.
 
 ## Migrations, the bundle, and the idempotent script
 
-The migration `InitialCreate` and the snapshot of the model are in `src/Catalog.Infrastructure/Persistence/Migrations`. The `dotnet-ef` tool writes them, and CODEOWNERS asks for the review of the owner on each change, so a migration is committed apart from the code that needs it. Migrations are forward-only: EF Core writes a `Down` method, and no deployment calls it, because an application rollback never rolls the schema back (plan section 8.10).
+The migrations `InitialCreate` and `CaseSensitiveIdempotencyKeys` and the snapshot of the model are in `src/Catalog.Infrastructure/Persistence/Migrations`. The `dotnet-ef` tool writes them, and CODEOWNERS asks for the review of the owner on each change, so a migration is committed apart from the code that needs it. The second migration is edited by hand after the generator, because SQL Server refuses to change the collation of a column that the primary key uses, so it drops the key and creates it again. Migrations are forward-only: EF Core writes a `Down` method, and no deployment calls it, because an application rollback never rolls the schema back (plan section 8.10).
 
 Three commands build what a reviewer or a migrator needs. None of the outputs is checked in, because each is generated again from the model. Run them from the repository root after `dotnet tool restore`.
 
@@ -111,5 +147,7 @@ Each test names the requirement that it proves, and `governance trace` reads the
 - `AggregateRoundTripTests` saves and loads both aggregates, with every value, a missing description, a yen price, and the discontinued status (REQ-DATA-001, REQ-DOM-004, REQ-DOM-005).
 - `RepositoryTests` and `UnitOfWorkTests` cover loading, the SKU check, the version, the commit, the refusal, the fault, the stale writer, the taken SKU, the hooks, and the nesting rule (REQ-DATA-001, REQ-DATA-002, REQ-ARC-003).
 - `ReadStoreTests` pages through 24 products by both sort orders with ties, adds a row between two pages, and checks the filters (REQ-DATA-001).
-- `MigrationTests` applies the idempotent script twice, compares its schema with the migrations, generates it twice, and proves that only the migrator identity changes the schema (REQ-DATA-006).
+- `MigrationTests` applies the idempotent script twice, compares its schema (columns, collations, and indexes) with the migrations, generates it twice, applies the collation migration to a database that has a row, and proves that only the migrator identity changes the schema (REQ-DATA-006).
+- `OutboxInterceptorTests`, `OutboxPayloadTests`, `OutboxProcessorTests`, `OutboxBackgroundServiceTests`, `OutboxSignalTests`, `OutboxBackoffTests`, and `PersistenceOptionsTests` cover the outbox: one row for each event in the same transaction, the eight payload snapshots, the lease, the fence, the receipts, the backoff, the dead-letter state, the stop after delivery, the death of a processor, concurrent processors, a locked row, the loop, and the cleanup (REQ-DATA-002, REQ-DATA-003, REQ-DOM-004). No test sleeps: a fake clock ends each lease and backoff.
+- `IdempotencyStoreTests` covers the reservation, the replay, the reused key, the request in progress, the exact comparison, the release, the expiry, the takeover, eight concurrent requests, the commit and the rollback with the effect, and the cleanup (REQ-DATA-004).
 - `tests/Catalog.Architecture.Tests` holds the layer rules and the rule that no production assembly migrates.

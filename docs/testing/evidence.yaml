@@ -157,5 +157,15 @@ entries:
   - requirements: [REQ-DATA-006]
     kind: manual
     path: docs/runbooks/database-migration.md
-    summary: The runbook builds the idempotent script and the migration bundle, and its rehearsal applied InitialCreate with the bundle to a throwaway SQL Server 2022 container, applied nothing on a second run, and found the six tables of the schema.
+    summary: The runbook builds the idempotent script and the migration bundle, and its rehearsal applied InitialCreate with the bundle to a throwaway SQL Server 2022 container, applied nothing on a second run, and found the six tables of the schema. A second rehearsal applied the idempotent script of both migrations twice with sqlcmd -I.
+    recorded: '2026-11-02'
+  - requirements: [REQ-DATA-002, REQ-DATA-003, REQ-DATA-004, REQ-DOM-004]
+    kind: manual
+    path: docs/testing/evidence/2026-11-02-outbox-idempotency-run.md
+    summary: The outbox and idempotency suites ran against a real SQL Server 2022 container on Windows with Docker Desktop and in the pinned Linux SDK image with the Docker socket mounted. All 1,596 tests passed on both hosts, the coverage thresholds passed, no test sleeps, and the record lists what each class proves, including the stop after delivery, the death of a processor, the fence, concurrent processors, and eight concurrent idempotency requests.
+    recorded: '2026-11-02'
+  - requirements: [REQ-DATA-003, REQ-DATA-004]
+    kind: docs
+    path: docs/adr/0035-outbox-processor-design.md
+    summary: ADR-0035 records the lease, the fence, the receipts, the retries and the dead-letter state, the wake-up, the cleanup, and the payload contract of the outbox, and ADR-0036 records the reservation, the replay, the takeover, and the exact comparison of the idempotency store.
     recorded: '2026-11-02'
