@@ -54,9 +54,18 @@ licenses:
     - Commons-Clause
     - CC-BY-NC
     - PolyForm
-  # License references that the allow-list may name. The one entry is the tool-only Microsoft license in license-overrides.json.
+  # License references that the allow-list may name. Each entry is the license of one override in license-overrides.json: the tool-only
+  # Microsoft license, and the license of the one native Windows runtime below.
   allowed-license-references:
     - LicenseRef-Microsoft-DotNet-Library-ToolOnly
+    - LicenseRef-Microsoft-SqlClient-SNI-WindowsRuntime
+  # The native runtimes of the Windows host that an override of the kind windows-native-runtime may cover, by exact package and version
+  # (ADR-0004, amendment of 2026-11-03). Unlike a tool-only exception, the package may be resolved by a production project, because no
+  # shipped artifact contains its Windows assets. Adding an entry or changing a version needs a new decision in ADR-0004.
+  allowed-windows-native-runtimes:
+    - id: Microsoft.Data.SqlClient.SNI.runtime
+      version: "7.1.0"
+      license: LicenseRef-Microsoft-SqlClient-SNI-WindowsRuntime
 
 commit-identity:
   # Author, committer, and co-author emails must match one of these (ADR-0006): a GitHub noreply address, a bot, or the web interface.

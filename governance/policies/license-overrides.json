@@ -3,6 +3,16 @@
     "Id": "Microsoft.Testing.Extensions.CodeCoverage",
     "Version": "18.11.2",
     "License": "LicenseRef-Microsoft-DotNet-Library-ToolOnly",
-    "LicenseUrl": "https://github.com/microsoft/codecoverage"
+    "LicenseUrl": "https://github.com/microsoft/codecoverage",
+    "Kind": "tool-only"
+  },
+  {
+    "Id": "Microsoft.Data.SqlClient.SNI.runtime",
+    "Version": "7.1.0",
+    "License": "LicenseRef-Microsoft-SqlClient-SNI-WindowsRuntime",
+    "LicenseUrl": "https://www.nuget.org/packages/Microsoft.Data.SqlClient.SNI.runtime/7.1.0/license",
+    "Kind": "windows-native-runtime",
+    "Scope": "The native Windows assets of this one package version (runtimes/win-x64, win-x86, and win-arm64), as a transitive dependency of Microsoft.Data.SqlClient. No shipped artifact contains them.",
+    "Reason": "Every SqlClient release depends on the package. The Phase 2 images are Linux-only, and a publish for Linux does not contain the Windows assets. The terms allow use to develop and test applications, and distribution only with protective terms and an indemnity, so a Windows artifact must never ship it. ADR-0004, amendment of 2026-11-03."
   }
 ]

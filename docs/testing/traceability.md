@@ -246,7 +246,7 @@ A requirement is in scope once every work package that delivers it is completed,
 | --- | --- | --- | --- | --- | --- |
 | `REQ-SUP-001` | The production image is built by a multi-stage Dockerfile | WP2.1 | Not yet due | None | None |
 | `REQ-SUP-002` | CodeQL gates the public repository at high severity | WP2.3 | Not yet due | None | None |
-| `REQ-SUP-003` | Dependency intake is license- and vulnerability-aware | WP1.1, WP2.3 | Covered | [DependencyPolicyTests.cs](../../tests/Catalog.Architecture.Tests/DependencyPolicyTests.cs), [LicensePolicyRuleTests.cs](../../tests/Governance.Auditor.Tests/LicensePolicyRuleTests.cs), [RepositorySelfCheckTests.cs](../../tests/Governance.Auditor.Tests/RepositorySelfCheckTests.cs) | None |
+| `REQ-SUP-003` | Dependency intake is license- and vulnerability-aware | WP1.1, WP2.3 | Covered | [DependencyPolicyTests.cs](../../tests/Catalog.Architecture.Tests/DependencyPolicyTests.cs), [WindowsArtifactPolicyTests.cs](../../tests/Catalog.Architecture.Tests/WindowsArtifactPolicyTests.cs), [LicensePolicyRuleTests.cs](../../tests/Governance.Auditor.Tests/LicensePolicyRuleTests.cs), and 2 more | None |
 | `REQ-SUP-004` | Trivy blocks fixable critical image vulnerabilities | WP2.4 | Not yet due | None | None |
 | `REQ-SUP-005` | Each published platform image carries SPDX and CycloneDX SBOMs | WP2.4 | Not yet due | None | None |
 | `REQ-SUP-006` | Each published digest is signed attested and independently verifiable | WP2.0, WP2.5 | Not yet due | None | None |
