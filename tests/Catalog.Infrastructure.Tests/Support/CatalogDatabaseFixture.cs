@@ -35,7 +35,12 @@ public sealed class CatalogDatabaseFixture(SqlServerFixture server) : IAsyncLife
     /// <inheritdoc />
     public async ValueTask DisposeAsync()
     {
-        SqlConnection.ClearAllPools();
+        // Only the pool of this database is cleared. A global clear would close the idle sessions of the logins that the credential tests of other classes count at the same time.
+        using (var connection = new SqlConnection(ConnectionString))
+        {
+            SqlConnection.ClearPool(connection);
+        }
+
         await Server.DropDatabaseAsync(_name);
     }
 

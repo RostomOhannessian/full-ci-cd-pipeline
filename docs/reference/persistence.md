@@ -10,7 +10,7 @@ owner: "@RostomOhannessian"
 
 # Persistence
 
-The persistence layer is the project [`src/Catalog.Infrastructure`](../../src/Catalog.Infrastructure/Catalog.Infrastructure.csproj). It implements the ports that the application layer defines, on SQL Server through EF Core ([ADR-0033](../adr/0033-ef-core-mapping-read-model-and-migrations.md)). It references the application layer only, and the Domain stays free of every attribute and framework type. This page describes what exists today. The credential sources are planned in a later pull request of WP1.8, and the section that would describe them is not here yet.
+The persistence layer is the project [`src/Catalog.Infrastructure`](../../src/Catalog.Infrastructure/Catalog.Infrastructure.csproj). It implements the ports that the application layer defines, on SQL Server through EF Core ([ADR-0033](../adr/0033-ef-core-mapping-read-model-and-migrations.md)). It references the application layer only, and the Domain stays free of every attribute and framework type. This page describes what exists today. The Api composes these pieces in WP1.10, and the section "The composition" lists what it registers.
 
 ## The schema
 
@@ -109,6 +109,31 @@ The settings are in `OutboxOptions` (batch size, lease, attempts, backoff, jitte
 
 A record lives 24 hours. The key and the caller are compared exactly, so `Abc` and `abc` are two keys.
 
+## The credentials
+
+The database login is not part of a connection string in the settings. `ICredentialSource` holds the credential in memory, and `CredentialConnectionInterceptor` sets the connection string of the current credential each time EF Core opens a connection ([ADR-0037](../adr/0037-credential-rotation-and-pool-clearing.md)).
+
+| Piece | Role |
+| --- | --- |
+| `DatabaseCredential` | A user name and a password. It prints the user name and `[redacted]`, so a log or an exception cannot leak the password |
+| `StaticCredentialSource` | One credential from the configuration, for the Compose stack. It never rotates |
+| `RotatingFileCredentialSource` | Reads `{"username":"...","password":"..."}` from a file that an agent renders, switches when the file changes (a file watcher, and a re-read every 30 seconds as a fallback), keeps the credential in use when the file is missing or wrong, and raises `Rotated` |
+| `CatalogConnectionString` | The one function that builds the connection string of a credential, so the pool that the interceptor opens is the pool that the janitor clears. Pooling is always on |
+| `CredentialPoolJanitor` | After a rotation and a grace period (60 seconds by default), clears the pool of the old credential with `SqlConnection.ClearPool` |
+| `DatabaseOptions` | The settings: a connection string without a credential, the mode (`Static` or `RotatingFile`), the static credential, the file path, the poll interval, and the grace period. The validator names a setting and never repeats a value |
+
+The order of a rotation is **rotate, switch, clear, revoke**. New connections use the new login at once, the old pool is cleared after the grace period, and the old login is revoked only after that, because a revocation that comes first kills work in flight and SQL Server refuses to drop a login with a session. Clearing a pool never interrupts a running command. A credential never reaches a log, an exception message, an exception data bag, or a printed object, and a test checks each of them.
+
+## The composition
+
+The Api is the composition root (WP1.10), and an architecture rule keeps `IServiceProvider` out of the other layers, so this project holds no registration code. The reference composition is `tests/Catalog.Infrastructure.Tests/Support/TestComposition.cs`, and a real container built from it runs a commit through the loop. It registers:
+
+- the options of the database, the outbox, and the idempotency store, each with its validator and start-up validation (`DatabaseOptions` is bound from the section `Catalog:Database`);
+- the credential source that `CredentialSources.Create` builds for the settings, the metrics, the interceptor, and the janitor as a hosted service;
+- the context factories of the write model and the read model, with the credential interceptor on both and the outbox interceptor on the write model, and a scoped context from each factory;
+- the repositories, the unit of work, the read stores, and the idempotency store as scoped services;
+- the outbox signal, the dispatcher, the metrics, the processor, the cleanup, and the loop as a hosted service, plus the `IOutboxMessageHandler` services of the cache (WP1.9).
+
 ## Migrations, the bundle, and the idempotent script
 
 The migrations `InitialCreate` and `CaseSensitiveIdempotencyKeys` and the snapshot of the model are in `src/Catalog.Infrastructure/Persistence/Migrations`. The `dotnet-ef` tool writes them, and CODEOWNERS asks for the review of the owner on each change, so a migration is committed apart from the code that needs it. The second migration is edited by hand after the generator, because SQL Server refuses to change the collation of a column that the primary key uses, so it drops the key and creates it again. Migrations are forward-only: EF Core writes a `Down` method, and no deployment calls it, because an application rollback never rolls the schema back (plan section 8.10).
@@ -150,4 +175,5 @@ Each test names the requirement that it proves, and `governance trace` reads the
 - `MigrationTests` applies the idempotent script twice, compares its schema (columns, collations, and indexes) with the migrations, generates it twice, applies the collation migration to a database that has a row, and proves that only the migrator identity changes the schema (REQ-DATA-006).
 - `OutboxInterceptorTests`, `OutboxPayloadTests`, `OutboxProcessorTests`, `OutboxBackgroundServiceTests`, `OutboxSignalTests`, `OutboxBackoffTests`, and `PersistenceOptionsTests` cover the outbox: one row for each event in the same transaction, the eight payload snapshots, the lease, the fence, the receipts, the backoff, the dead-letter state, the stop after delivery, the death of a processor, concurrent processors, a locked row, the loop, and the cleanup (REQ-DATA-002, REQ-DATA-003, REQ-DOM-004). No test sleeps: a fake clock ends each lease and backoff.
 - `IdempotencyStoreTests` covers the reservation, the replay, the reused key, the request in progress, the exact comparison, the release, the expiry, the takeover, eight concurrent requests, the commit and the rollback with the effect, and the cleanup (REQ-DATA-004).
+- `CredentialSourceTests`, `ConnectionStringAndOptionsTests`, and `CredentialRotationTests` cover the credential: the file handling, the watcher and the poll, the connection string, the validators, the rotation against a real SQL Server (new connections switch, the pool is reused, the old login has no session after the grace period, work in flight finishes, the old login can be revoked), and the absence of any secret from logs, messages, and data bags (REQ-DATA-005). `PersistenceCompositionTests` builds a real container from the reference composition (REQ-DATA-002 to REQ-DATA-005).
 - `tests/Catalog.Architecture.Tests` holds the layer rules and the rule that no production assembly migrates.
