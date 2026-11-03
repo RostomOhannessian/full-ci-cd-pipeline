@@ -44,5 +44,5 @@ The bundle was built and run on Windows against a throwaway SQL Server 2022 cont
 
 - The Linux run needs the Docker socket, which is the exception of ADR-0034. The hosted `ci` workflow runs the suites directly on `ubuntu-latest`, and no hosted run has happened, because nothing is pushed yet. The first hosted run on the pull request is the confirmation.
 - The suites ran on x86-64 hosts only. Apple Silicon and Windows on Arm are best effort (ADR-0019) and were not tried.
-- The license gate of the `ci` workflow fails on `Microsoft.Data.SqlClient.SNI.runtime`, an open finding for the maintainer that ADR-0033 describes. The test runs are not affected.
+- The license gate of the `ci` workflow failed on `Microsoft.Data.SqlClient.SNI.runtime` when the persistence layer was first built, and the amendment of 2026-11-03 to ADR-0004 (the exception for that one package and version) resolved it, so the gate exits 0 on this branch (checked 2026-11-03). The test runs were not affected.
 - Timings are single samples from one machine.
