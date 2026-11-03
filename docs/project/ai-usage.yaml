@@ -809,3 +809,33 @@ records:
         output-tokens: 666001
         peak-context-tokens: 701959
         model-seconds: 4518
+  - session: "2fc37633-f637-48c0-be08-0c68980b5175"
+    phase: 1
+    work-package: "WP1.8"
+    activity: fix
+    confidence: windowed
+    window:
+      from: "2026-11-03T05:30:23.153Z"
+      to: "2026-11-03T06:00:58.470Z"
+    user-turns: 1
+    compactions: 0
+    note: "Settled the license finding that blocked WP1.8, a prerequisite and not a delivery, so a fix. The session got a second task afterward, so the slice is windowed. The window is every call that the cloud store held, an idle event follows the last call, and the usage events and call successes agree at 151. Derived at the local prices last seen on 2026-10-12. A floor: later calls are not in it."
+    usage:
+      - model: claude-sonnet-5.5
+        source: derived
+        reasoning-effort: unknown
+        agent: main
+        request-multiplier: 1.0
+        calls: 151
+        aiu: 704.071
+        prices:
+          fresh-input: 200
+          cache-read: 10
+          cache-write: 250
+          output: 1000
+        fresh-input-tokens: 310
+        cache-read-tokens: 42431361
+        cache-write-tokens: 386779
+        output-tokens: 183001
+        peak-context-tokens: 433956
+        model-seconds: 1238
