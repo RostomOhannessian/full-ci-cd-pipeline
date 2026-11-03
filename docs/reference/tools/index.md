@@ -37,9 +37,11 @@ A page is named after its inventory ID. Tier C libraries are in [the dependency 
 | [AwesomeAssertions](awesomeassertions.md) | B | Writes the assertions of the unit tests, without the commercial terms of FluentAssertions 8 |
 | [CsCheck](cscheck.md) | B | Generates the inputs of the property tests and prints the seed of a failure |
 | [Stryker.NET](stryker-net.md) | B | Mutates the domain model to measure how well its tests catch a change |
+| [Entity Framework Core](efcore.md) | A | Maps the aggregates to SQL Server and builds the migrations, the bundle, and the idempotent script |
+| [Testcontainers for .NET](testcontainers-dotnet.md) | A | Starts a real SQL Server 2022 container for the persistence tests |
 
 Eighteen tools that are in use have no page yet, and WP1.13 owes them. The audit reports each as a note, and it fails when WP1.13 is completed and a page is still missing. The Tier C entries for the Dev Container
-features, the base images, the `devcontainers/ci` action, the two Microsoft.OpenApi packages, `Microsoft.Extensions.TimeProvider.Testing`, and FluentValidation are in [the dependency catalog](dependency-catalog.md).
+features, the base images, the `devcontainers/ci` action, the two Microsoft.OpenApi packages, `Microsoft.Extensions.TimeProvider.Testing`, FluentValidation, and Microsoft.Data.SqlClient are in [the dependency catalog](dependency-catalog.md).
 
 ## What a tool page contains
 

@@ -7,7 +7,7 @@ tools: [sql-server, docker-compose]
 introduced: "phase-1"
 prerequisites: ["Docker with Compose 2.23 or newer, given at least 4 GB of memory", "A supported x86-64 host (Linux, Windows, or macOS Intel) or the Dev Container", "The repository cloned, with the ./dev command available", "A POSIX shell for the hands-on commands (Linux, macOS, WSL, or the Dev Container)"]
 estimated-time: "30 minutes"
-last-verified: 2026-10-10
+last-verified: 2026-11-02
 verified-against: { sql-server: "2022" }
 owner: "@RostomOhannessian"
 ---
@@ -41,8 +41,7 @@ flowchart LR
   CHECK["dev compose check"] -->|"sqlcmd inside the container"| SQL
 ```
 
-No application code connects to the database yet. The schema, migrations, and outbox arrive in WP1.8, and the HTTP API that uses them arrives in WP1.10. What
-exists today is the running container and the check that proves it works.
+The persistence layer (WP1.8) defines the schema catalog and its first migration, and its tests run against a SQL Server container that Testcontainers starts ([persistence reference](../persistence.md)). The HTTP API that connects to the container of the stack arrives in WP1.10 (planned). What runs on the stack today is the container and the check that proves it works.
 
 ## Decision rationale
 
@@ -185,10 +184,10 @@ What the service sets, and why:
 | `security_opt` | `no-new-privileges:true` | The container cannot gain privileges |
 
 **Data flow and trust boundary.** Today only people and `dev compose check` connect, from the host through `127.0.0.1` or from inside the container. The API, which runs on the
-host, will connect to `localhost,1433` with the stack's static credentials (planned, WP1.8 and WP1.10). Nothing outside the host can reach the port. The integration tests will not use this
-container. They start their own throwaway SQL Server through Testcontainers (plan section 10, WP1.8).
+host, will connect to `localhost,1433` with the stack's static credentials (planned, WP1.8 and WP1.10). Nothing outside the host can reach the port. The integration tests do not use this
+container. They start their own throwaway SQL Server from the same image digest through Testcontainers ([ADR-0034](../../adr/0034-integration-test-database-strategy-and-linux-run.md)).
 
-**Ownership.** WP1.4 delivered the stack and the check. WP1.8 delivers the schema, the migrations, and the outbox, and WP3.4 delivers the data tier in the cluster.
+**Ownership.** WP1.4 delivered the stack and the check. WP1.8 delivers the schema, the migrations, and the outbox tables (the migrator identity is the only one that changes the schema, [ADR-0033](../../adr/0033-ef-core-mapping-read-model-and-migrations.md)), and WP3.4 delivers the data tier in the cluster.
 
 **Failure modes.**
 

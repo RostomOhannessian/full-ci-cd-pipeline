@@ -2,7 +2,7 @@
 # carrying its ID, so they need no entry here. Each entry names a file that must exist. `governance trace` reads this file, checks every
 # path, and renders docs/testing/traceability.md. The schema is evidence.schema.json, and ADR-0022 explains the rules.
 schema-version: 1
-last-verified: '2026-11-01'
+last-verified: '2026-11-02'
 entries:
   - requirements: [REQ-GOV-001]
     kind: docs
@@ -149,3 +149,13 @@ entries:
     path: docs/adr/0032-decorator-pipeline-and-application-results.md
     summary: ADR-0032 records the outermost-first order of the command and the query decorators and the reason for each position, and the tests of PipelineOrderTests run the production chains and assert the same order.
     recorded: '2026-11-01'
+  - requirements: [REQ-QUA-001]
+    kind: manual
+    path: docs/testing/evidence/2026-11-02-persistence-linux-run.md
+    summary: The persistence suites ran against a real SQL Server 2022 container that an assembly fixture starts from the digest of compose.yaml, on Windows with Docker Desktop and in the pinned Linux SDK image with the Docker socket mounted. All 1,488 tests passed on both hosts, and the coverage thresholds passed on Linux.
+    recorded: '2026-11-02'
+  - requirements: [REQ-DATA-006]
+    kind: manual
+    path: docs/runbooks/database-migration.md
+    summary: The runbook builds the idempotent script and the migration bundle, and its rehearsal applied InitialCreate with the bundle to a throwaway SQL Server 2022 container, applied nothing on a second run, and found the six tables of the schema.
+    recorded: '2026-11-02'

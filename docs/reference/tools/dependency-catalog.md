@@ -281,3 +281,45 @@ RuleFor(command => command.Name).NotEmpty().WithMessage("The name is required.")
 
 - [FluentValidation 12.1.1 on NuGet](https://www.nuget.org/packages/FluentValidation/12.1.1) (checked 2026-11-01)
 - [The FluentValidation documentation](https://fluentvalidation.net/) (checked 2026-11-01)
+
+## Microsoft.Data.SqlClient
+
+**Purpose.** The ADO.NET driver that speaks the SQL Server protocol (TDS). EF Core uses it for every connection of the catalog, and it keeps a pool of open connections for each distinct connection string. The pool is what the credential rotation of the persistence layer works with:
+a new credential is a new connection string, so it gets a new pool, and `SqlConnection.ClearPool` closes the idle connections of the old one (REQ-DATA-005, [spike 1.e](../../research/spikes/1.e-rotating-credentials.md)).
+
+**Rationale.** EF Core's SQL Server provider depends on it, and plan section 17 names version 7.1.1, which spikes 1.d and 1.e ran. It is MIT licensed, which the allow-list of [ADR-0004](../../adr/0004-licensing-and-dependency-license-policy.md) accepts. The provider 10.0.14 depends on 6.1.7, so `Directory.Packages.props` pins 7.1.1, and transitive pinning makes the pin win. Version 7.1.1
+depends on `System.Security.Cryptography.Pkcs` 9.0.18, which has two advisories (GHSA-2fmv-rv2c-59x7 and GHSA-846f-f764-76mx, patched in 9.0.21 and 10.0.13), so the same file pins that package to 10.0.14 ([ADR-0020](../../adr/0020-dependency-intake-controls.md), [ADR-0033](../../adr/0033-ef-core-mapping-read-model-and-migrations.md), checked 2026-11-02).
+The driver also depends on `Microsoft.Data.SqlClient.SNI.runtime`, a native Windows library under Microsoft Software License Terms. The license exception for it is the amendment of 2026-11-03 to [ADR-0004](../../adr/0004-licensing-and-dependency-license-policy.md) (see the section for the package above, checked 2026-11-03).
+
+**Setup.** The project names the packages, and the central file holds the versions. SqlClient does not support the invariant globalization mode, so a project that opens a connection must run with ICU, and the persistence tests turn the mode off.
+
+```xml
+<PackageReference Include="Microsoft.Data.SqlClient" />
+```
+
+**Used by.** `src/Catalog.Infrastructure` (the persistence layer and the credential sources) and `tests/Catalog.Infrastructure.Tests` (the probes that read the database itself).
+
+**Sources.**
+
+- [Microsoft.Data.SqlClient 7.1.1 on NuGet](https://www.nuget.org/packages/Microsoft.Data.SqlClient/7.1.1) (checked 2026-11-02)
+- [The SqlClient project](https://aka.ms/sqlclientproject) (checked 2026-11-02)
+
+## System.Security.Cryptography.Pkcs
+
+**Purpose.** A transitive dependency of Microsoft.Data.SqlClient that the repository pins and never calls. It holds the signed-message and certificate-request types of the .NET cryptography library.
+
+**Rationale.** SqlClient 7.1.1 depends on version 9.0.18, which has two published advisories: GHSA-2fmv-rv2c-59x7 (moderate) and GHSA-846f-f764-76mx (high, quadratic CPU use in `SignedCms.CheckSignature`). NuGet audit fails the restore on both, and the fix that [ADR-0020](../../adr/0020-dependency-intake-controls.md) prescribes is a central pin to a patched version. The pin is 10.0.14, which matches the runtime of the solution and is above the patched 10.0.13 (checked 2026-11-02, [ADR-0033](../../adr/0033-ef-core-mapping-read-model-and-migrations.md)). The package is MIT licensed.
+
+**Setup.** One line in `Directory.Packages.props`, and no project references the package.
+
+```xml
+<PackageVersion Include="System.Security.Cryptography.Pkcs" Version="10.0.14" />
+```
+
+**Used by.** Every project that restores Microsoft.Data.SqlClient, which is `src/Catalog.Infrastructure` and the projects that reference it. Remove the pin when a SqlClient release depends on a patched version.
+
+**Sources.**
+
+- [GHSA-846f-f764-76mx](https://github.com/advisories/GHSA-846f-f764-76mx) (checked 2026-11-02)
+- [GHSA-2fmv-rv2c-59x7](https://github.com/advisories/GHSA-2fmv-rv2c-59x7) (checked 2026-11-02)
+- [System.Security.Cryptography.Pkcs 10.0.14 on NuGet](https://www.nuget.org/packages/System.Security.Cryptography.Pkcs/10.0.14) (checked 2026-11-02)

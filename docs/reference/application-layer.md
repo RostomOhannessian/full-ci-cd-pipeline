@@ -4,7 +4,7 @@ description: "The handler interfaces, the results and typed errors with their ma
 audience: [learners, contributors, maintainers]
 type: reference
 tools: [fluentvalidation]
-last-verified: 2026-11-01
+last-verified: 2026-11-02
 owner: "@RostomOhannessian"
 ---
 
@@ -105,15 +105,15 @@ The application defines the ports, and a rule of `Catalog.Architecture.Tests` fa
 
 | Port | Capability | Implemented by |
 | --- | --- | --- |
-| `IProductRepository`, `ICategoryRepository` | Load aggregates with their version, add new ones, and read the version after a save | Persistence (WP1.8, planned) |
-| `IUnitOfWork` | Run the work of a command in one transaction, save inside it, and run hooks before the commit | Persistence (WP1.8, planned) |
+| `IProductRepository`, `ICategoryRepository` | Load aggregates with their version, add new ones, and read the version after a save | `ProductRepository` and `CategoryRepository`, in `Catalog.Infrastructure` (WP1.8) |
+| `IUnitOfWork` | Run the work of a command in one transaction, save inside it, and run hooks before the commit | `EfUnitOfWork`, in `Catalog.Infrastructure` (WP1.8) |
 | `IIdempotencyStore` | Reserve a key, record the first result in the transaction of the command, and release a failed reservation | Persistence (WP1.8, planned) |
 | `IOutboxDispatcher` | Wake the dispatcher of the node after a commit, on a best-effort basis | Persistence (WP1.8, planned) |
 | `ICatalogCache` | Return a cached result or load it, and remove the entries of a tag | Caching (WP1.9, planned) |
 | `ICurrentPrincipal` | Give the caller, its scopes, and its roles | API (WP1.10, planned) |
 | `IUseCaseTelemetry` | Observe a use case: trace, count, and log its outcome | Observability (WP1.11, planned) |
 | `IIdGenerator` | Create the identifier of a new product or category | `GuidV7IdGenerator`, in this layer |
-| `IProductReadStore`, `ICategoryReadStore` | Read one view, or a page of views after a keyset position, without loading an aggregate | Persistence (WP1.8, planned) |
+| `IProductReadStore`, `ICategoryReadStore` | Read one view, or a page of views after a keyset position, without loading an aggregate | `ProductReadStore` and `CategoryReadStore`, in `Catalog.Infrastructure` (WP1.8) |
 
 `GuidV7IdGenerator` calls `Guid.CreateVersion7` with the time of the injected `TimeProvider`, so identifiers sort by creation time, and a test passes a generator that counts. `EntityTag` is the version of a stored resource as a token that is safe in a URL, and `IdempotencyKey` is a key of 1 to 128 printable ASCII
 characters.

@@ -3,7 +3,7 @@ title: "Runbooks"
 description: "What an operational runbook must contain in this repository and which runbooks the phase plans expect to add."
 audience: [maintainers, operators, contributors]
 type: reference
-last-verified: 2026-10-10
+last-verified: 2026-11-02
 owner: "@RostomOhannessian"
 ---
 
@@ -20,6 +20,7 @@ From the template, every runbook must name the trigger, state the blast radius, 
 | Phase | Runbook | Work package | Purpose | Status |
 | --- | --- | --- | --- | --- |
 | 1 | Machine migration | WP1.4, extended in WP3.10 | Clone, open the Dev Container, read the status page, and recreate the local environment on a new machine without copying secrets or state. | [first version](machine-migration.md) |
+| 1 | Apply a database migration | WP1.8, automated by the job of WP3.8 and WP4.4 | Review the idempotent script, apply the migrations with the bundle under the migrator identity, and know the way back. | [first version](database-migration.md) |
 | 2 | Compromised action or dependency response | WP2.7 | Contain and supersede a bad workflow dependency or build tool. | planned |
 | 2 | Vulnerable released image response | WP2.7 | Triage a released image issue, document the decision, and ship the correction. | planned |
 | 3 | Vault unseal and operator break-glass | WP3.3 | Recover access to the secrets tier and record trust-anchor handling. | planned |
@@ -39,4 +40,4 @@ From the template, every runbook must name the trigger, state the blast radius, 
 | 4 | Vault sealed drill | WP4.6 | Restore the secrets broker during an outage scenario. | planned |
 | 4 | Valkey outage drill | WP4.6 | Run through cache failure, degradation, and recovery. | planned |
 
-Some of these topics are named directly in the plans, while others are stated as required runbook coverage for drills or incident response. One runbook page exists, the first version of machine migration, and every other entry above remains plain text until its owning work package writes it.
+Some of these topics are named directly in the plans, while others are stated as required runbook coverage for drills or incident response. Two runbook pages exist, the first versions of machine migration and of applying a database migration, and every other entry above remains plain text until its owning work package writes it.

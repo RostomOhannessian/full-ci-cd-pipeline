@@ -18,6 +18,11 @@
 #   docker compose -f tools/lint/compose.yaml run --rm mutation
 #   docker compose -f tools/lint/compose.yaml run --rm mutation application
 #
+# The linux-tests service is not a check either. It runs the whole test suite with coverage on Linux, writes its reports to TestResults/linux, needs the network and Docker, and mounts the Docker
+# socket so that Testcontainers can start SQL Server. That mount is a reviewed exception (ADR-0034, the threat model), so run it on your own machine only:
+#
+#   docker compose -f tools/lint/compose.yaml run --rm linux-tests
+#
 # The nightly workflow also runs the external link check, which needs the network:
 #
 #   docker compose -f tools/lint/compose.yaml run --rm external-links
@@ -114,6 +119,32 @@ services:
       DOTNET_CLI_TELEMETRY_OPTOUT: "1"
       DOTNET_SKIP_FIRST_TIME_EXPERIENCE: "1"
     entrypoint: ["/bin/bash", "/repo/tools/lint/run-mutation.sh"]
+
+  # Runs the whole test suite with coverage in the pinned Linux SDK image, which is the Linux evidence of the Testcontainers suites (WP1.8, ADR-0034). The script copies the repository to a scratch
+  # directory, restores in locked mode, builds in Release, tests, and checks the coverage thresholds, and it leaves the reports in TestResults/linux. It needs the network and Docker.
+  #
+  # SECURITY EXCEPTION: this is the one service of the repository that mounts the Docker socket. Testcontainers starts the SQL Server container and its resource reaper through the socket, so the
+  # container controls the Docker daemon of the host, which is root-equivalent on a Linux host. The exception is reviewed in ADR-0034 and named in the threat model (docs/security/threat-model.md).
+  # It is for a developer machine only. Never add it to a CI job or to the Compose stack, never mount the socket in another service, and never run it on a host that you do not own. The hosted CI job
+  # does not need it, because the runner has Docker and runs the tests directly. The repository mount stays read-only, and the container gets no other host path.
+  linux-tests:
+    image: mcr.microsoft.com/dotnet/sdk:10.0.401@sha256:e70cdb7f80b0348f5cb85f19a8f670fca061f033d57eed12fa003d58b0e06317
+    working_dir: /repo
+    volumes:
+      - ../..:/repo:ro
+      - ../../TestResults/linux:/reports
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      # CI turns on the locked restore, so the container restores the same packages that CI does.
+      CI: "true"
+      DOTNET_NOLOGO: "1"
+      DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+      DOTNET_SKIP_FIRST_TIME_EXPERIENCE: "1"
+      # The containers that Testcontainers starts publish their ports on the Docker host, and this container reaches the host through its gateway name.
+      TESTCONTAINERS_HOST_OVERRIDE: host.docker.internal
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    entrypoint: ["/bin/bash", "/repo/tools/lint/run-linux-tests.sh"]
 
   # Secret scan over the complete Git history. Findings are redacted in the output.
   secrets: &gitleaks

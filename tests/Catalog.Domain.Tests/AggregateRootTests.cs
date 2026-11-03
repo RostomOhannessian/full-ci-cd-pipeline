@@ -59,4 +59,19 @@ public sealed class AggregateRootTests
 
         probe.DomainEvents.Should().BeEmpty();
     }
+
+    [Fact]
+    [Trait("Requirement", "REQ-DOM-004")]
+    public void The_events_are_reachable_through_the_non_generic_interface_that_the_persistence_layer_reads()
+    {
+        var probe = new Probe("a");
+        var happened = new Happened(Make.Epoch);
+        probe.Record(happened);
+
+        IHasDomainEvents aggregate = probe;
+
+        aggregate.DomainEvents.Should().Equal(happened);
+        aggregate.ClearDomainEvents();
+        probe.DomainEvents.Should().BeEmpty();
+    }
 }

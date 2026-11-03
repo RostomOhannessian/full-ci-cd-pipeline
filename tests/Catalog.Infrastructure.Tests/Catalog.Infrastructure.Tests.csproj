@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Tests of the persistence layer (WP1.8, ADR-0033 and ADR-0034): the mappings, the repositories, the unit of work, the read stores, the migrations, the outbox, the idempotency store, and the credential sources.
+       Most tests run against a real SQL Server 2022 container that one assembly fixture starts (REQ-QUA-001). Each test is tagged with the requirement it proves, and `governance trace` reads the tags. -->
+
+  <!-- Microsoft.Data.SqlClient does not support the invariant globalization mode (it throws NotSupportedException when it opens a connection), so this project is the one test project that turns the
+       mode off. The tests still run under the invariant culture, which Support/InvariantCulture.cs sets for every thread (plan section 10.3). -->
+  <PropertyGroup>
+    <InvariantGlobalization>false</InvariantGlobalization>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Catalog.Infrastructure\Catalog.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AwesomeAssertions" />
+    <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
+    <PackageReference Include="Testcontainers.MsSql" />
+  </ItemGroup>
+
+  <!-- The identifiers and the builders of the domain tests are shared on purpose, so every test project builds the same synthetic data (plan section 10.3). -->
+  <ItemGroup>
+    <Compile Include="..\Catalog.Domain.Tests\Support\TestIds.cs" Link="Support\TestIds.cs" />
+    <Compile Include="..\Catalog.Domain.Tests\Support\Make.cs" Link="Support\Make.cs" />
+  </ItemGroup>
+
+  <!-- Parallelism is declared per assembly in this file (plan section 10.3). -->
+  <ItemGroup>
+    <Content Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>
