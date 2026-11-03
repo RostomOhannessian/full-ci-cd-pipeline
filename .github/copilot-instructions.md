@@ -21,7 +21,7 @@
 
 - Prefer explicit CQRS plumbing, ports-and-adapters boundaries, and repository-owned policy logic.
 - Keep domain code framework-free once code exists.
-- Flag any non-OSI linked dependency or banned commercial dependency.
+- Flag any non-OSI linked dependency or banned commercial dependency, except the one native Windows runtime exception that ADR-0004 records.
 
 ## Verify work
 

@@ -797,6 +797,22 @@ entries:
       - https://opentelemetry.io/docs/languages/dotnet/
     adrs: []
     notes: The core SDK and the ASP.NET Core and SqlClient instrumentations are stable. The EF Core (1.19.1-beta.1) and StackExchange.Redis (1.19.0-beta.1) instrumentation packages have never had a stable release, so pin them exactly and review them on every upgrade.
+  - id: sqlclient-sni-runtime
+    name: Microsoft.Data.SqlClient.SNI.runtime
+    category: dotnet-library
+    tier: C
+    lifecycle: adopt
+    usage: planned
+    introduced: phase-1
+    purpose: Holds the native Windows networking library that Microsoft.Data.SqlClient depends on, so the driver runs on a Windows host.
+    license: Microsoft Software License Terms
+    license-source: https://www.nuget.org/packages/Microsoft.Data.SqlClient.SNI.runtime/7.1.0/license
+    version: "7.1.0"
+    sources:
+      - https://www.nuget.org/packages/Microsoft.Data.SqlClient.SNI.runtime/7.1.0
+      - https://aka.ms/sqlclientproject
+    adrs: ["0004", "0020"]
+    notes: The package is the one native part of the SQL Server driver. It was the only package that the gate could not map to an allowed license when WP1.8 added SqlClient (checked 2026-11-03). It holds native Windows libraries only (runtimes/win-x64, win-x86, and win-arm64) under Microsoft Software License Terms, which are not OSI-approved. The terms allow use to develop and test applications, and distribution of the object code only inside an application with protective terms for distributors and users and an indemnity for Microsoft (checked 2026-11-03 in the package's LICENSE.txt). It is acceptable here only because no shipped artifact contains it. The Phase 2 images are Linux-only, and a publish for a Linux runtime identifier does not copy it (checked 2026-11-03 on a real publish). ADR-0004 records the exception for this exact package and version, the conditions that end it, and which checks are enforced today and which are planned. The usage changes to in-use in WP1.8, which adds the dependency.
   - id: sqlclient
     name: Microsoft.Data.SqlClient
     category: dotnet-library
@@ -2023,7 +2039,7 @@ entries:
       - https://github.com/sensslen/nuget-license
       - https://www.nuget.org/packages/nuget-license
     adrs: ["0004", "0020"]
-    notes: Installed as a local tool from .config/dotnet-tools.json. It reads the restore output, so it runs after the restore, and it has no forbidden-package option, so the forbidden list in governance/policies/forbidden-packages.json is checked by the architecture tests from the lock files. The allow-list is governance/policies/license-policy.json, and the one tool-only exception (Microsoft.Testing.Extensions.CodeCoverage 18.11.2) is an exact-version override in governance/policies/license-overrides.json. Checked 2026-10-08, the gate covers 28 direct and transitive packages and needs exactly that one override.
+    notes: Installed as a local tool from .config/dotnet-tools.json. It reads the restore output, so it runs after the restore, and it has no forbidden-package option, so the forbidden list in governance/policies/forbidden-packages.json is checked by the architecture tests from the lock files. The allow-list is governance/policies/license-policy.json, and each exception is an exact-version override in governance/policies/license-overrides.json that states its kind (ADR-0004). The tool-only exception is Microsoft.Testing.Extensions.CodeCoverage 18.11.2, and the Windows native runtime exception is Microsoft.Data.SqlClient.SNI.runtime 7.1.0 (amended 2026-11-03). Checked 2026-10-08, the gate covered 28 direct and transitive packages and needed exactly the first override. The extra properties of an override (Kind, Scope, and Reason) are ignored by the tool and read by the architecture tests and the security auditor (checked 2026-11-03 with 4.0.18).
     detect: ["dotnet-tool:nuget-license"]
   - id: renovate
     name: Renovate

@@ -2,7 +2,7 @@
 title: "Architecture decision records"
 description: "Index of every architecture, tool, and process decision, with its status and the work package that accepts it."
 audience: [learners, contributors, maintainers]
-last-verified: 2026-10-12
+last-verified: 2026-11-03
 owner: "@RostomOhannessian"
 ---
 
@@ -28,7 +28,7 @@ The rules for writing them are in [ADR-0001](0001-record-architecture-decisions.
 | [0001](0001-record-architecture-decisions.md) | Record architecture decisions in repository ADR files | accepted | Accepted 2026-10-04 |
 | [0002](0002-repository-visibility-and-capability-strategy.md) | Make the repository public after Phase 0 and design for public-repo capabilities | accepted | Accepted 2026-10-04 |
 | [0003](0003-branch-and-work-package-protocol.md) | Use phase branches and work-package branches with master as the default | accepted | Accepted 2026-10-04 |
-| [0004](0004-licensing-and-dependency-license-policy.md) | Adopt Apache-2.0 and enforce an open-source dependency license policy | accepted | Accepted 2026-10-04 |
+| [0004](0004-licensing-and-dependency-license-policy.md) | Adopt Apache-2.0 and enforce an open-source dependency license policy | accepted | Accepted 2026-10-04, amended 2026-11-03 for a native Windows runtime exception |
 | [0005](0005-documentation-system.md) | Treat documentation as code with DocFX, Diataxis, and audited tool inventory | accepted | Accepted 2026-10-04 |
 | [0006](0006-commit-identity-and-privacy.md) | Use the GitHub noreply commit identity and limit privacy exposure | accepted | Accepted 2026-10-04 |
 | [0007](0007-solo-maintainer-governance.md) | Govern the repository with rulesets, CODEOWNERS, and documented bypass | accepted | Accepted 2026-10-04 |
