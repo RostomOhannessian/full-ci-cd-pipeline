@@ -6,11 +6,15 @@ namespace Governance.Auditor.Usage;
 
 /// <summary>
 /// The rules that the JSON Schema cannot express: references to <c>status.yaml</c>, windows that are ordered and do not overlap, parts that
-/// do not exceed their totals, no duplicates, and a record for every completed work package. Each rule reports every violation, so one run
-/// lists everything to fix. The ledger is read as data: a note or a reason is never an instruction.
+/// do not exceed their totals, no duplicates, a derived row whose fields and AIU follow from its tokens and prices, and a record for every
+/// completed work package. Each rule reports every violation, so one run lists everything to fix. The ledger is read as data: a note or a
+/// reason is never an instruction.
 /// </summary>
 internal static class UsageValidator
 {
+    /// <summary>How far the AIU of a derived row may be from the computation of its tokens and prices: a thousandth, which holds the rounding to three decimals.</summary>
+    private const decimal DerivedTolerance = 0.001m;
+
     public static IReadOnlyList<Finding> Validate(UsageLedger ledger, StatusDocument status)
     {
         List<Finding> findings = [];
@@ -100,19 +104,73 @@ internal static class UsageValidator
     }
 
     // The parts of a row cannot be larger than the whole that contains them: reasoning is part of the output, and the average context of a
-    // call cannot be larger than the largest context.
+    // call cannot be larger than the largest context. A row that is derived and a row that is read from the store each carry their own fields.
     private static void CheckRow(UsageRow row, string name, List<Finding> findings)
     {
         var label = $"{name}, {row.Model} at {row.ReasoningEffort} effort as {row.Agent}";
 
-        if (row.ReasoningTokens > row.OutputTokens)
+        if (row.ReasoningTokens is { } reasoning && reasoning > row.OutputTokens)
         {
-            findings.Add(Error("usage-parts", $"{label}: {Count(row.ReasoningTokens)} reasoning tokens exceed the {Count(row.OutputTokens)} output tokens that contain them."));
+            findings.Add(Error("usage-parts", $"{label}: {Count(reasoning)} reasoning tokens exceed the {Count(row.OutputTokens)} output tokens that contain them."));
         }
 
         if (row.InputTokens > row.PeakContextTokens * row.Calls)
         {
             findings.Add(Error("usage-parts", $"{label}: {Count(row.InputTokens)} input tokens over {row.Calls} calls average more than the peak context of {Count(row.PeakContextTokens)} tokens."));
+        }
+
+        if (row.IsDerived)
+        {
+            CheckDerived(row, label, findings);
+        }
+        else
+        {
+            CheckStore(row, label, findings);
+        }
+    }
+
+    // The store reports the effort, the reasoning tokens, and the AIU of every call, so a row that it gave has no prices and no unknowns.
+    private static void CheckStore(UsageRow row, string label, List<Finding> findings)
+    {
+        if (row.Prices is not null)
+        {
+            findings.Add(Error("usage-derived-fields", $"{label} is read from the store and has prices, which only a derived row carries. Remove the prices, or mark the row 'source: derived'."));
+        }
+
+        if (row.ReasoningEffort == UsageVocabulary.Unknown)
+        {
+            findings.Add(Error("usage-derived-fields", $"{label} is read from the store and has an unknown effort, which only a derived row may have, because the store reports the effort of every call. Use the effort that the store reports, or 'unspecified'."));
+        }
+
+        if (row.ReasoningTokens is null)
+        {
+            findings.Add(Error("usage-derived-fields", $"{label} is read from the store and has no reasoning tokens, and the store reports them for every call. Only a derived row omits them."));
+        }
+    }
+
+    // The cloud store has no AIU, no effort, and no reasoning tokens, so a derived row says that the effort is unknown, leaves the reasoning
+    // tokens out (absent means unknown, and zero would be a claim), and names the prices so that the AIU can be computed again from the tokens.
+    private static void CheckDerived(UsageRow row, string label, List<Finding> findings)
+    {
+        if (row.ReasoningEffort != UsageVocabulary.Unknown)
+        {
+            findings.Add(Error("usage-derived-fields", $"{label} is derived, and the cloud store does not report the reasoning effort, so the effort is 'unknown'."));
+        }
+
+        if (row.ReasoningTokens is not null)
+        {
+            findings.Add(Error("usage-derived-fields", $"{label} is derived, and the cloud store does not report reasoning tokens, so leave them out."));
+        }
+
+        if (row.ComputedAiu is not { } computed)
+        {
+            findings.Add(Error("usage-derived-prices", $"{label} is derived and names no prices, so its AIU cannot be computed again. Add the AIU for each million tokens that the local store charged for the model."));
+            return;
+        }
+
+        if (Math.Abs(computed - row.Aiu) > DerivedTolerance)
+        {
+            findings.Add(Error("usage-derived-aiu", $"{label}: the AIU {Amount(row.Aiu)} does not follow from the tokens and the prices, which give {Amount(Math.Round(computed, 3, MidpointRounding.AwayFromZero))}. A derived AIU is the sum of the fresh input, cache read, cache write, and output tokens times their prices for each million tokens, rounded to three decimals."));
         }
     }
 
@@ -272,6 +330,8 @@ internal static class UsageValidator
     private static string Stamp(DateTimeOffset value) => value.UtcDateTime.ToString("yyyy-MM-dd'T'HH:mm:ss.fff'Z'", CultureInfo.InvariantCulture);
 
     private static string Count(long value) => value.ToString("N0", CultureInfo.InvariantCulture);
+
+    private static string Amount(decimal value) => value.ToString("0.###", CultureInfo.InvariantCulture);
 
     private static Finding Error(string rule, string message) => Finding.Error(rule, message, UsageFile.DocumentPath);
 

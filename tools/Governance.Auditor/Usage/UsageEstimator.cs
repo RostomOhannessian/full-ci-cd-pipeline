@@ -30,7 +30,8 @@ internal sealed record UsageEstimate(
 /// <summary>
 /// Turns the completed work packages into a range of AIU for each work package that remains. The method is fixed and has no randomness:
 /// a size class that has completed work packages is estimated from their minimum, median, and maximum, and a size class that has none is
-/// scaled from the AIU for each day of weight of the others. Weights are the midpoints of the focused effort in plan section 5.7.
+/// scaled from the AIU for each day of weight of the others. Weights are the midpoints of the focused effort in plan section 5.7. An AIU that
+/// was derived from token counts is used as recorded, and the output says how much of each observation is derived.
 /// </summary>
 internal static class UsageEstimator
 {
@@ -144,6 +145,14 @@ internal static class UsageEstimator
             caveats.Add($"Of the {observed.Count.ToString(CultureInfo.InvariantCulture)} observed work packages, {windowed.ToString(CultureInfo.InvariantCulture)} {(windowed == 1 ? "is" : "are")} windowed. A windowed work package shared its session with other work, and its window is derived from the user turns, the pull request times, and the commit times, so its numbers could be off by the calls at the edges of the window.");
         }
 
+        var derived = observed.Where(cost => cost.DerivedAiu > 0).ToList();
+
+        if (derived.Count > 0)
+        {
+            var parts = string.Join("; ", derived.Select(cost => $"{cost.Id}, {UsageAnalysis.Percent(cost.DerivedShare)} of its AIU"));
+            caveats.Add($"Of the {observed.Count.ToString(CultureInfo.InvariantCulture)} observed work packages, {derived.Count.ToString(CultureInfo.InvariantCulture)} {(derived.Count == 1 ? "has" : "have")} derived AIU ({parts}). Derived AIU is computed from token counts and recorded prices, because only the cloud copy of the session store held the calls, and that copy can miss the last calls of a session, so a derived AIU is a floor and its work package may have cost more. The estimate still uses it.");
+        }
+
         caveats.Add($"Planning, coordination, and fixes were {UsageAnalysis.Percent(nonDeliveryShare)} of the AIU in the ledger, and they are not part of a work package. Add that share when you budget a phase.");
 
         return caveats;
@@ -166,6 +175,13 @@ internal static class UsageEstimator
         }
 
         builder.Append('\n');
+
+        var derivedObserved = estimate.Observed.Where(cost => cost.DerivedAiu > 0).ToList();
+
+        if (derivedObserved.Count > 0)
+        {
+            builder.Append($"  derived (share of the AIU of each observation): {string.Join(", ", derivedObserved.Select(cost => $"{cost.Id} {UsageAnalysis.Percent(cost.DerivedShare)}"))}\n");
+        }
 
         if (estimate.Sizes.Count > 0)
         {
@@ -241,6 +257,7 @@ internal static class UsageEstimator
                 id = cost.Id,
                 size = cost.Size,
                 aiu = Round(cost.Aiu),
+                derivedShare = Math.Round(cost.DerivedShare, 4, MidpointRounding.AwayFromZero),
                 calls = cost.Calls,
                 confidence = cost.Confidence,
             }),

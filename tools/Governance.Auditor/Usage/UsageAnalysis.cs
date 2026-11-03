@@ -10,6 +10,7 @@ internal sealed record WorkPackageCost(
     string Size,
     PhaseId Phase,
     decimal Aiu,
+    decimal DerivedAiu,
     int Calls,
     long ModelSeconds,
     long PeakContextTokens,
@@ -22,6 +23,9 @@ internal sealed record WorkPackageCost(
     public decimal AiuPerWeight => Aiu / UsageVocabulary.Weight(Size);
 
     public decimal? AiuPerThousandLines => Change is { ChangedLines: > 0 } ? Aiu * 1000m / Change.ChangedLines : null;
+
+    /// <summary>The share of its AIU that was computed from token counts and not read from the store. Zero when the package has no AIU.</summary>
+    public decimal DerivedShare => Aiu == 0 ? 0m : DerivedAiu / Aiu;
 }
 
 internal static class UsageAnalysis
@@ -48,6 +52,7 @@ internal static class UsageAnalysis
                     workPackage.Size,
                     phase.Id,
                     slices.Sum(slice => slice.Aiu),
+                    slices.Sum(slice => slice.DerivedAiu),
                     slices.Sum(slice => slice.Calls),
                     slices.Sum(slice => slice.Usage.Sum(row => row.ModelSeconds)),
                     slices.Max(slice => slice.PeakContextTokens),

@@ -48,6 +48,32 @@ public sealed class UsageValidationTests
         { "  - work-package: \"WP1.2\"\n    pull-requests: [19]", "  - work-package: \"WP1.1\"\n    pull-requests: [18]", "usage-change" },
     };
 
+    public static TheoryData<string, string, string> DerivedSchemaViolations => new()
+    {
+        { "source: derived", "source: guessed", "must be one of" },
+        { "          output: 1000\n", string.Empty, "the required property 'output' is missing" },
+        { "          output: 1000\n", "          output: -1\n", "at least 0" },
+        { "          cache-read: 10\n", "          cache-read: 10\n          bonus: 5\n", "the property 'bonus' is not allowed" },
+        { "reasoning-effort: unknown", "reasoning-effort: unsure", "must be one of" },
+    };
+
+    public static TheoryData<string, string, string> DerivedConsistencyViolations => new()
+    {
+        { "aiu: 39.6", "aiu: 41.0", "usage-derived-aiu" },
+        { "aiu: 39.6", "aiu: 39.598", "usage-derived-aiu" },
+        { UsageSamples.DerivedPrices, string.Empty, "usage-derived-prices" },
+        { "reasoning-effort: unknown", "reasoning-effort: xhigh", "usage-derived-fields" },
+        { "        output-tokens: 20000\n", "        output-tokens: 20000\n        reasoning-tokens: 100\n", "usage-derived-fields" },
+    };
+
+    public static TheoryData<string, string, string> StoreRowsWithDerivedFields => new()
+    {
+        { "        aiu: 100.0\n", "        aiu: 100.0\n" + UsageSamples.DerivedPrices, "has prices" },
+        { "reasoning-effort: xhigh\n        agent: main\n        calls: 10", "reasoning-effort: unknown\n        agent: main\n        calls: 10", "unknown effort" },
+        { "        reasoning-tokens: 1000\n        peak-context-tokens: 20000", "        peak-context-tokens: 20000", "has no reasoning tokens" },
+        { "        agent: main\n        calls: 10", "        source: store\n        agent: main\n        calls: 10\n        prices:\n          fresh-input: 1\n          cache-read: 1\n          cache-write: 1\n          output: 1", "has prices" },
+    };
+
     [Fact]
     [Trait("Requirement", "REQ-AI-005")]
     public async Task The_valid_sample_ledger_passes_every_rule()
@@ -58,6 +84,111 @@ public sealed class UsageValidationTests
 
         Assert.Equal(0, result.ExitCode);
         Assert.Contains("usage validate: passed (0 warnings).", result.Output, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    [Trait("Requirement", "REQ-AI-005")]
+    public async Task A_derived_usage_entry_with_its_prices_an_unknown_effort_and_no_reasoning_tokens_is_valid()
+    {
+        using var repository = UsageSamples.Repository(UsageSamples.DerivedLedger);
+
+        var result = await CliRunner.RunAsync(repository, "usage", "validate");
+
+        Assert.Equal(0, result.ExitCode);
+        Assert.Contains("usage validate: passed (0 warnings).", result.Output, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    [Trait("Requirement", "REQ-AI-005")]
+    public async Task A_derived_row_may_sit_in_an_exact_slice_because_the_confidence_is_about_the_window_and_not_about_the_numbers()
+    {
+        var derivedInExactSlice = UsageSamples.Edit(
+            (
+                "        reasoning-effort: xhigh\n        agent: main\n        calls: 10\n        aiu: 100.0\n",
+                "        source: derived\n        reasoning-effort: unknown\n        agent: main\n        calls: 10\n        aiu: 6.25\n" + UsageSamples.DerivedPrices),
+            ("        reasoning-tokens: 1000\n        peak-context-tokens: 20000", "        peak-context-tokens: 20000"));
+        using var repository = UsageSamples.Repository(derivedInExactSlice);
+
+        var result = await CliRunner.RunAsync(repository, "usage", "validate");
+
+        Assert.Equal(0, result.ExitCode);
+        Assert.Contains("confidence: exact", derivedInExactSlice, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [MemberData(nameof(DerivedSchemaViolations))]
+    [Trait("Requirement", "REQ-AI-005")]
+    public async Task The_schema_rejects_a_derived_entry_that_breaks_its_shape(string find, string replace, string message)
+    {
+        using var repository = UsageSamples.Repository(UsageSamples.Edit(UsageSamples.DerivedLedger, (find, replace)));
+
+        var result = await CliRunner.RunAsync(repository, "usage", "validate");
+
+        Assert.Equal(1, result.ExitCode);
+        Assert.Contains("[usage-schema]", result.Output, StringComparison.Ordinal);
+        Assert.Contains(message, result.Output, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [MemberData(nameof(DerivedConsistencyViolations))]
+    [Trait("Requirement", "REQ-AI-005")]
+    public async Task A_derived_entry_that_breaks_a_rule_fails_with_that_rule(string find, string replace, string rule)
+    {
+        using var repository = UsageSamples.Repository(UsageSamples.Edit(UsageSamples.DerivedLedger, (find, replace)));
+
+        var result = await CliRunner.RunAsync(repository, "usage", "validate");
+
+        Assert.Equal(1, result.ExitCode);
+        Assert.Contains($"error [{rule}]", result.Output, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [MemberData(nameof(StoreRowsWithDerivedFields))]
+    [Trait("Requirement", "REQ-AI-005")]
+    public async Task A_row_read_from_the_store_may_not_carry_the_fields_of_a_derived_row(string find, string replace, string message)
+    {
+        using var repository = UsageSamples.Repository(UsageSamples.Edit((find, replace)));
+
+        var result = await CliRunner.RunAsync(repository, "usage", "validate");
+
+        Assert.Equal(1, result.ExitCode);
+        Assert.Contains("error [usage-derived-fields]", result.Output, StringComparison.Ordinal);
+        Assert.Contains(message, result.Output, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    [Trait("Requirement", "REQ-AI-005")]
+    public async Task A_derived_entry_that_does_not_follow_from_its_tokens_says_both_numbers_and_how_the_sum_is_made()
+    {
+        using var repository = UsageSamples.Repository(UsageSamples.Edit(UsageSamples.DerivedLedger, ("aiu: 39.6", "aiu: 41.0")));
+
+        var result = await CliRunner.RunAsync(repository, "usage", "validate");
+
+        Assert.Contains("the AIU 41 does not follow from the tokens and the prices, which give 39.6", result.Output, StringComparison.Ordinal);
+        Assert.Contains("rounded to three decimals", result.Output, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    [Trait("Requirement", "REQ-AI-005")]
+    public async Task A_derived_entry_is_checked_to_a_thousandth_of_an_AIU_so_a_rounding_of_the_recorder_passes()
+    {
+        using var repository = UsageSamples.Repository(UsageSamples.Edit(UsageSamples.DerivedLedger, ("aiu: 39.6", "aiu: 39.6004")));
+
+        var result = await CliRunner.RunAsync(repository, "usage", "validate");
+
+        Assert.Equal(0, result.ExitCode);
+    }
+
+    [Fact]
+    [Trait("Requirement", "REQ-AI-005")]
+    public async Task A_ledger_without_a_source_reads_every_row_as_read_from_the_store_so_an_older_record_stays_valid()
+    {
+        using var repository = UsageSamples.Repository();
+
+        var result = await CliRunner.RunAsync(repository, "usage", "validate");
+
+        Assert.Equal(0, result.ExitCode);
+        Assert.DoesNotContain("derived", result.Output, StringComparison.Ordinal);
     }
 
     [Theory]

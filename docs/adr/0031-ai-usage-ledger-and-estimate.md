@@ -203,6 +203,66 @@ The design:
   which plan's allowance and discounts to assume.
 - The ledger passes a size that is hard to review, so records of finished phases should move to an archive file.
 
+## Update on 2026-11-01: a cloud fallback and derived usage
+
+This record adds to the decision above and does not rewrite it. The decision that the skill reads the local store and stops when it has no
+rows held until the session of WP1.7. That session could not record its usage: the local store held no `assistant_usage_events` row after
+2026-10-12, so WP1.7 stayed `in_progress`, because `usage validate` rejects a completed work package without usage. The maintainer
+approved a fallback to the cloud store, and rejected a waiver for WP1.7, because a waiver loses the data point that the estimate needs.
+
+Facts that shape the fallback (checked 2026-11-01 against both stores):
+
+- **What the cloud store reports.** The `events` rows with `type = 'assistant.usage'` have the model, the tokens (input, output, cache
+  read, and cache write), the duration, the initiator, and a request multiplier (`usage_cost`, equal to the local `request_multiplier` for
+  every model that both stores hold). They have no AIU, no reasoning effort, and no reasoning tokens. Some events appear twice, so every
+  count is by distinct `id`.
+- **The AIU can be derived exactly.** The AIU of a call is its tokens times the price of each token type. The 61 calls of the session of the
+  squash rule fix, which both stores hold, give 177.8 AIU derived from the cloud tokens and 177.8 AIU stored, with identical token counts.
+  The prices of `claude-sonnet-5.5` were 200 (fresh input), 10 (cache read), 250 (cache write), and 1,000 (output) AIU for each million
+  tokens on every local row from 2026-10-08 to 2026-10-12. The cache read price was 20 until 2026-10-07, so a price is read from the
+  latest local row of the model and its date is recorded.
+- **Sub-agents, compactions, and turns.** The cloud store marks the calls of sub-agents with `usage_initiator = 'sub-agent'`, and its counts
+  equal the local counts of `agent_id IS NOT NULL` in the 12 sessions that both stores hold in full. A `session.compaction_complete` event
+  matches each local compaction call (6 sessions compared). The user turns come from the `user.message` events that an agent did not send,
+  and they matched in 4 of 5 sessions (the fifth counted 14 against 10, because system messages started turns that the local store does not
+  count). So the cloud store can supply every field of a record except the reasoning effort, the reasoning tokens, and the AIU.
+- **The cloud store is not always complete.** One session held 14 of its 196 calls, and the `session_usage` view lagged the raw events by one
+  call. The WP1.7 session had 315 calls in the cloud store when it was first measured and 335 later, up to a `session.idle` event, with
+  equal counts of its usage events and its successful model calls. A derived record is therefore a floor, and it says so.
+
+Decisions:
+
+- **A usage row has a `source`**, `store` or `derived`, and a row without one is read from the store, so no older record changes and none
+  is edited. The schema stays at version 1, because every change is an optional key or a new value, and `usage validate` of the new tool
+  accepts every older ledger.
+- **A derived row carries the prices that it used and says what it does not know.** Its `reasoning-effort` is `unknown`, and it has no
+  `reasoning-tokens`, because absent means unknown and zero would be a claim. `reasoning-tokens` becomes optional in the schema, and
+  `usage validate` requires it of a row that is read from the store, so the rule is not loosened for the store. It also refuses prices,
+  or an unknown effort, on such a row (`usage-derived-fields`), refuses a derived row without prices (`usage-derived-prices`), and computes
+  the AIU again from the tokens and the prices, refusing a difference of more than a thousandth (`usage-derived-aiu`), which holds the
+  rounding to three decimals.
+- **There is no `agent: unknown`**, because the cloud store marks the calls of sub-agents.
+- **Confidence is about the window and not about the numbers.** A session that holds one work package alone is `exact`, and its usage may
+  still be `derived`, so the two words do not conflict. The report and the estimate show the derived share on their own.
+- **The report and the estimate show the derived share.** `AI-USAGE.md` gets a line in the totals, a column for each phase and each work
+  package, and a row with an unknown effort in the table of models. The estimate prints the share of each observation that is derived,
+  adds a caveat that a derived AIU is a floor, and still uses it. It never blocks a merge.
+- **The skill uses the cloud store only when the local store has no rows for the session**, takes the prices from the local rows of the same
+  model, and stops when neither store has rows or when the local store has no row of the model (a price is never guessed). The sentence
+  above that the skill stops when the store has no rows now means both stores.
+
+Consequences:
+
+- Good: a session whose local rows are gone can still record, the data point for the estimate is kept, and the record says what it is.
+- Good: the validator checks the arithmetic, so a derived AIU cannot be tuned by hand.
+- Bad: a derived record can count too few calls, so the estimate leans low for a work package that rests on it, and the reasoning effort of such a
+  session stays unknown.
+- Bad: the prices are those of the latest local row, so a price that changed after it would make a derived AIU wrong by that change, which
+  the validator cannot see. The note carries the date of the prices.
+- Neutral: the threat model does not gain a boundary. The skill reads a second copy of the same account's session history with the same
+  read-only tool, selects only numbers and counts, writes only opaque IDs and numbers, and the ledger tests that forbid text and paths
+  still hold. The row of the threat model that names the store now names both.
+
 ## Further reading
 
 - [Plan section 5.8](../plans/implementation-plan.md): AI-paired delivery and the usage statistics.

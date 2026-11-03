@@ -540,6 +540,53 @@ public sealed class SkillTests
 
     [Fact]
     [Trait("Requirement", "REQ-AI-005")]
+    public void The_usage_recorder_reads_the_cloud_store_only_when_the_local_store_has_no_rows_and_stops_when_neither_store_has_any()
+    {
+        var body = Body("ai-usage-recorder");
+        var sections = Sections(body);
+
+        foreach (var expected in new[]
+        {
+            "type = 'assistant.usage'", "usage_initiator = 'sub-agent'", "session.compaction_complete", "usage_cost", "SELECT DISTINCT id, timestamp", "json_each(e.token_details_json)",
+            "user_source NOT LIKE 'agent-%'", "session.idle", "model.model_call_success", "source: derived", "reasoning-effort: unknown",
+        })
+        {
+            Assert.Contains(expected, body, StringComparison.Ordinal);
+        }
+
+        Assert.Contains("only when the local store has no rows for the session", Flat(sections["Procedure"]), StringComparison.Ordinal);
+        Assert.Contains("the default source", Flat(sections["Allowed tools"]), StringComparison.Ordinal);
+        Assert.Contains("read-only", sections["Allowed tools"], StringComparison.Ordinal);
+        Assert.Contains("no write to the session store, local or cloud", Flat(sections["Allowed tools"]), StringComparison.Ordinal);
+        Assert.Contains("Stop if neither store has rows for the session", Flat(sections["Failure behavior"]), StringComparison.Ordinal);
+        Assert.Contains("Stop if the local store has no row of the same model, because a price is never guessed", Flat(sections["Failure behavior"]), StringComparison.Ordinal);
+        Assert.Contains("a derived record is a floor", Flat(body), StringComparison.Ordinal);
+        Assert.Contains("never claim that it is complete", Flat(body), StringComparison.Ordinal);
+        Assert.Contains("Never write a record from memory", Flat(sections["Failure behavior"]), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    [Trait("Requirement", "REQ-AI-005")]
+    public async Task The_derived_record_that_the_usage_recorder_shows_passes_the_ledger_schema_and_every_rule()
+    {
+        var blocks = Regex.Matches(Body("ai-usage-recorder"), @"```yaml\n(?<block>.*?)```", RegexOptions.Singleline | RegexOptions.CultureInvariant, TimeSpan.FromSeconds(1));
+
+        Assert.True(blocks.Count >= 2, "The skill shows a derived record after the record that is read from the store.");
+
+        var lines = blocks[1].Groups["block"].Value.Split('\n').Where(line => line.Length > 0).ToList();
+        var indent = lines.Min(line => line.Length - line.TrimStart().Length);
+        var record = string.Join('\n', lines.Select(line => "  " + line[indent..])).Replace("\"WP1.7\"", "\"WP1.1\"", StringComparison.Ordinal) + "\n";
+
+        Assert.Contains("source: derived", record, StringComparison.Ordinal);
+
+        using var repository = UsageSamples.Repository(UsageSamples.Ledger + record);
+        var result = await CliRunner.RunAsync(repository, "usage", "validate");
+
+        Assert.True(result.ExitCode == 0, result.Output + result.Error);
+    }
+
+    [Fact]
+    [Trait("Requirement", "REQ-AI-005")]
     public void The_usage_recorder_is_listed_as_existing_in_the_ai_skills_record()
     {
         var record = File.ReadAllText(Path.Combine(RealRepository.Root, "docs", "governance", "ai-skills.md")).ReplaceLineEndings("\n");

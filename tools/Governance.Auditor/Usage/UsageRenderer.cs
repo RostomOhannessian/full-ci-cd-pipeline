@@ -28,7 +28,7 @@ internal static class UsageRenderer
 
             This page is generated from [ai-usage.yaml](ai-usage.yaml), which is the source of truth, by `governance usage render`. Do not edit it by hand. A session adds its own records with the `/ai-usage-recorder` skill, then runs the command and commits both files. CI fails when this page differs from the command's output. Last updated {ledger.Updated}.
 
-            The unit is the AI unit (AIU) that the Copilot session store reports for each model call. [How to read the ledger, the attribution rules, and the estimate](../explanation/ai-usage-statistics.md) explain the columns. To estimate the work that remains, run `dotnet run --project tools/Governance.Auditor -- usage estimate`.
+            The unit is the AI unit (AIU) that the Copilot session store reports for each model call. Derived AIU is the part that was computed from token counts and recorded prices instead, because only the cloud copy of the store held the calls, and it is a floor. [How to read the ledger, the attribution rules, and the estimate](../explanation/ai-usage-statistics.md) explain the columns. To estimate the work that remains, run `dotnet run --project tools/Governance.Auditor -- usage estimate`.
 
 
             """.ReplaceLineEndings("\n"));
@@ -48,6 +48,8 @@ internal static class UsageRenderer
         var rows = ledger.Records.SelectMany(record => record.Usage).ToList();
         var sessions = ledger.Records.Select(record => record.Session).Distinct(StringComparer.Ordinal).Count();
         var peak = ledger.Records.MaxBy(record => record.PeakContextTokens)!;
+        var total = ledger.Records.Sum(record => record.Aiu);
+        var derived = ledger.Records.Sum(record => record.DerivedAiu);
 
         var table = MarkdownText.Table(
             ["Measure", "Value"],
@@ -55,7 +57,8 @@ internal static class UsageRenderer
                 ["Sessions", UsageAnalysis.Number(sessions)],
                 ["Slices (records)", UsageAnalysis.Number(ledger.Records.Count)],
                 ["Calls", UsageAnalysis.Number(rows.Sum(row => (long)row.Calls))],
-                ["AIU", UsageAnalysis.Number(ledger.Records.Sum(record => record.Aiu))],
+                ["AIU", UsageAnalysis.Number(total)],
+                ["Derived AIU", $"{UsageAnalysis.Number(derived)} ({UsageAnalysis.Percent(Share(derived, total))})"],
                 ["Model time", $"{(rows.Sum(row => row.ModelSeconds) / 3600m).ToString("0.0", CultureInfo.InvariantCulture)} hours"],
                 ["Period", $"{UsageAnalysis.Day(ledger.Records.Min(record => record.Window.From))} to {UsageAnalysis.Day(ledger.Records.Max(record => record.Window.To))}"],
                 ["Peak context", $"{UsageAnalysis.Number(peak.PeakContextTokens)} tokens in one call (session {Short(peak.Session)})"],
@@ -84,10 +87,11 @@ internal static class UsageRenderer
                 UsageAnalysis.Number(Aiu(UsageVocabulary.Fix)),
                 UsageAnalysis.Number(records.Sum(record => record.Aiu)),
                 UsageAnalysis.Number(records.Sum(record => (long)record.Calls)),
+                UsageAnalysis.Percent(Share(records.Sum(record => record.DerivedAiu), records.Sum(record => record.Aiu))),
             ]);
         }
 
-        var table = MarkdownText.Table(["Phase", "Name", "Delivery AIU", "Planning AIU", "Coordination AIU", "Fix AIU", "Total AIU", "Calls"], rows);
+        var table = MarkdownText.Table(["Phase", "Name", "Delivery AIU", "Planning AIU", "Coordination AIU", "Fix AIU", "Total AIU", "Calls", "Derived share"], rows);
         var waived = ledger.Waivers.Where(waiver => waiver.Phase is not null).ToList();
         var note = waived.Count == 0
             ? string.Empty
@@ -123,13 +127,14 @@ internal static class UsageRenderer
             cost.Change is null ? "n/a" : UsageAnalysis.Number(cost.Change.ChangedLines),
             cost.AiuPerThousandLines is { } perLines ? UsageAnalysis.Number(perLines) : "n/a",
             cost.Confidence,
+            UsageAnalysis.Percent(cost.DerivedShare),
         ]);
 
         var table = MarkdownText.Table(
-            ["Work package", "Size", "Title", "AIU", "Calls", "Model minutes", "Peak context", "Compactions", "User turns", "Changed lines", "AIU per 1,000 lines", "Confidence"],
+            ["Work package", "Size", "Title", "AIU", "Calls", "Model minutes", "Peak context", "Compactions", "User turns", "Changed lines", "AIU per 1,000 lines", "Confidence", "Derived"],
             rows);
 
-        return $"\n## By work package\n\nThe completed work packages and what it cost to deliver each. Changed lines are the additions and deletions of its pull request. Exact means that one session held the work package alone, and windowed means that its window was derived from a session that held more.\n\n{table}";
+        return $"\n## By work package\n\nThe completed work packages and what it cost to deliver each. Changed lines are the additions and deletions of its pull request. Exact means that one session held the work package alone, and windowed means that its window was derived from a session that held more. Derived is the share of its AIU that was computed from token counts and not read from the store.\n\n{table}";
     }
 
     private static string BySize(UsageLedger ledger, StatusDocument status)
@@ -171,7 +176,8 @@ internal static class UsageRenderer
                 CacheRead = group.Sum(row => row.CacheReadTokens),
                 CacheWrite = group.Sum(row => row.CacheWriteTokens),
                 Output = group.Sum(row => row.OutputTokens),
-                Reasoning = group.Sum(row => row.ReasoningTokens),
+                Reasoning = group.Sum(row => row.ReasoningTokens ?? 0),
+                ReasoningKnown = group.All(row => row.ReasoningTokens is not null),
             })
             .OrderByDescending(group => group.Aiu)
             .ThenBy(group => group.Model, StringComparer.Ordinal)
@@ -195,7 +201,7 @@ internal static class UsageRenderer
                 UsageAnalysis.Number(group.CacheRead),
                 UsageAnalysis.Number(group.CacheWrite),
                 UsageAnalysis.Number(group.Output),
-                UsageAnalysis.Number(group.Reasoning),
+                group.ReasoningKnown ? UsageAnalysis.Number(group.Reasoning) : UsageVocabulary.Unknown,
             ]);
         }
 
@@ -203,7 +209,7 @@ internal static class UsageRenderer
             ["Model", "Effort", "Agent", "Calls", "AIU", "Share", "Fresh input", "Cache read", "Cache write", "Output", "Reasoning"],
             rows);
 
-        return $"\n## By model and effort\n\nTokens are the sums over the calls. Fresh input is the input that was not served from the cache, and reasoning tokens are part of the output tokens. A sub-agent is a helper that the main agent started, often with a different model. Effort is unspecified for the calls that compact a conversation.\n\n{table}";
+        return $"\n## By model and effort\n\nTokens are the sums over the calls. Fresh input is the input that was not served from the cache, and reasoning tokens are part of the output tokens. A sub-agent is a helper that the main agent started, often with a different model. Effort is unspecified for the calls that compact a conversation. A row with an unknown effort is derived: its AIU was computed from token counts and recorded prices, because the store that held the calls does not report the effort or the reasoning tokens.\n\n{table}";
     }
 
     private static string BySession(UsageLedger ledger)
@@ -244,4 +250,6 @@ internal static class UsageRenderer
     }
 
     private static string Short(string session) => session.Length > 8 ? session[..8] : session;
+
+    private static decimal Share(decimal part, decimal whole) => whole == 0 ? 0m : part / whole;
 }

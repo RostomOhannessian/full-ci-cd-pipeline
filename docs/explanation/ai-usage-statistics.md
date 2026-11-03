@@ -1,10 +1,10 @@
 ---
 title: "AI usage statistics"
-description: "How the project records what each AI-paired session costs in AI units, how the ledger, the attribution rules, the report, and the estimate work, and what the numbers say so far."
+description: "How the project records what each AI-paired session costs in AI units, how the ledger, the attribution rules, the report, and the estimate work, how a session that the local store lost is recorded from the cloud store, and what the numbers say so far."
 audience: [learners, contributors, maintainers]
 type: explanation
 tools: [governance-auditor, copilot-skills]
-last-verified: 2026-10-12
+last-verified: 2026-11-01
 owner: "@RostomOhannessian"
 ---
 
@@ -31,8 +31,9 @@ recorded for Claude Opus 5.5, does not scale the AIU. [ADR-0031](../adr/0031-ai-
 ```mermaid
 flowchart LR
   accTitle: How AI usage reaches the report and the estimate
-  accDescr: The Copilot app writes each model call to a local session store. The ai-usage-recorder skill reads the calls of the current session with fixed queries and appends records to the ledger. The governance usage command validates the ledger, renders the report, and estimates the remaining work. It never reads the store.
+  accDescr: The Copilot app writes each model call to a local session store, and a copy of the events reaches a cloud store. The ai-usage-recorder skill reads the calls of the current session from the local store with fixed queries, and only when the local store has no rows for the session it reads the cloud store, which gives derived usage. It appends records to the ledger. The governance usage command validates the ledger, renders the report, and estimates the remaining work. It never reads either store.
   store[(Local session store)] -->|fixed queries, read only| skill[ai-usage-recorder skill]
+  cloud[(Cloud session store)] -.->|only when the local store has no rows| skill
   skill -->|append records| ledger[docs/project/ai-usage.yaml]
   ledger --> validate[usage validate]
   ledger --> render[usage render]
@@ -43,7 +44,8 @@ flowchart LR
 
 The split is the one that [session boundaries](session-boundaries.md) uses. The skill reads a per-machine store that holds the sessions of every
 repository on the machine, so it reads only the session that it is recording. The command reads the ledger, `status.yaml`, and the schema,
-so it is deterministic, runs in CI, and gives the same answer on every machine.
+so it is deterministic, runs in CI, and gives the same answer on every machine. The cloud store is the fallback of the skill, and the section
+[derived usage](#derived-usage) says what it can and cannot give.
 
 ```bash illustrative
 dotnet run --project tools/Governance.Auditor -- usage validate
@@ -84,11 +86,13 @@ Each row of `usage` is one model at one reasoning effort, as the main agent or a
 
 | Field | Meaning |
 | --- | --- |
-| `model`, `reasoning-effort`, `agent` | Which model, at which effort (`unspecified` for the calls that compact a conversation), and whether the calls were the main agent's or a sub-agent's |
+| `model`, `reasoning-effort`, `agent` | Which model, at which effort (`unspecified` for the calls that compact a conversation, and `unknown` for a derived row), and whether the calls were the main agent's or a sub-agent's |
+| `source` | `store` (the default, so every older row stays valid) when the session store reported the numbers, and `derived` when they come from the token counts of the cloud store ([derived usage](#derived-usage)) |
 | `request-multiplier` | The multiplier that the store records for the model. It is a fact and it does not scale the AIU |
 | `calls`, `aiu` | The number of model calls and their AI units |
+| `prices` | Only for a derived row: the AIU for each million tokens of fresh input, cache read, cache write, and output that the AIU was computed with |
 | `fresh-input-tokens`, `cache-read-tokens`, `cache-write-tokens` | The input that was not served from the cache, and the input that was read from or written to it. The store's input tokens are the sum of the three |
-| `output-tokens`, `reasoning-tokens` | The tokens that the model wrote, of which the reasoning tokens are a part |
+| `output-tokens`, `reasoning-tokens` | The tokens that the model wrote, of which the reasoning tokens are a part. A derived row has no reasoning tokens, because they are unknown, and an unknown number is left out and not written as zero |
 | `peak-context-tokens` | The largest context of any call, which is the largest input of a call |
 | `model-seconds` | The sum of the durations of the calls |
 
@@ -97,6 +101,32 @@ to a work package (or to a phase) and not to a slice, because a pull request is 
 and several sessions.
 
 **Waivers** say why a phase or a work package has no record of its own. Phase 0 is recorded at phase level.
+
+## Derived usage
+
+The skill reads the local session store, and on 2026-11-01 that store held no row after 2026-10-12, so the session that delivered WP1.7 could
+not record itself. The cloud store, which is the account's copy of the session events, did hold that session. It reports the model, the
+tokens, the duration, and an initiator for each call, and it reports no AIU, no reasoning effort, and no reasoning tokens. When the local
+store has no rows for a session, `/ai-usage-recorder` therefore records the session from the cloud store, and each of its usage rows is
+`source: derived`. A derived row is honest about what it does not know:
+
+- **The AIU is computed.** It is the fresh input, cache read, cache write, and output tokens times their prices for each million tokens,
+  with the prices taken from the local rows of the same model, and the row carries the four prices that it used. For a window that both
+  stores hold, the computation gave the stored AIU exactly (177.8 and 177.8 for 61 calls, checked 2026-11-01). `usage validate` computes
+  it again and refuses a row that is off by more than a thousandth (`usage-derived-aiu`).
+- **The effort is `unknown` and the reasoning tokens are left out.** They are not zero and they are not `unspecified`. The validator
+  allows both only on a derived row, and requires them on a row that is read from the store (`usage-derived-fields`).
+- **The rest can be supplied.** The cloud store marks the calls of sub-agents with `usage_initiator = 'sub-agent'`, its
+  `session.compaction_complete` events give the compactions, and its user messages give the turns, so a derived record has the same fields as
+  any other record. The skill lists how each one is read, and how well it matched the local store.
+- **A derived record is a floor.** The cloud store can lag, stop early, or miss the last calls, and the prices are those of the latest local
+  row. The `note` says so, and the report, the estimate, and the totals show the derived share. Calls that the cloud store receives later are
+  recorded as a later slice, and the older record is not edited.
+- **Confidence is a different question.** `exact` and `windowed` say whether the window holds the work package alone, and `derived` says
+  where the numbers came from, so one session can be `exact` and derived.
+
+The skill stops when neither store has rows for the session, and when the local store has no price for the model, because a price is never
+guessed. [ADR-0031](../adr/0031-ai-usage-ledger-and-estimate.md) records the decision and the facts that it rests on.
 
 ## The attribution rules
 
@@ -133,6 +163,7 @@ breaks it.
 | `usage-window`, `usage-overlap` | A window ends after it starts, and two slices of a session do not overlap |
 | `usage-duplicate`, `usage-duplicate-row` | The same slice is not recorded twice, and a model at an effort and agent is one row |
 | `usage-parts` | A part does not exceed its whole: the reasoning tokens are within the output, the input of the calls is within the peak context times the calls, and the turns and the compactions are within the calls |
+| `usage-derived-fields`, `usage-derived-prices`, `usage-derived-aiu` | A derived row has an unknown effort, no reasoning tokens, and its prices, and a row that is read from the store has none of the three. The AIU of a derived row follows from its tokens and its prices to within a thousandth |
 | `usage-exact-shared` | An `exact` slice does not share its session with another scope |
 | `usage-delivery-scope` | Delivery belongs to a work package, unless its phase is recorded at phase level |
 | `usage-change`, `usage-change-missing` | A size of change names a work package or phase that exists and the pull request that `status.yaml` names, and a completed work package with usage but no size of change is a warning |
@@ -143,8 +174,9 @@ breaks it.
 
 [AI usage](../project/AI-USAGE.md) is generated from the ledger. It shows the totals, then the AIU of each phase by kind of activity, then
 each completed work package with its calls, model time, peak context, compactions, size of change, and AIU for each 1,000 changed lines, then
-the AIU for each size class, then the models and efforts with their tokens, and then the sessions. Do not edit it by hand, because CI fails
-when it differs from what `usage render` writes.
+the AIU for each size class, then the models and efforts with their tokens, and then the sessions. The totals, each phase, and each work
+package also show how much of the AIU is derived, and a row with an unknown effort in the table of models is a derived one. Do not edit it
+by hand, because CI fails when it differs from what `usage render` writes.
 
 The columns that are easy to misread:
 
@@ -169,7 +201,8 @@ The columns that are easy to misread:
 The method has no randomness and reads the ledger and `status.yaml` only, so two runs give the same text. The output always prints its
 method and its caveats, which are the part to read first: very few observations, a model mix that the estimate assumes will repeat, an AIU
 that does not grow with the days of a size class, a request multiplier that does not scale it, the share of the observations that are
-windowed, and the share of the AIU that planning, coordination, and fixes took, which a phase budget must add.
+windowed, the observations whose AIU is derived (a floor, still used, with the share of each one printed), and the share of the AIU that
+planning, coordination, and fixes took, which a phase budget must add.
 
 This is the output for the small sample project that the tests use. It has an S and an M work package completed, so a planned L is scaled.
 
@@ -199,4 +232,5 @@ estimate` and read the report for the current numbers.
   check, and [AGENTS.md](../../AGENTS.md) and [AI skills governance](../governance/ai-skills.md) name it.
 - The `governance` workflow runs `usage validate` and `usage render --check` on every pull request, like the checks of `status.yaml`.
 - The generated [project status](../project/STATUS.md) links to the report.
-- The threat model records that the ledger holds opaque session IDs and numbers only, and that the skill reads a local per-machine store.
+- The threat model records that the ledger holds opaque session IDs and numbers only, and that the skill reads a local per-machine store, and
+  the cloud store as a fallback.
