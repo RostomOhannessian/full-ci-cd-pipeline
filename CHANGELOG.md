@@ -95,6 +95,7 @@ Conventional Commits and attached to each release together with its evidence bun
 ### Changed
 
 - The private constructors of `Category` and `Product` take every stored value by the name of its property, the price is set after the constructor of `Product`, the private constructor of `Money` gives the amount the decimal places of its currency, and `AggregateRoot<TId>` implements the new `IHasDomainEvents`, so EF Core can load the aggregates without a persistence attribute in the Domain. No rule of the model changed ([ADR-0033](docs/adr/0033-ef-core-mapping-read-model-and-migrations.md), the update of ADR-0029).
+- ADR-0012 (a transactional outbox for domain events) is accepted in WP1.8, with a dated acceptance record that maps each item of its confirmation to a test. The text of the ADR is unchanged.
 - `.editorconfig` marks the files of `src/**/Migrations` as generated code, because the `dotnet-ef` tool rewrites them.
 - The persistence tests clear only the pool of their own database when a class ends, so the credential tests can count the sessions of their own logins. The migrator test now ends the session of the application identity before the migrator runs, because a failed migration attempt leaves the EF Core migration lock in a pooled session, and the test had passed only because other classes cleared every pool.
 - The threat model is version 1: dependency intake, trusted signers, and pull-request code on CI runners are delivered controls, and the Testcontainers reaper is a planned one.

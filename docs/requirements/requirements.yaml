@@ -367,7 +367,7 @@ requirements:
   - integration
   - architecture
   evidence: migration snapshot and EF mapping tests
-  status: planned
+  status: verified
 - id: REQ-DATA-002
   title: Each unit of work commits data and outbox rows together
   statement: IUnitOfWork wraps one DbContext transaction, and a SaveChangesInterceptor writes recorded domain events into outbox rows inside the same commit.
@@ -379,7 +379,7 @@ requirements:
   verification:
   - integration
   evidence: transactional outbox tests
-  status: planned
+  status: verified
 - id: REQ-DATA-003
   title: The outbox delivers at least once and records receipts
   statement: The outbox processor delivers messages at least once, leases work with READPAST, UPDLOCK, and ROWLOCK semantics, retries with exponential backoff and jitter, moves exhausted work to dead-letter state, and records a receipt for each idempotent handler execution.
@@ -391,7 +391,8 @@ requirements:
   - integration
   - e2e
   evidence: outbox processor tests and rollout evidence
-  status: planned
+  status: in_progress
+  notes: WP1.8 delivers the processor, the lease, the backoff with jitter, the dead-letter state, and the receipts, proven against SQL Server (ADR-0035). The rollout evidence of WP4.4 is outstanding.
 - id: REQ-DATA-004
   title: Idempotency records persist request fingerprints for 24 hours
   statement: Each idempotency record stores the key, caller sub or azp, request hash, status, and response snapshot in the same transaction as the command effect and expires after 24 hours.
@@ -402,7 +403,8 @@ requirements:
   verification:
   - integration
   evidence: IdempotencyRecords tests
-  status: planned
+  status: in_progress
+  notes: WP1.8 delivers the IdempotencyRecords store with the fingerprint, the 24-hour expiry, and the completion inside the transaction of the command (ADR-0036). WP1.10 wires it into the API.
 - id: REQ-DATA-005
   title: Database connections rotate credentials without disabling pooling
   statement: An IDbConnectionInterceptor reads credentials from a cached ICredentialSource on ConnectionOpeningAsync, keeps pooling enabled, and clears pools keyed by the old credential after a grace period when rotation occurs.
@@ -416,7 +418,8 @@ requirements:
   - integration
   - e2e
   evidence: credential rotation transcript
-  status: planned
+  status: in_progress
+  notes: WP1.8 delivers ICredentialSource with a static source and a rotating-file source, the connection interceptor, and pool clearing after a grace period, proven against SQL Server (ADR-0037). The rotation transcript with the real credential broker arrives in WP3.3 and WP3.4.
 - id: REQ-DATA-006
   title: Only the migrator identity applies schema changes
   statement: CI builds an EF migration bundle and an idempotent SQL script for review, a one-shot catalog-migrator job runs the bundle, and application replicas never perform migrations.
@@ -432,7 +435,8 @@ requirements:
   - policy
   - e2e
   evidence: migration bundle run and PreSync job
-  status: planned
+  status: in_progress
+  notes: WP1.8 delivers the initial migration and the second one, the bundle and idempotent script commands with a runbook, and the architecture rule that no production assembly migrates (ADR-0033). The PreSync job arrives in WP3.8 and WP4.4.
 - id: REQ-DATA-007
   title: Seed data is created through the API and never by migrations
   statement: Demonstration seed data is created through the API command path, and the production overlay is never seeded.
