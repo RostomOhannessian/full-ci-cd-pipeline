@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Catalog.Infrastructure\Catalog.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Catalog.CrossCutting\Catalog.CrossCutting.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -19,10 +20,13 @@
     <PackageReference Include="Testcontainers.MsSql" />
   </ItemGroup>
 
-  <!-- The identifiers and the builders of the domain tests are shared on purpose, so every test project builds the same synthetic data (plan section 10.3). -->
+  <!-- The identifiers and the builders of the domain tests are shared on purpose, so every test project builds the same synthetic data (plan section 10.3). The listener of the cache metrics and the logger that keeps
+       its entries are shared with the application tests, so both projects read the metrics of the cache in the same way (WP1.9). -->
   <ItemGroup>
     <Compile Include="..\Catalog.Domain.Tests\Support\TestIds.cs" Link="Support\TestIds.cs" />
     <Compile Include="..\Catalog.Domain.Tests\Support\Make.cs" Link="Support\Make.cs" />
+    <Compile Include="..\Catalog.Application.Tests\Support\Measurements.cs" Link="Support\Measurements.cs" />
+    <Compile Include="..\Catalog.Application.Tests\Support\CapturingLoggerFactory.cs" Link="Support\CapturingLoggerFactory.cs" />
   </ItemGroup>
 
   <!-- Parallelism is declared per assembly in this file (plan section 10.3). -->

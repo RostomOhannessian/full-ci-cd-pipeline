@@ -2,7 +2,7 @@
 title: "Tool reference"
 description: "How tools are inventoried, tiered, and documented, and what every tool page must contain."
 audience: [learners, contributors, maintainers]
-last-verified: 2026-10-11
+last-verified: 2026-11-03
 owner: "@RostomOhannessian"
 ---
 
@@ -38,10 +38,11 @@ A page is named after its inventory ID. Tier C libraries are in [the dependency 
 | [CsCheck](cscheck.md) | B | Generates the inputs of the property tests and prints the seed of a failure |
 | [Stryker.NET](stryker-net.md) | B | Mutates the domain model to measure how well its tests catch a change |
 | [Entity Framework Core](efcore.md) | A | Maps the aggregates to SQL Server and builds the migrations, the bundle, and the idempotent script |
-| [Testcontainers for .NET](testcontainers-dotnet.md) | A | Starts a real SQL Server 2022 container for the persistence tests |
+| [FusionCache](fusioncache.md) | A | Keeps the catalog cache on two levels with a backplane that tells the other nodes to drop an entry |
+| [Testcontainers for .NET](testcontainers-dotnet.md) | A | Starts a real SQL Server 2022 and a real Valkey container for the integration tests |
 
 Eighteen tools that are in use have no page yet, and WP1.13 owes them. The audit reports each as a note, and it fails when WP1.13 is completed and a page is still missing. The Tier C entries for the Dev Container
-features, the base images, the `devcontainers/ci` action, the two Microsoft.OpenApi packages, `Microsoft.Extensions.TimeProvider.Testing`, FluentValidation, and Microsoft.Data.SqlClient are in [the dependency catalog](dependency-catalog.md).
+features, the base images, the `devcontainers/ci` action, the two Microsoft.OpenApi packages, `Microsoft.Extensions.TimeProvider.Testing`, FluentValidation, Microsoft.Data.SqlClient, StackExchange.Redis, and `Microsoft.Extensions.Caching.StackExchangeRedis` are in [the dependency catalog](dependency-catalog.md).
 
 ## What a tool page contains
 

@@ -46,6 +46,9 @@ public sealed class ArchitectureRulesTests
         ["contracts-depend-on-the-bcl-only"] = "LeakyDto",
         ["infrastructure-does-not-depend-on-cross-cutting-or-the-composition-root"] = "ApiAwareStore",
         ["cross-cutting-does-not-depend-on-infrastructure-or-the-composition-root"] = "DirectDatabaseDecorator",
+        ["cross-cutting-does-not-use-the-valkey-client"] = "ValkeyAwareAdapter",
+        ["infrastructure-uses-no-part-of-fusioncache-beyond-the-backplane"] = "FusionAwareStore",
+        ["only-the-caching-namespace-of-cross-cutting-uses-fusioncache"] = "FusionAwareAdapter",
         ["no-service-locator-outside-the-composition-root"] = "ServiceLocatorUser",
         ["application-ports-are-segregated"] = "IEverythingStore",
         ["decorators-are-composed-only-by-pipelines"] = "ChainingDecorator",
@@ -95,19 +98,24 @@ public sealed class ArchitectureRulesTests
     public void Production_handlers_are_internal_and_sealed_and_no_static_state_is_mutable() => AssertProductionFollowsRulesFor("REQ-ARC-005");
 
     [Fact]
+    [Trait("Requirement", "REQ-CACHE-001")]
+    public void Production_cache_code_stays_in_its_layers_so_fusioncache_is_the_adapters_and_the_connection_to_valkey_is_infrastructures() => AssertProductionFollowsRulesFor("REQ-CACHE-001");
+
+    [Fact]
     [Trait("Requirement", "REQ-ARC-001")]
     [Trait("Requirement", "REQ-ARC-002")]
     [Trait("Requirement", "REQ-ARC-003")]
     [Trait("Requirement", "REQ-APP-001")]
     [Trait("Requirement", "REQ-APP-002")]
     [Trait("Requirement", "REQ-ARC-005")]
+    [Trait("Requirement", "REQ-CACHE-001")]
     public void Every_requirement_has_at_least_one_rule_and_every_rule_has_a_violating_fixture()
     {
         Assert.Equal(
             ArchitectureRules.All.Select(rule => rule.Id).Order(StringComparer.Ordinal),
             ReportedType.Keys.Order(StringComparer.Ordinal));
         Assert.Equal(
-            ["REQ-APP-001", "REQ-APP-002", "REQ-ARC-001", "REQ-ARC-002", "REQ-ARC-003", "REQ-ARC-005"],
+            ["REQ-APP-001", "REQ-APP-002", "REQ-ARC-001", "REQ-ARC-002", "REQ-ARC-003", "REQ-ARC-005", "REQ-CACHE-001"],
             ArchitectureRules.All.Select(rule => rule.Requirement).Distinct().Order(StringComparer.Ordinal));
     }
 
@@ -119,6 +127,7 @@ public sealed class ArchitectureRulesTests
     [Trait("Requirement", "REQ-APP-001")]
     [Trait("Requirement", "REQ-APP-002")]
     [Trait("Requirement", "REQ-ARC-005")]
+    [Trait("Requirement", "REQ-CACHE-001")]
     public void A_strict_rule_passes_on_conforming_code_and_matches_at_least_one_type(string ruleId)
     {
         var rule = ArchitectureRules.All.Single(candidate => candidate.Id == ruleId).Create(CleanLayers, true);
@@ -134,6 +143,7 @@ public sealed class ArchitectureRulesTests
     [Trait("Requirement", "REQ-APP-001")]
     [Trait("Requirement", "REQ-APP-002")]
     [Trait("Requirement", "REQ-ARC-005")]
+    [Trait("Requirement", "REQ-CACHE-001")]
     public void A_rule_fails_and_names_the_type_that_breaks_it(string ruleId)
     {
         var rule = ArchitectureRules.All.Single(candidate => candidate.Id == ruleId).Create(ViolatingLayers, true);

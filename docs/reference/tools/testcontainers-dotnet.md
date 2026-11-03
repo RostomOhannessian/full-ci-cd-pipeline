@@ -7,7 +7,7 @@ tools: [testcontainers-dotnet, sql-server, docker-compose]
 introduced: "phase-1"
 prerequisites: ["Docker running, on an x86-64 host (ADR-0019)", "The .NET SDK 10.0.401 or newer", "Some knowledge of xUnit fixtures"]
 estimated-time: "30 minutes"
-last-verified: 2026-11-02
+last-verified: 2026-11-03
 verified-against: { testcontainers-dotnet: "4.15.0" }
 owner: "@RostomOhannessian"
 ---
@@ -104,6 +104,7 @@ Four trade-offs follow from the choice:
 - **The container.** `tests/Catalog.Infrastructure.Tests/Support/SqlServerFixture.cs` starts one container for the assembly. The image is the digest that [compose.yaml](../../../compose.yaml) pins, which `ComposeImage` reads, so the local stack and the tests run the same build.
 - **The databases.** `CatalogDatabaseFixture` creates a database for each test class, applies the migrations that ship, and drops it at the end. A class that needs an empty database calls `ResetAsync`.
 - **The reaper.** The fixture pins `testcontainers/ryuk:0.14.0` by digest and turns the privileged flag off.
+- **Valkey.** `ValkeyFixture` in `Support/ValkeySupport.cs` starts one Valkey container for the assembly from the digest that compose.yaml pins, with the generic container builder, because Testcontainers has no Valkey module (checked 2026-11-03). The default user gets a generated password, so the published port never serves an open server. A test that stops and starts the server starts its own with a fixed host port, because a published port that the daemon picks can change when the container starts again. `ValkeyAclTests` creates the application user with the rules that it reads from compose.yaml (WP1.9, [ADR-0038](../../adr/0038-catalog-cache-adapter-and-valkey-connection.md)).
 - **The Linux run.** The service `linux-tests` of [tools/lint/compose.yaml](../../../tools/lint/compose.yaml) mounts the Docker socket and sets `TESTCONTAINERS_HOST_OVERRIDE` to `host.docker.internal`, so the test container can reach the ports that the sibling containers publish on the host.
 - **Failure modes.** No Docker daemon fails the fixture at startup, so every test of the assembly fails with one message. A host that cannot run the image (Apple Silicon, ADR-0019) uses a Codespace or an x86-64 host.
 

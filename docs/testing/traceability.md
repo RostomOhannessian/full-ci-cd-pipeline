@@ -20,8 +20,8 @@ A requirement is in scope once every work package that delivers it is completed,
 | Requirements | 123 |
 | In scope and covered | 24 |
 | In scope and missing proof | 0 |
-| Covered before they are due | 38 |
-| Not yet due | 61 |
+| Covered before they are due | 41 |
+| Not yet due | 58 |
 | Deferred or withdrawn | 0 |
 
 ## AI: AI enablement
@@ -72,9 +72,9 @@ A requirement is in scope once every work package that delivers it is completed,
 
 | Requirement | Title | Delivered by | State | Tests | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| `REQ-CACHE-001` | Catalog caching uses FusionCache over L1 L2 and a backplane | WP1.9 | Not yet due | None | None |
-| `REQ-CACHE-002` | Writes invalidate product and list caches deterministically | WP1.9, WP4.4 | Not yet due | None | None |
-| `REQ-CACHE-003` | Cache degradation keeps readiness green and reports stale risk | WP1.9, WP1.11, WP4.4 | Not yet due | None | None |
+| `REQ-CACHE-001` | Catalog caching uses FusionCache over L1 L2 and a backplane | WP1.9 | Covered | [CacheContractTests.cs](../../tests/Catalog.Application.Tests/CacheContractTests.cs), [CatalogCacheOptionsTests.cs](../../tests/Catalog.Application.Tests/CatalogCacheOptionsTests.cs), [CatalogCacheTests.cs](../../tests/Catalog.Application.Tests/CatalogCacheTests.cs), and 4 more | docs: [0038-catalog-cache-adapter-and-valkey-connection.md](../adr/0038-catalog-cache-adapter-and-valkey-connection.md), manual: [2026-11-03-cache-adapter-run.md](evidence/2026-11-03-cache-adapter-run.md) |
+| `REQ-CACHE-002` | Writes invalidate product and list caches deterministically | WP1.9, WP4.4 | Covered | [CatalogCacheTests.cs](../../tests/Catalog.Application.Tests/CatalogCacheTests.cs) | docs: [0038-catalog-cache-adapter-and-valkey-connection.md](../adr/0038-catalog-cache-adapter-and-valkey-connection.md) |
+| `REQ-CACHE-003` | Cache degradation keeps readiness green and reports stale risk | WP1.9, WP1.11, WP4.4 | Covered | [CatalogCacheTests.cs](../../tests/Catalog.Application.Tests/CatalogCacheTests.cs), [CacheOverValkeyTests.cs](../../tests/Catalog.Infrastructure.Tests/CacheOverValkeyTests.cs), [ValkeyOptionsTests.cs](../../tests/Catalog.Infrastructure.Tests/ValkeyOptionsTests.cs) | docs: [0038-catalog-cache-adapter-and-valkey-connection.md](../adr/0038-catalog-cache-adapter-and-valkey-connection.md), manual: [2026-11-03-cache-adapter-run.md](evidence/2026-11-03-cache-adapter-run.md) |
 
 ## CI: Continuous integration
 

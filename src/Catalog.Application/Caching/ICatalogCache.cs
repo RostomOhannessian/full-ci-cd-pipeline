@@ -18,8 +18,8 @@ public interface ICachedQuery
 }
 
 /// <summary>
-/// The cache of query results. FusionCache implements it over a memory cache, a distributed cache, and a backplane (ADR-0016, WP1.9). Cache outages are the adapter's to absorb:
-/// when the cache is down, a call runs the loader, so a use case never fails because of the cache.
+/// The cache of query results. FusionCache implements it over a memory cache, a distributed cache, and a backplane (ADR-0016, ADR-0038). Cache outages are the adapter's to absorb on a read:
+/// when the cache is down, a call runs the loader, so a use case never fails because of the cache. A removal is the exception, because it is the one operation whose result a caller must trust.
 /// </summary>
 public interface ICatalogCache
 {
@@ -33,8 +33,14 @@ public interface ICatalogCache
     /// <param name="cancellationToken">A token that cancels the work.</param>
     Task<Result<T>> GetOrLoadAsync<T>(CacheKey key, Func<CancellationToken, Task<Result<T>>> load, CancellationToken cancellationToken);
 
-    /// <summary>Removes every entry that has the tag, on this node and, through the backplane, on the others.</summary>
+    /// <summary>
+    /// Removes every entry that has the tag, on this node and, through the shared cache and the backplane, on the others. The call completes when the removal reached the shared cache and the backplane.
+    /// </summary>
     /// <param name="tag">The tag.</param>
     /// <param name="cancellationToken">A token that cancels the work.</param>
+    /// <exception cref="CacheInvalidationIncompleteException">
+    /// The entries of this node are gone, and the removal could not be confirmed on the shared cache or the backplane. A caller that must guarantee the removal lets the exception propagate and tries again later. A caller
+    /// that cannot wait, such as the best-effort dispatch after a commit, catches it, because the outbox delivers the same removal again.
+    /// </exception>
     Task RemoveByTagAsync(string tag, CancellationToken cancellationToken);
 }

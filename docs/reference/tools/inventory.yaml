@@ -276,8 +276,8 @@ entries:
       - https://github.com/valkey-io/valkey
       - https://github.com/valkey-io/valkey/releases/tag/8.1.10
       - https://valkey.io/download/
-    adrs: ["0016", "0026"]
-    notes: compose.yaml (WP1.4) pins the 8.1 long-term-support line at digest sha256:640c5e62cea04b6d6f2084232651d0cc70362d31f4f805e7be94dbed6855e8f2 (server 8.1.10 in spike 1.b, checked 2026-10-06), and 9.1.2 is the current line. Spike 1.b (2026-10-06) ran the same two-host cache tests against both lines with identical results, so either works as the L2 and backplane. The Testcontainers .NET project has no Valkey module, so tests use its Redis builder with a pinned Valkey image.
+    adrs: ["0016", "0026", "0038"]
+    notes: compose.yaml (WP1.4) pins the 8.1 long-term-support line at digest sha256:640c5e62cea04b6d6f2084232651d0cc70362d31f4f805e7be94dbed6855e8f2 (server 8.1.10 in spike 1.b, checked 2026-10-06), and 9.1.2 is the current line. Spike 1.b (2026-10-06) ran the same two-host cache tests against both lines with identical results, so either works as the L2 and backplane. The Testcontainers .NET project has no Valkey module, so the tests of WP1.9 start the pinned image from compose.yaml with the generic container builder (checked 2026-11-03). The application user of the stack names the keys v2:catalog:dev:* and the channel catalog:dev.Backplane:v2 and 14 commands, which ValkeyAclTests verified against a real server without a denial in the ACL log (ADR-0038, checked 2026-11-03).
     detect: ["image:valkey/valkey"]
 
   # Developer environment
@@ -719,7 +719,7 @@ entries:
     category: dotnet-library
     tier: A
     lifecycle: trial
-    usage: planned
+    usage: in-use
     introduced: phase-1
     purpose: Provides the L1, L2, and backplane caching behavior behind the catalog cache port.
     license: MIT
@@ -730,8 +730,9 @@ entries:
       - https://github.com/ZiggyCreatures/FusionCache
       - https://www.nuget.org/packages/ZiggyCreatures.FusionCache
       - https://raw.githubusercontent.com/ZiggyCreatures/FusionCache/main/docs/MicrosoftHybridCache.md
-    adrs: ["0016"]
-    notes: Trial until WP1.9 accepts ADR-0016. Valkey compatibility of the Redis backplane is not certified upstream, but spike 1.b (2026-10-06) proved it functionally against Valkey 8.1.10 and 9.1.2 with two hosts, tags, an ACL user, and a Valkey outage. Set the L2 and backplane circuit breaker durations, because they default to zero, and note that L2 keys carry a v2 prefix and the backplane channel is named from the cache name or BackplaneChannelPrefix.
+    adrs: ["0016", "0038"]
+    notes: Trial until the close-out of WP1.9 accepts ADR-0016. The family is four packages at 2.9.0, the newest release (checked 2026-11-03), all MIT licensed in their nuspec files. ZiggyCreatures.FusionCache and its System.Text.Json serializer are in Catalog.CrossCutting, and the Redis backplane is in Catalog.Infrastructure. Valkey compatibility of the Redis backplane is not certified upstream, but spike 1.b (2026-10-06) proved it functionally against Valkey 8.1.10 and 9.1.2, and WP1.9 ran the adapter against the pinned Valkey with the ACL user of the stack (ADR-0038). The circuit breaker durations default to zero, which turns them off, so the settings of the cache validate that they are positive. L2 keys carry a v2 prefix and the backplane channel is named from BackplaneChannelPrefix. FusionCache computes the expiration of an entry and the timestamp of a tag removal from the wall clock, so no fake clock reaches them. RemoveByTagAsync writes a marker and does not delete the entries. With a circuit breaker open, a call is skipped without an exception, so the adapter reads the breaker events to tell a removal that is complete from one that is not.
+    detect: ["nuget:ZiggyCreatures.FusionCache*"]
   - id: hybridcache
     name: Microsoft HybridCache
     category: dotnet-library
@@ -867,6 +868,41 @@ entries:
     adrs: ["0035"]
     notes: The package holds only the abstractions of the generic host, so Catalog.Infrastructure does not depend on the host itself. The version matches EF Core 10.0.14 and the runtime of the solution (checked 2026-11-02).
     detect: ["nuget:Microsoft.Extensions.Hosting.Abstractions"]
+  - id: stackexchange-redis
+    name: StackExchange.Redis
+    category: dotnet-library
+    tier: C
+    lifecycle: adopt
+    usage: in-use
+    introduced: phase-1
+    purpose: Opens the connections to Valkey for the shared cache and for the backplane, over the Redis protocol.
+    license: MIT
+    license-source: https://www.nuget.org/packages/StackExchange.Redis/2.10.1/license
+    version: "2.10.1"
+    repo: https://github.com/StackExchange/StackExchange.Redis
+    sources:
+      - https://www.nuget.org/packages/StackExchange.Redis
+      - https://stackexchange.github.io/StackExchange.Redis/Configuration
+    adrs: ["0016", "0038"]
+    notes: The version is the one that spike 1.b ran and that the FusionCache backplane package 2.9.0 asks for. A 3.x line exists (3.4.31, checked 2026-11-03), and the repository stays on 2.x until the backplane package supports it. ConfigurationOptions.ToString() includes the password in this version, and only ToString(includePassword false) omits it, so no code prints the options (ADR-0038). The handshake reads the cluster topology and the settings of the server, reads a key to choose between two masters, and subscribes to a channel for a change of master. The connection of WP1.9 switches all four off, so the ACL of the application user names none of them (checked 2026-11-03).
+    detect: ["nuget:StackExchange.Redis"]
+  - id: microsoft-extensions-caching-stackexchangeredis
+    name: Microsoft.Extensions.Caching.StackExchangeRedis
+    category: dotnet-library
+    tier: C
+    lifecycle: adopt
+    usage: in-use
+    introduced: phase-1
+    purpose: Implements IDistributedCache over Valkey, which is the shared cache (L2) that the FusionCache adapter reads and writes.
+    license: MIT
+    license-source: https://www.nuget.org/packages/Microsoft.Extensions.Caching.StackExchangeRedis/10.0.14/license
+    version: "10.0.14"
+    sources:
+      - https://www.nuget.org/packages/Microsoft.Extensions.Caching.StackExchangeRedis
+      - https://learn.microsoft.com/aspnet/core/performance/caching/distributed
+    adrs: ["0016", "0038"]
+    notes: It stores an entry as a hash with the fields absexp, sldexp, and data, and it uses the commands hmset, hmget, expire, and unlink, which is the part of the ACL of the application user that comes from the distributed cache (checked 2026-11-03). It asks for StackExchange.Redis 2.7.27, and the central pin to 2.10.1 wins. Version 10.0.14 matches the other Microsoft.Extensions packages of the solution.
+    detect: ["nuget:Microsoft.Extensions.Caching.StackExchangeRedis"]
   - id: system-commandline
     name: System.CommandLine
     category: dotnet-library

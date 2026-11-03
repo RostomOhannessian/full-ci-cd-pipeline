@@ -4,7 +4,7 @@ description: "The handler interfaces, the results and typed errors with their ma
 audience: [learners, contributors, maintainers]
 type: reference
 tools: [fluentvalidation]
-last-verified: 2026-11-02
+last-verified: 2026-11-03
 owner: "@RostomOhannessian"
 ---
 
@@ -94,7 +94,7 @@ Each operation of [the API contract](api-contract.md) has one request and one ha
 | `discontinueProduct` | `DiscontinueProduct` | Admin | `PreconditionRequired`, `NotFound`, `PreconditionFailed` |
 
 - A command that changes a resource needs `If-Match`. The handler checks that the caller sent a version before it looks anything up, and then compares it with the version that the repository loaded. After the work, the handler calls `IUnitOfWork.SaveChangesAsync`, so the new version of the row is known inside the transaction.
-- `GetProduct` and `ListProducts` implement `ICachedQuery`. A product has the key `product:{id}` and the tag `product:{id}`, and a list has the key `products:list:{hash}` and the tags `products:list` and `category:{id}`. The cache decorator uses them, and WP1.9 turns them into FusionCache entries.
+- `GetProduct` and `ListProducts` implement `ICachedQuery`. A product has the key `product:{id}` and the tag `product:{id}`, and a list has the key `products:list:{hash}` and the tags `products:list` and `category:{id}`. The cache decorator uses them, and the FusionCache adapter turns them into entries ([the cache reference](caching.md), WP1.9).
 - A list has a page size of 1 to 100 (20 by default) and an opaque, versioned cursor over a keyset position (`PageCursor`). A cursor that was made for another sort order is refused. `IProductReadStore` and `ICategoryReadStore` return one row more than the page size, and the handler turns the extra row into `NextCursor`.
 - The validators are in `Catalog.CrossCutting.Validation`. Each runs the factories of the value objects of the domain model for the fields of its request and reports every failure, so the `errors` member names all invalid fields at once. A handler still refuses a broken rule when no validator runs.
 - `AddCategories` and `AddProducts` register the handlers through `IFeatureRegistry`, in a fixed order. The composition root implements the registry (WP1.10).
@@ -110,7 +110,7 @@ The application defines the ports, and a rule of `Catalog.Architecture.Tests` fa
 | `IIdempotencyStore` | Reserve a key, record the first result in the transaction of the command, and release a failed reservation | `IdempotencyStore`, in `Catalog.Infrastructure` (WP1.8, [ADR-0036](../adr/0036-idempotency-store.md)) |
 | `IOutboxDispatcher` | Wake the dispatcher of the node after a commit, on a best-effort basis | `OutboxDispatcher`, in `Catalog.Infrastructure` (WP1.8, [ADR-0035](../adr/0035-outbox-processor-design.md)) |
 | `IOutboxMessageHandler` | Take one message of the outbox, idempotently, and report failure by throwing | The handlers of the follow-on work, which arrive with the cache (WP1.9, planned). The processor of WP1.8 calls every registered one |
-| `ICatalogCache` | Return a cached result or load it, and remove the entries of a tag | Caching (WP1.9, planned) |
+| `ICatalogCache` | Return a cached result or load it, and remove the entries of a tag. A removal that cannot be confirmed on the shared cache or the backplane throws `CacheInvalidationIncompleteException` | `FusionCatalogCache`, in `Catalog.CrossCutting` (WP1.9, [ADR-0038](../adr/0038-catalog-cache-adapter-and-valkey-connection.md)) |
 | `ICurrentPrincipal` | Give the caller, its scopes, and its roles | API (WP1.10, planned) |
 | `IUseCaseTelemetry` | Observe a use case: trace, count, and log its outcome | Observability (WP1.11, planned) |
 | `IIdGenerator` | Create the identifier of a new product or category | `GuidV7IdGenerator`, in this layer |

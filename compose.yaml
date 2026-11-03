@@ -35,10 +35,10 @@ services:
     security_opt:
       - no-new-privileges:true
 
-  # Valkey 8.1, the long-term-support line (ADR-0016). The default user is off, and the application user sees only the catalog development keys and
-  # channels, with the command list that spike 1.b measured. The ACL file is built by Compose from .env, so the passwords stay out of the repository.
-  # The key and channel patterns cover both forms: FusionCache writes L2 keys as "v2:<prefix>:<key>" and its backplane channel as "<prefix>.Backplane:v2"
-  # (spike 1.b), and plan section 8.5 describes "catalog:<env>:*". WP1.9 owns the final key scheme and narrows this list to match it.
+  # Valkey 8.1, the long-term-support line (ADR-0016). The default user is off, and the application user sees only the keys and the channel of the catalog
+  # development environment, with the smallest command list that the cache needs (ADR-0038). The ACL file is built by Compose from .env, so the passwords
+  # stay out of the repository. FusionCache writes L2 keys as "v2:<prefix>:<key>" and its backplane channel as "<prefix>.Backplane:v2" (spike 1.b), which is
+  # what the patterns below name. Plan section 8.5 describes "catalog:<env>:*" and awaits the maintainer's decision on a correction.
   valkey:
     image: valkey/valkey:8.1@sha256:640c5e62cea04b6d6f2084232651d0cc70362d31f4f805e7be94dbed6855e8f2
     command: ["valkey-server", "--aclfile", "/etc/valkey/users.acl", "--maxmemory", "128mb", "--maxmemory-policy", "allkeys-lru", "--save", "", "--appendonly", "no"]
@@ -121,7 +121,7 @@ configs:
     content: |
       user default off
       user admin on >${VALKEY_ADMIN_PASSWORD:?Run "dev bootstrap" to create .env} ~* &* +@all
-      user ${VALKEY_APP_USER:-catalog-dev} on >${VALKEY_APP_PASSWORD:?Run "dev bootstrap" to create .env} ~v2:catalog:dev:* ~catalog:dev:* %R~__Booksleeve_TieBreak &catalog:dev.Backplane:v2 &catalog:dev:* &__Booksleeve_MasterChanged -@all +client|id +client|setinfo +client|setname +cluster|nodes +config|get +echo +expire +get +hmget +hmset +info +ping +publish +select +subscribe +unlink +unsubscribe
+      user ${VALKEY_APP_USER:-catalog-dev} on >${VALKEY_APP_PASSWORD:?Run "dev bootstrap" to create .env} ~v2:catalog:dev:* &catalog:dev.Backplane:v2 -@all +client|id +client|setinfo +client|setname +echo +expire +hmget +hmset +info +ping +publish +select +subscribe +unlink +unsubscribe
 
 volumes:
   sqlserver-data:

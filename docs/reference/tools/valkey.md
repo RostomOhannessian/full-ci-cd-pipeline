@@ -7,7 +7,7 @@ tools: [valkey, docker-compose, fusioncache]
 introduced: "phase-1"
 prerequisites: ["Docker with Compose 2.23 or newer, given at least 4 GB of memory", "A supported x86-64 host (Linux, Windows, or macOS Intel) or the Dev Container", "The repository cloned, with the ./dev command available", "A POSIX shell for the hands-on commands (Linux, macOS, WSL, or the Dev Container)"]
 estimated-time: "30 minutes"
-last-verified: 2026-10-10
+last-verified: 2026-11-03
 verified-against: { valkey: "8.1" }
 owner: "@RostomOhannessian"
 ---
@@ -44,8 +44,7 @@ flowchart LR
   V -->|"message to subscribers"| B
 ```
 
-No application code uses Valkey yet. FusionCache, the key scheme, the tags, and the circuit breakers arrive in WP1.9. What exists today is the container, its access control list,
-and the check that proves the list works. [Spike 1.b](../../research/spikes/1.b-fusioncache-valkey.md) proved that the combination behaves correctly. The database that sits beside it is on [the SQL Server page](sql-server.md).
+The cache adapter of `Catalog.CrossCutting` and the connection of `Catalog.Infrastructure` use Valkey (WP1.9, [ADR-0038](../../adr/0038-catalog-cache-adapter-and-valkey-connection.md)): the adapter builds the keys, the tags, and the circuit breakers, and the connection opens the shared cache and the backplane. The API calls that use the cache arrive when WP1.10 composes the API. [Spike 1.b](../../research/spikes/1.b-fusioncache-valkey.md) proved that the combination behaves correctly, and the tests of WP1.9 run it against a real Valkey with the access control list of the stack. The database that sits beside it is on [the SQL Server page](sql-server.md). [The cache reference](../caching.md) lists the keys, the settings, and the metrics.
 
 ## Decision rationale
 
@@ -53,7 +52,7 @@ and the check that proves the list works. [Spike 1.b](../../research/spikes/1.b-
 records no comparison with Redis or another store, so this page does not make one. What it records is why the rest of the design works with Valkey:
 
 - [ADR-0016](../../adr/0016-cache-implementation-fusioncache.md) compares five ways to build the cache, and it chose FusionCache with a Valkey L2 and backplane because Microsoft's HybridCache alone has no
-  cross-node L1 invalidation in .NET 10 (checked 2026-10-04 in the ADR). The ADR is still proposed, and WP1.9 accepts it.
+  cross-node L1 invalidation in .NET 10 (checked 2026-10-04 in the ADR). [ADR-0038](../../adr/0038-catalog-cache-adapter-and-valkey-connection.md) records how the adapter and the connection are built.
 - FusionCache does not certify Valkey. Spike 1.b ran the same two-host tests against Valkey 8.1.10 and 9.1.2 and got identical results, so either line works as the L2 and the backplane.
 - [ADR-0026](../../adr/0026-api-only-compose-stack-and-catalog-realm.md) records how the Compose stack runs it.
 
@@ -67,9 +66,9 @@ records no comparison with Redis or another store, so this page does not make on
 Four more trade-offs follow from the choice:
 
 - **A trusted-network design.** Valkey assumes trusted clients in a trusted environment (checked 2026-10-10 on [the security page](https://valkey.io/topics/security/)), so the stack binds to the loopback interface and gives each client an ACL user.
-- **No Testcontainers module.** The Testcontainers .NET project has no Valkey module, so the integration tests use its Redis builder with a pinned Valkey image (WP1.9).
+- **No Testcontainers module.** The Testcontainers .NET project has no Valkey module, so the integration tests start the pinned image from `compose.yaml` with the generic container builder (WP1.9, checked 2026-11-03).
 - **Dynamic credentials are unproven.** Whether Vault's Redis plugin can issue Valkey credentials is an open spike in WP3.0. Until then the plan falls back to rotated credentials that Vault's key-value store holds ([plan section 8.8](../../plans/implementation-plan.md)).
-- **An open plan question.** The ACL patterns that spike 1.b observed differ from the ones in plan section 8.5. The section on how this project uses Valkey describes the difference.
+- **An open plan question.** The ACL patterns that spike 1.b observed, and that the tests of WP1.9 verified, differ from the ones in plan section 8.5. The section on how this project uses Valkey describes the difference.
 
 ## Setup tutorial
 
@@ -187,8 +186,9 @@ The service and its access control list are defined in [compose.yaml](../../../c
 | [compose.yaml](../../../compose.yaml) | The `valkey` service and the `valkey-acl` config |
 | [.env.example](../../../.env.example) | `VALKEY_PORT`, `VALKEY_APP_USER` (default `catalog-dev`), and the empty `VALKEY_ADMIN_PASSWORD` and `VALKEY_APP_PASSWORD` that `dev bootstrap` fills |
 | [Dev.Compose.psm1](../../../scripts/modules/Dev.Compose.psm1) | `Test-DevValkey`, the ACL check behind `dev compose check` |
-| [DevEnvironment.Tests.ps1](../../../scripts/tests/DevEnvironment.Tests.ps1) | A Pester test that fails when the default user is on, or the application user gains `+@all`, a dangerous command, `~*`, or `&*` |
+| [DevEnvironment.Tests.ps1](../../../scripts/tests/DevEnvironment.Tests.ps1) | A Pester test that fails when the default user is on, or the application user gains `+@all`, a dangerous command, `~*`, `&*`, a pattern outside the verified two, or a command of the handshake that the cache switches off |
 | [Spike 1.b](../../research/spikes/1.b-fusioncache-valkey.md) | The measurement of the commands, keys, and channels that FusionCache needs |
+| [ValkeyAclTests.cs](../../../tests/Catalog.Infrastructure.Tests/ValkeyAclTests.cs) | Reads the rules of the application user from compose.yaml, runs the whole cache scenario with them, and fails when the log of denied commands has an entry or when the user reaches a key or a channel that it should not |
 
 What the service sets, and why:
 
@@ -210,30 +210,27 @@ The application user is `catalog-dev` unless `VALKEY_APP_USER` says otherwise, a
 | `user default off` | New connections start unauthenticated and must send credentials. The built-in user can no longer log in |
 | `user admin on … ~* &* +@all` | Full access, for the health check and for people who operate the stack |
 | `~v2:catalog:dev:*` | The keys FusionCache writes: its `v2:` marker, then the cache prefix and the key |
-| `~catalog:dev:*` | The key form that plan section 8.5 describes |
-| `%R~__Booksleeve_TieBreak` | Read-only access to a probe key that StackExchange.Redis reads when it connects |
 | `&catalog:dev.Backplane:v2` | The backplane channel, which FusionCache names `<prefix>.Backplane:v2` |
-| `&catalog:dev:*` | The channel form that plan section 8.5 describes |
-| `&__Booksleeve_MasterChanged` | A channel that StackExchange.Redis subscribes to |
-| `-@all`, then 17 `+` commands | No command at all, then only the 17 that spike 1.b measured |
+| `-@all`, then 14 `+` commands | No command at all, then only the 14 that the tests of WP1.9 showed that the cache needs |
 
-Nine of the 17 commands (`client|id`, `client|setinfo`, `client|setname`, `cluster|nodes`, `config|get`, `echo`, `info`, `ping`, and `select`) come from the StackExchange.Redis connection handshake, and
-the other eight (`expire`, `get`, `hmget`, `hmset`, `publish`, `subscribe`, `unlink`, and `unsubscribe`) come from FusionCache.
+Seven of the 14 commands (`client|id`, `client|setinfo`, `client|setname`, `echo`, `info`, `ping`, and `select`) come from the StackExchange.Redis connection handshake, and
+the other seven (`expire`, `hmget`, `hmset`, `publish`, `subscribe`, `unlink`, and `unsubscribe`) come from FusionCache and the distributed cache.
+Spike 1.b measured 17 commands, a probe key, and a second channel. The connection of WP1.9 switches off the commands `cluster|nodes` and `config|get`, the read of the probe key (`get`), and the channel `__Booksleeve_MasterChanged`
+through StackExchange.Redis settings (`CommandMap`, `TieBreaker`, and `ConfigurationChannel`), so the rules no longer name them (checked 2026-11-03, [ADR-0038](../../adr/0038-catalog-cache-adapter-and-valkey-connection.md)).
 
-**Plan section 8.5 and the observed patterns.** The plan says the ACL lets each environment user access `~catalog:{env}:*` and `&catalog:{env}:*`. Spike 1.b observed the `v2:` key prefix and the
-`<prefix>.Backplane:v2` channel, which those patterns do not match. The maintainer has not decided whether to correct the plan, so the stack allows both forms ([ADR-0026](../../adr/0026-api-only-compose-stack-and-catalog-realm.md)).
-This page takes no side. WP1.9 fixes the key scheme, narrows the list to match it, and tests the result with FusionCache.
+**Plan section 8.5 and the verified patterns.** The plan says the ACL lets each environment user access `~catalog:{env}:*` and `&catalog:{env}:*`. Spike 1.b observed, and the tests of WP1.9 verified against a real server, that FusionCache writes the keys as
+`v2:catalog:{env}:…` and names the channel `catalog:{env}.Backplane:v2`, so the patterns that the user needs are `~v2:catalog:{env}:*` and `&catalog:{env}.Backplane:v2`. The stack now allows exactly those two. The plan still says the other form,
+and a correction is the maintainer's decision, so WP1.9 does not amend it ([ADR-0038](../../adr/0038-catalog-cache-adapter-and-valkey-connection.md)).
 
-**Data flow and trust boundary.** Today only people and `dev compose check` connect, through `127.0.0.1:6379` or from inside the container. The API will run on the host and use one ACL user for the development
-environment (planned, WP1.9). The cluster will give each environment its own user, limited to that environment's prefix and channels (threat model, TB6). The integration tests will not use this container.
-They start their own throwaway Valkey through Testcontainers (plan section 10, WP1.9).
+**Data flow and trust boundary.** The API runs on the host and uses one ACL user for the development environment, through `127.0.0.1:6379`. People and `dev compose check` connect the same way, or from inside the container.
+The cluster will give each environment its own user, limited to that environment's prefix and channel (threat model, TB6). The integration tests do not use this container. They start their own throwaway Valkey from the same image digest through Testcontainers.
 
 **Ownership.** WP1.4 delivered the stack and the check, and WP1.9 delivers FusionCache, the key and tag scheme, and the final ACL.
 
 **Failure modes.**
 
-- **Valkey is down.** The plan has the cache fall back to L1 and the database behind a circuit breaker, with readiness staying green ([plan section 8.5](../../plans/implementation-plan.md)). FusionCache's circuit breaker durations default to
-  zero, which means they never activate, and spike 1.b saw every call pay the timeouts until they were set. WP1.9 sets them.
+- **Valkey is down.** The cache falls back to L1 and the database behind a circuit breaker, with readiness staying green ([plan section 8.5](../../plans/implementation-plan.md)). FusionCache's circuit breaker durations default to
+  zero, which means they never activate, and spike 1.b saw every call pay the timeouts until they were set. WP1.9 sets them to 5 seconds, validates that they are positive, and reports the state in the gauges `catalog.cache.shared.down` and `catalog.cache.backplane.down`.
 - **A backplane message is lost.** Delivery is at most once, so another node can keep a stale L1 entry until its time to live ends, which is 30 seconds by default in the plan.
 - **The cache is full.** `allkeys-lru` removes the least recently used keys. The effect is more database reads, not an error.
 - **The ACL denies a command.** The client gets `NOPERM`, and `ACL LOG` shows what was denied. The measured command list is the one that the scenario in spike 1.b needs, so a new feature that uses another command needs a rule.
@@ -276,7 +273,7 @@ For more detail, list the containers and read the Valkey log:
 | `Valkey ACL: the application user can flush the database`, or `can write a key outside the catalog prefix` | The ACL is too broad | Restore the narrow rule from compose.yaml. The Pester test fails on the same change |
 | `NOAUTH Authentication required.` from your own client | The default user is off by design | Send `--user` and `--pass` for the application user |
 | `AUTH failed: WRONGPASS invalid username-password pair or user is disabled.` | The user name or password is wrong, or the user is the `default` user, which is off | Use the values in `.env`. After a password change, run `./dev compose reset` |
-| `NOPERM` from your code | The ACL does not allow the command, key, or channel | Read `ACL LOG` as `admin`, then add the narrowest rule. WP1.9 owns the final list |
+| `NOPERM` from your code | The ACL does not allow the command, key, or channel | Read `ACL LOG` as `admin`, then add the narrowest rule, and add a test to `ValkeyAclTests` that needs it (ADR-0038) |
 | Cache entries disappear | The 128 MB limit evicts the least recently used keys, or the container restarted, and persistence is off | This is expected for a cache. Check `used_memory` against `maxmemory` in `INFO memory` |
 | `address already in use` for port 6379 | Another Valkey or Redis holds the port | Set `VALKEY_PORT` in `.env` to a free high port, then run `./dev compose up`. `./dev doctor` lists the ports that are taken |
 
@@ -285,14 +282,16 @@ For more detail, list the containers and read the Valkey log:
 - **Credentials.** The stack has two Valkey passwords, one for `admin` and one for the application user. Both are random, belong to the machine, and live in `.env`, which Git ignores. The health check and
   `dev compose check` read them inside the container, so they do not appear on a host command line. In the cluster, Vault is expected to deliver the application credentials
   (plan section 8.8), and whether those are dynamic is the open WP3.0 spike.
-- **Least privilege.** The default user is off, and the application user has 17 commands, two key patterns plus one read-only key, and three channel patterns. It cannot run `FLUSHALL`, `KEYS`, `EVAL`, `ACL`, `CONFIG SET`,
-  `DEBUG`, or `SHUTDOWN`, and a Pester test fails if that changes. Two of the allowed commands, `config|get` and `cluster|nodes`, are broader than the cache needs. They come from the client handshake,
-  and spike 1.b notes that StackExchange.Redis can disable them through its `CommandMap`. The spike did not test that, and WP1.9 should try it.
+- **Least privilege.** The default user is off, and the application user has 14 commands, one key pattern, and one channel. It cannot run `FLUSHALL`, `KEYS`, `EVAL`, `ACL`, `CONFIG`,
+  `DEBUG`, or `SHUTDOWN`, and a Pester test and `ValkeyAclTests` fail if that changes. The two commands that spike 1.b found broader than the cache needs, `config|get` and `cluster|nodes`, are gone: StackExchange.Redis disables them
+  through its `CommandMap`, and the whole scenario passes without them and without a denial in `ACL LOG` (checked 2026-11-03). A tool that connects with a plain client still meets the rules of the user.
 - **Network.** Compose publishes the port on `127.0.0.1` only. The stack does not use TLS, and Valkey sends `AUTH` unencrypted without it, which does not protect against eavesdropping (checked 2026-10-10 on
   [the security page](https://valkey.io/topics/security/)). That is acceptable on loopback. The cluster plans TLS for the data tier (threat model, TB6, WP3.4).
 - **Container hardening.** The container has `no-new-privileges` and a memory limit, and it is not privileged and has no Docker socket. It cannot run with a read-only root file system, because Compose copies
   the inline ACL config into it ([ADR-0026](../../adr/0026-api-only-compose-stack-and-catalog-realm.md)).
 - **Data.** Nothing is persisted and nothing needs a backup. A restart or `./dev compose reset` empties the cache.
+- **Rollback.** The ACL lives in `compose.yaml`, so a rollback is a revert of the pull request that changed it, then `./dev compose reset`, which recreates the container with the old rules and an empty cache. A cache
+  that the application cannot reach degrades to the loader and the memory level and never takes the API down ([ADR-0038](../../adr/0038-catalog-cache-adapter-and-valkey-connection.md)); the outage drill itself is planned in WP4.6.
 - **Updates.** Dependabot proposes updates to the tag and the digest together. A patch release is meant to be safe and seamless, and a new minor or major release deserves the release notes first (checked 2026-10-10 on
   [the release policy](https://valkey.io/topics/releases/)). Version 9.1 is a drop-in candidate, because spike 1.b saw identical behavior on 8.1.10 and 9.1.2. An update changes compose.yaml, the `valkey` entry in
   [the tool inventory](inventory.yaml), and this page, and the [Documentation.Auditor](documentation-auditor.md) compares the pin with the inventory.
@@ -302,7 +301,7 @@ For more detail, list the containers and read the Valkey log:
 ## Lab
 
 [Lab 1: Quick start: the API-only stack](../../labs/quick-start-api-stack.md) starts the stack, runs `dev compose check`, reads a Keycloak token, and cleans up. For Valkey, the check proves that the default user is off and
-that the application user reaches only its own keys and the backplane channel. The API calls that use the cache arrive in WP1.10, and the lab on L1 and L2 caching and cross-node invalidation arrives in WP1.13 ([labs index](../../labs/index.md)).
+that the application user reaches only its own keys and the backplane channel. The lab on L1 and L2 caching and cross-node invalidation arrives in WP1.13 ([labs index](../../labs/index.md)), after WP1.10 puts the cache behind the API.
 
 ## Further research
 
