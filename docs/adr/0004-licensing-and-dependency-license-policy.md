@@ -6,12 +6,13 @@ date: 2026-10-04
 decision-makers: ["@RostomOhannessian"]
 supersedes: []
 superseded-by: []
-tools: ["nuget-license", "dependency-review", "vault", "terraform", "k6", "ms-code-coverage", "fluentassertions", "mediatr", "automapper", "masstransit"]
-related-adrs: ["0002", "0008", "0018"]
+tools: ["nuget-license", "dependency-review", "vault", "terraform", "k6", "ms-code-coverage", "fluentassertions", "mediatr", "automapper", "masstransit", "sqlclient-sni-runtime"]
+related-adrs: ["0002", "0008", "0018", "0020"]
 evidence:
   - docs/research/2026-10-04-dotnet-ecosystem-verification.md
   - docs/research/2026-10-04-decision-critical-addendum.md
   - docs/research/spikes/1.c-mtp-coverage-stryker.md
+  - docs/testing/evidence/2026-11-03-sni-runtime-license-exception-run.md
 ---
 
 # ADR-0004: Adopt Apache-2.0 and enforce an open-source dependency license policy
@@ -150,9 +151,122 @@ the SQL Server end-user license on the user's behalf. The decision does not chan
 - The repository starts redistributing, embedding, or offering a currently tool-only component in a way that would make
   the exception rule invalid.
 
+## Amendment of 2026-11-03: a native Windows runtime that no shipped artifact contains
+
+The maintainer approved this amendment on 2026-11-03. It adds a second kind of license exception. The decision above, the
+allow-list, the forbidden list, and the tool-only rule are unchanged.
+
+### Context of the amendment
+
+WP1.8 (persistence and outbox, Issue #10) is the first work package that links Microsoft.Data.SqlClient. The license gate
+(`dotnet nuget-license ... -err`) then failed on exactly one package, `Microsoft.Data.SqlClient.SNI.runtime` 7.1.0
+(checked 2026-11-03 on the WP1.8 branch, see the [evidence record](../testing/evidence/2026-11-03-sni-runtime-license-exception-run.md)).
+Facts about the package, all read from the package itself on 2026-11-03:
+
+- It is a transitive dependency of Microsoft.Data.SqlClient 7.1.1 (`[7.1.0, 8.0.0)`) and of Microsoft.Data.SqlClient 6.1.7
+  (`6.0.3`), the version that the EF Core SQL Server provider 10.0.14 depends on. It appears in the lock files of
+  `src/Catalog.Api`, `src/Catalog.Infrastructure`, and two test projects. Its own description says it is
+  an internal implementation package that must not be referenced directly.
+- It holds three native Windows libraries and nothing else: `runtimes/win-x64`, `runtimes/win-x86`, and `runtimes/win-arm64`,
+  each with `Microsoft.Data.SqlClient.SNI.dll`.
+- It carries "Microsoft Software License Terms" in a `LICENSE.txt`, which `nuget-license` cannot map to an SPDX identifier
+  (the gate reports "Unable to determine license from the given license file"). The terms are not OSI-approved.
+- The terms give the right to "install and use any number of copies of the software to develop and test your applications".
+  They allow distribution of the object code only inside an application, and only if the distributor binds distributors and end
+  users to terms that protect it at least as much and indemnifies Microsoft. The terms also forbid offering it as a stand-alone
+  product.
+
+The one exception that exists is tool-only, and `DependencyPolicyTests` keeps every tool-only package out of production lock
+files. The package is in production lock files, so neither the gate nor the test could pass without a decision.
+
+### Options considered for the amendment
+
+1. A narrow exception for a native runtime of the Windows host that no shipped artifact contains, by exact package and exact
+   version (chosen).
+2. Keep the policy, and make the Windows native assets unreachable from the projects. That means a Windows host cannot run the API
+   or the persistence tests until the managed networking mode of SqlClient on Windows is decided and tested. It was not tested.
+3. Use another SQL Server driver. None exists for EF Core.
+
+### Decision of the amendment
+
+Chosen option: **a `windows-native-runtime` exception for `Microsoft.Data.SqlClient.SNI.runtime` 7.1.0 and nothing else**, because
+every SqlClient version in play depends on the package, the Phase 2 images are Linux-only and do not contain it, and a publish for
+Linux does not copy it.
+
+Each override in `governance/policies/license-overrides.json` now states its kind. The two kinds differ in where they may appear:
+
+| Kind | Where its package may appear | Entries |
+| --- | --- | --- |
+| `tool-only` (unchanged) | Test and tool projects only. Never in `src` | `Microsoft.Testing.Extensions.CodeCoverage` 18.11.2 |
+| `windows-native-runtime` (new) | Any lock file, but only as a transitive dependency, at the exact approved version | `Microsoft.Data.SqlClient.SNI.runtime` 7.1.0 under `LicenseRef-Microsoft-SqlClient-SNI-WindowsRuntime` |
+
+The scope of the new exception is the native Windows assets of that one package version, as a dependency of the SQL Server driver.
+It does not cover another package, another version of this package, a direct reference, or any file that a shipped artifact
+contains. The override records its scope and its reason, and a test fails when either is missing.
+
+The exact version is pinned in four places that must change together: the override, the allow-list entry, the approval in
+`governance/policies/security-policy.yaml`, and `DependencyPolicy.ApprovedWindowsNativeRuntime` in the architecture tests. A
+Dependabot update of SqlClient that moves the package to another version fails the license gate and both test suites until a
+person reads the new terms and amends this record.
+
+### Why the exception is acceptable
+
+- **No shipped artifact contains it.** The Phase 2 images are Linux-only: WP2.1 plans a multi-stage Dockerfile with a chiseled
+  non-root runtime for amd64 and arm64 (planned, [Phase 2 plan](../plans/phases/phase-2-secure-ci.md), checked 2026-11-03). On
+  2026-11-03 a publish of `src/Catalog.Api` with a Linux runtime identifier held no file of the package and no mention of it in
+  `Catalog.Api.deps.json`. The WP1.8 branch ran its persistence suites against SQL Server in the Linux SDK image on 2026-11-02, so
+  the driver connects without the Windows library there. A publish with no runtime identifier does copy the three Windows
+  libraries, so the image build must publish for a Linux runtime identifier. The publish check below fails when it does not.
+- **The use is the licensed use.** The package runs on Windows developer hosts and in the tests that they run, which the terms
+  allow ("develop and test your applications"). The repository holds the package ID, the version, and a content hash in lock
+  files, never the library itself, and it does not offer the package as a service.
+- **The distribution terms are never accepted.** The indemnity and the protective-terms duty for distributors are the cost of
+  shipping the library. The repository ships no Windows artifact, so it takes on neither. The conditions below say when that stops
+  being true.
+
+### Conditions that make the exception invalid
+
+The exception stops holding, and this record must be revisited, when any of these happens:
+
+1. A shipped artifact contains the package: a publish output, an image, an archive, or an SBOM that lists it.
+2. A Windows container image is added, or a publish with a Windows runtime identifier, self-contained or not, is added.
+3. The version of the package changes, through a SqlClient update or any other change.
+4. The license terms of the package change. Read `LICENSE.txt` again on every version.
+5. SqlClient offers a managed-only option on Windows that makes the native package unnecessary, so the exception can be removed.
+
+### What enforces it
+
+| Check | State | Where |
+| --- | --- | --- |
+| The gate accepts the override only for the exact version | Enforced today | The `license` job of `ci.yml`, with the override file |
+| Each override has a known kind. A native override must be the approved package, version, and license, and must record a scope and a reason. A tool-only package stays out of `src`. The native package stays at the approved version and is never a direct reference | Enforced today, with a violating fixture for each rule | `DependencyPolicyTests` and the `license-policy` rule of `governance security` |
+| No production project selects a Windows runtime identifier, and no Dockerfile builds on a Windows image (condition 2) | Enforced today, with violating fixtures | `WindowsArtifactPolicyTests` |
+| A folder of publish output holds no file of the package (condition 1) | The script and its tests exist and passed on fixtures. It ran by hand on two real publishes on 2026-11-03: it failed on the publish with no runtime identifier and passed on the Linux publish. No pipeline step runs it yet | `tools/ci/Test-NoWindowsNativeRuntime.ps1` |
+| The image build publishes for a Linux runtime identifier and runs the publish check on the real output and on the image file system | Planned, WP2.1 | The production Dockerfile and its CI job |
+| The SBOM of each image does not list the package | Planned, WP2.4 | The SBOM step of the release workflow |
+| Dependency review on pull requests honors the same exact exception | Planned, WP2.3 | The dependency review configuration |
+
+### Consequences of the amendment
+
+- Good: the WP1.8 persistence layer can merge without weakening the gate for any other package, and the exception names the exact
+  package, version, scope, and reason in machine-readable files.
+- Good: the two kinds of exception are different in the tests, so a tool-only package can still never reach production code, and a
+  new native exception cannot enter without a change to the approval, to the test constant, and to this record.
+- Bad: a closed-source native library runs on Windows developer hosts. Mitigation: it comes from nuget.org with the required
+  repository signature and a content hash in the lock file ([ADR-0020](0020-dependency-intake-controls.md)), and only the Windows
+  development and test path loads it.
+- Bad: the exception is only as good as the promise that no Windows artifact ships. Mitigation: the table above names what is
+  enforced today and what is planned, and the planned checks are part of the WP2.1, WP2.3, and WP2.4 deliveries.
+- Neutral: a Dependabot update of SqlClient now surfaces a review of the terms of this package.
+- Neutral: [the threat model](../security/threat-model.md) does not change. The exception adds no boundary, asset, or actor, because
+  dependency intake (TB2) already covers a package from nuget.org with a required signature, a content hash in the lock file, and
+  the license gate. The change is to a license posture, and the checks above hold it.
+
 ## Further reading
 
 - Implementation plan v2: [../plans/implementation-plan.md](../plans/implementation-plan.md) (checked 2026-10-04)
 - .NET ecosystem verification: [../research/2026-10-04-dotnet-ecosystem-verification.md](../research/2026-10-04-dotnet-ecosystem-verification.md) (checked 2026-10-04)
 - Decision-critical addendum: [../research/2026-10-04-decision-critical-addendum.md](../research/2026-10-04-decision-critical-addendum.md) (checked 2026-10-04)
 - Secrets broker ADR: [./0008-secrets-broker-vault-over-openbao.md](./0008-secrets-broker-vault-over-openbao.md) (checked 2026-10-04)
+- Microsoft.Data.SqlClient.SNI.runtime 7.1.0 on NuGet: [nuget.org](https://www.nuget.org/packages/Microsoft.Data.SqlClient.SNI.runtime/7.1.0) (checked 2026-11-03)
+- Evidence record of the amendment: [../testing/evidence/2026-11-03-sni-runtime-license-exception-run.md](../testing/evidence/2026-11-03-sni-runtime-license-exception-run.md) (checked 2026-11-03)

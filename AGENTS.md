@@ -67,13 +67,13 @@ These steps come from plan section 6.
 | `tools/lint/compose.yaml` | Lint container definitions used locally and in CI, and the `mutation` service that measures the strength of the domain tests | Maintainer | exists |
 | `.github/copilot-instructions.md`, `.github/instructions/`, `.github/skills/` | Repository-wide rules, path-scoped rules, and repository skills | Maintainer | exists |
 | `governance/github/` | Rulesets, labels, and milestones as code, plus a snapshot of the live settings | Maintainer | exists |
-| `governance/policies/` | The license allow-list and its exception, the forbidden-package list, the coverage thresholds, the security policy, the blast-radius map, and the session policy with its schema | Maintainer | exists (WP1.1, WP1.2, WP1.14) |
+| `governance/policies/` | The license allow-list and its two kinds of exception (tool-only, and one native Windows runtime), the forbidden-package list, the coverage thresholds, the security policy, the blast-radius map, and the session policy with its schema | Maintainer | exists (WP1.1, WP1.2, WP1.14) |
 | `ProductCatalog.slnx`, `global.json`, `Directory.Build.props`, `Directory.Packages.props`, `NuGet.config`, `.config/dotnet-tools.json` | The solution, the SDK pin, shared build settings, central package versions, NuGet trust settings, and local tools | Maintainer | exists (WP1.1) |
 | `src/` | Six server projects under Clean Architecture boundaries. `Catalog.Domain` holds the domain model (WP1.6), which references the base class library only, and the application, persistence, and API layers hold almost no code until WP1.7, WP1.8, and WP1.10 | Maintainer | exists (WP1.1, WP1.6) |
 | `tests/Catalog.Architecture.Tests/` | The architecture, reference, and dependency rules, with fixtures that prove each rule can fail, and the check that the Domain references the base class library only | Maintainer | exists (WP1.1, WP1.6) |
 | `tests/Catalog.Domain.Tests/` | The example tests and the CsCheck property tests of the domain model, with the Stryker.NET configuration for the mutation baseline | Maintainer | exists (WP1.6) |
 | `tests/Governance.Auditor.Tests/` | The tests of the governance tool, including each security rule against a conforming and a violating fixture, the session policy rules on facts that match and facts that do not, and each rule of the AI usage ledger against a valid and a violating ledger | Maintainer | exists (WP1.2, WP1.14, WP1.15) |
-| `tools/ci/` | The coverage threshold gate, the DocFX wrapper, the contract conformance script, and their Pester tests, including the tests that break the contract once for each lint rule | Maintainer | exists (WP1.1, WP1.3, WP1.5) |
+| `tools/ci/` | The coverage threshold gate, the DocFX wrapper, the contract conformance script, the check that a publish output holds no native Windows runtime of SqlClient, and their Pester tests, including the tests that break the contract once for each lint rule | Maintainer | exists (WP1.1, WP1.3, WP1.5) |
 | `tools/Governance.Auditor/` | The deterministic governance CLI: status, trace, test-summary, github-sync, security, blast-radius, session, and usage | Maintainer | exists (WP1.2, WP1.14, WP1.15) |
 | `tools/Documentation.Auditor/` | The documentation and inventory auditor | Maintainer | exists (WP1.3) |
 | `.devcontainer/` | The Dev Container: a pinned base image, locked features, and docker-in-docker | Maintainer | exists (WP1.4) |
@@ -140,6 +140,13 @@ link to another site. A change to the API contract also needs the contract lint,
 ```text
 docker compose -f tools/lint/compose.yaml run --rm contract-lint
 pwsh -NoProfile -File tools/ci/Test-ContractConformance.ps1 -Served <served document>
+```
+
+A publish output must not hold the native Windows libraries of `Microsoft.Data.SqlClient.SNI.runtime`, because the license exception for that package holds only while no shipped artifact contains it
+([ADR-0004](docs/adr/0004-licensing-and-dependency-license-policy.md), amendment of 2026-11-03). Publish for a Linux runtime identifier, then check the folder. The image build of WP2.1 runs this check on the real output (planned):
+
+```text
+pwsh -NoProfile -File tools/ci/Test-NoWindowsNativeRuntime.ps1 -Path <publish output folder>
 ```
 
 A change to the domain model, to the application layer, or to their tests can also be measured with a mutation run, which reports how well the tests catch a change to the code. It runs Stryker.NET in a Linux container,
@@ -248,7 +255,7 @@ type-level rules run against the built assemblies. The fixtures in that project 
 - `Catalog.Client` depends on generated contract code only and must stay independent from server projects.
 - Use explicit CQRS plumbing with direct handler interfaces and explicit decorator registration; do not introduce mediator-style runtime dispatch as the default.
 - Keep ports in the inner layers and adapters in the outer layers.
-- Do not add FluentAssertions 8+, MediatR 13+, AutoMapper 15+, MassTransit 9+, or any non-OSI linked dependency.
+- Do not add FluentAssertions 8+, MediatR 13+, AutoMapper 15+, MassTransit 9+, or any non-OSI linked dependency. The one exception is the native Windows runtime of SqlClient, `Microsoft.Data.SqlClient.SNI.runtime` 7.1.0, which no shipped artifact may contain ([ADR-0004](docs/adr/0004-licensing-and-dependency-license-policy.md), amendment of 2026-11-03).
 
 ## Security and supply-chain rules
 
@@ -261,7 +268,7 @@ These summarize plan section 9 and the accepted Phase 0 ADRs.
 - Require approval for workflows from outside contributors.
 - Never execute pull request code from `pull_request_target`.
 - Enforce secret scanning, gitleaks, dependency-license policy, and dependency review.
-- Treat tool-only non-permissive licenses as exceptions that need ADR-backed notes.
+- Treat tool-only non-permissive licenses as exceptions that need ADR-backed notes. A native Windows runtime exception is a second kind, for one exact package and version, with its own conditions in ADR-0004.
 - Review and pin external skills before any use.
 - Run CodeQL only on the public repository, never on private copies.
 

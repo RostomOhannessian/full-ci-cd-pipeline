@@ -17,7 +17,7 @@ Use this checklist for AI and human review. Mark a finding as **blocking** when 
 - [ ] Infrastructure implements application ports without leaking infrastructure types inward (from WP 1.8).
 - [ ] API code stays a composition root and transport layer, not a home for business logic (from WP 1.10).
 - [ ] The change uses explicit CQRS handlers and decorators rather than mediator-style runtime dispatch by default (from WP 1.7).
-- [ ] The change does not introduce banned libraries or non-OSI linked dependencies (from WP 1.1).
+- [ ] The change does not introduce banned libraries or non-OSI linked dependencies (from WP 1.1), apart from the one exception that ADR-0004 records.
 
 ## Security
 
@@ -54,7 +54,7 @@ Use this checklist for AI and human review. Mark a finding as **blocking** when 
 - [ ] The change uses SHA-pinned GitHub Actions and digest-pinned images only.
 - [ ] The change keeps workflow permissions minimal and compatible with the repository's read-only default token.
 - [ ] The change does not execute pull request code from `pull_request_target` or similar privileged paths.
-- [ ] The change respects the dependency license policy and the tool-only exception rules.
+- [ ] The change respects the dependency license policy and both kinds of exception: a tool-only package stays out of `src`, and the native Windows runtime exception covers only its exact package and version.
 - [ ] The change records or updates evidence for scanners, SBOMs, attestations, or policy checks when those surfaces change (from WP2.4).
 
 ## Infrastructure and Kubernetes

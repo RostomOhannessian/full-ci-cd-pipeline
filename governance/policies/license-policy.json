@@ -8,5 +8,6 @@
   "MPL-2.0",
   "0BSD",
   "Zlib",
-  "LicenseRef-Microsoft-DotNet-Library-ToolOnly"
+  "LicenseRef-Microsoft-DotNet-Library-ToolOnly",
+  "LicenseRef-Microsoft-SqlClient-SNI-WindowsRuntime"
 ]

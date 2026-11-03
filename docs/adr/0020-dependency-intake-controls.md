@@ -111,6 +111,15 @@ both resolve through the nuget.org source mapping with the required signature, a
 override. [ADR-0021](0021-governance-auditor-cli.md) records why the JSON Schema library with the largest following was not chosen: its
 current license is not an OSI license.
 
+Execution record (license exception, 2026-11-03): WP1.8 added the first package that the gate could not map to an allowed license,
+`Microsoft.Data.SqlClient.SNI.runtime` 7.1.0, a transitive dependency of SqlClient that holds only native Windows libraries. The
+[amendment of ADR-0004](0004-licensing-and-dependency-license-policy.md#amendment-of-2026-11-03-a-native-windows-runtime-that-no-shipped-artifact-contains)
+adds a second kind of override, `windows-native-runtime`, for that exact package and version. Every override in
+`license-overrides.json` now states its kind. A tool-only package still fails when a production project resolves it. The native package
+may be a transitive package of any project, but only at the approved version, and a native override needs its scope and its reason.
+The architecture tests and the `license-policy` rule read the same files, and each rule has a violating fixture. The decision of this
+ADR does not change.
+
 ## Pros and cons of the options
 
 ### Central Package Management with lock files, required signatures, and CI gates

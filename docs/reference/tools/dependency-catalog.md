@@ -2,7 +2,7 @@
 title: "Dependency catalog"
 description: "The libraries, Dev Container features, images, and actions that this repository uses and that need no page of their own: what each is for, why it was chosen, how it is referenced, and where to read more."
 audience: [learners, contributors]
-last-verified: 2026-11-01
+last-verified: 2026-11-03
 owner: "@RostomOhannessian"
 ---
 
@@ -236,6 +236,26 @@ clock.Advance(TimeSpan.FromMinutes(5));
 - [Microsoft.Extensions.TimeProvider.Testing 10.10.0 on NuGet](https://www.nuget.org/packages/Microsoft.Extensions.TimeProvider.Testing/10.10.0) (checked 2026-10-12)
 - [The extensions repository](https://github.com/dotnet/extensions) (checked 2026-10-12)
 - [TimeProvider and ITimer in .NET](https://learn.microsoft.com/dotnet/core/extensions/timeprovider) (checked 2026-10-12)
+
+## Microsoft.Data.SqlClient.SNI.runtime
+
+**Purpose.** Holds the native Windows networking library (the SQL Server Network Interface, SNI) that Microsoft.Data.SqlClient loads on a Windows host. The package contains three libraries and nothing else: `runtimes/win-x64`, `runtimes/win-x86`, and `runtimes/win-arm64`. On Linux, SqlClient does not use it. Its description says that it is an internal implementation package that no project should reference directly.
+
+**Rationale.** Microsoft.Data.SqlClient 7.1.1 and 6.1.7 both depend on it (checked 2026-11-03 in their package metadata), so the repository cannot link the driver without it in the dependency graph. Its license is the Microsoft Software License Terms for the SNI library, which are not OSI-approved, and `nuget-license` cannot map them to an allowed license. The terms allow use "to develop and test your applications". They allow distribution of the object code only inside an application, with protective terms for distributors and users and an indemnity for Microsoft (checked 2026-11-03 in the package's `LICENSE.txt`). The repository accepts the package as a narrow exception, because no shipped artifact contains it: the Phase 2 images are Linux-only, and a publish for a Linux runtime identifier does not copy it. A publish with no runtime identifier does copy the Windows libraries, so the image build must publish for a Linux runtime identifier. [ADR-0004](../../adr/0004-licensing-and-dependency-license-policy.md#amendment-of-2026-11-03-a-native-windows-runtime-that-no-shipped-artifact-contains) records the decision, the conditions that end it, and which checks are enforced today and which are planned. The exception names version 7.1.0 exactly, so a SqlClient update that moves the package fails the license gate and the architecture tests until the new terms are read.
+
+**Setup.** No project names the package, and `Directory.Packages.props` does not pin it. It arrives through Microsoft.Data.SqlClient. The exception lives in the license policy files, where the override records its kind, its scope, and its reason (excerpt).
+
+```json
+{ "Id": "Microsoft.Data.SqlClient.SNI.runtime", "Version": "7.1.0", "Kind": "windows-native-runtime" }
+```
+
+**Used by.** Planned in WP1.8: every project that restores Microsoft.Data.SqlClient, which is `src/Catalog.Infrastructure` and the projects that reference it, as a transitive dependency. Only a Windows host loads the library, for development and for tests. `governance/policies/license-overrides.json`, `governance/policies/license-policy.json`, and `governance/policies/security-policy.yaml` hold the exception, and `tests/Catalog.Architecture.Tests` and `tools/ci/Test-NoWindowsNativeRuntime.ps1` check it.
+
+**Sources.**
+
+- [Microsoft.Data.SqlClient.SNI.runtime 7.1.0 on NuGet](https://www.nuget.org/packages/Microsoft.Data.SqlClient.SNI.runtime/7.1.0) (checked 2026-11-03)
+- [The license of the package on NuGet](https://www.nuget.org/packages/Microsoft.Data.SqlClient.SNI.runtime/7.1.0/license) (checked 2026-11-03)
+- [The SqlClient project](https://aka.ms/sqlclientproject) (checked 2026-11-03)
 
 ## FluentValidation
 

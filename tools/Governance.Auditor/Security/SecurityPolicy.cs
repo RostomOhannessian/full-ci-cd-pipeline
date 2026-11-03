@@ -97,6 +97,18 @@ internal sealed record LicensePolicy
     public IReadOnlyList<string> DeniedLicensePrefixes { get; init; } = [];
 
     public IReadOnlyList<string> AllowedLicenseReferences { get; init; } = [];
+
+    public IReadOnlyList<WindowsNativeRuntime> AllowedWindowsNativeRuntimes { get; init; } = [];
+}
+
+/// <summary>A native runtime of the Windows host that no shipped artifact contains, named by exact package and version (ADR-0004).</summary>
+internal sealed record WindowsNativeRuntime
+{
+    public required string Id { get; init; }
+
+    public required string Version { get; init; }
+
+    public required string License { get; init; }
 }
 
 internal sealed record CommitIdentityPolicy
