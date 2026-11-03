@@ -3,7 +3,7 @@ title: "Requirements traceability"
 description: "A generated map from every requirement to the tests and evidence that prove it, and to the work packages that deliver it."
 type: reference
 audience: [maintainers, contributors, learners]
-last-verified: 2026-11-02
+last-verified: 2026-11-03
 owner: "@RostomOhannessian"
 ---
 
@@ -18,9 +18,9 @@ A requirement is in scope once every work package that delivers it is completed,
 | Measure | Requirements |
 | --- | --- |
 | Requirements | 123 |
-| In scope and covered | 20 |
+| In scope and covered | 24 |
 | In scope and missing proof | 0 |
-| Covered before they are due | 42 |
+| Covered before they are due | 38 |
 | Not yet due | 61 |
 | Deferred or withdrawn | 0 |
 

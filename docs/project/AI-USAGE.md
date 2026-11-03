@@ -3,13 +3,13 @@ title: "AI usage"
 description: "What the AI-paired sessions of this project cost, by phase, work package, model, and effort, and the observed AIU for each size class."
 type: status
 audience: [maintainers, contributors, learners]
-last-verified: 2026-11-02
+last-verified: 2026-11-03
 owner: "@RostomOhannessian"
 ---
 
 # AI usage
 
-This page is generated from [ai-usage.yaml](ai-usage.yaml), which is the source of truth, by `governance usage render`. Do not edit it by hand. A session adds its own records with the `/ai-usage-recorder` skill, then runs the command and commits both files. CI fails when this page differs from the command's output. Last updated 2026-11-02.
+This page is generated from [ai-usage.yaml](ai-usage.yaml), which is the source of truth, by `governance usage render`. Do not edit it by hand. A session adds its own records with the `/ai-usage-recorder` skill, then runs the command and commits both files. CI fails when this page differs from the command's output. Last updated 2026-11-03.
 
 The unit is the AI unit (AIU) that the Copilot session store reports for each model call. Derived AIU is the part that was computed from token counts and recorded prices instead, because only the cloud copy of the store held the calls, and it is a floor. [How to read the ledger, the attribution rules, and the estimate](../explanation/ai-usage-statistics.md) explain the columns. To estimate the work that remains, run `dotnet run --project tools/Governance.Auditor -- usage estimate`.
 
@@ -52,6 +52,7 @@ The completed work packages and what it cost to deliver each. Changed lines are 
 | WP1.5 | M | Contract v1 design | 1,934 | 284 | 53 | 670,069 | 0 | 2 | 4,926 | 393 | windowed | 0.0% |
 | WP1.6 | M | Domain model | 1,889 | 336 | 55 | 687,304 | 1 | 4 | 5,041 | 375 | windowed | 0.0% |
 | WP1.7 | L | Application layer | 2,599 | 335 | 46 | 658,362 | 0 | 2 | 6,599 | 394 | exact | 100.0% |
+| WP1.8 | L | Persistence and outbox | 2,870 | 474 | 75 | 701,959 | 1 | 1 | 12,356 | 232 | exact | 100.0% |
 | WP1.14 | S | Session boundaries | 1,474 | 196 | 35 | 525,136 | 0 | 1 | 3,392 | 434 | exact | 0.0% |
 | WP1.15 | M | AI usage statistics | 1,236 | 177 | 35 | 520,070 | 0 | 3 | 4,023 | 307 | exact | 0.0% |
 
@@ -63,7 +64,7 @@ The size classes are the focused effort of plan section 5.7, and the weights are
 | --- | --- | --- | --- | --- | --- |
 | S | 2 | 1,337 | 1,405 | 1,474 | 2,811 |
 | M | 6 | 1,236 | 1,889 | 1,934 | 630 |
-| L | 2 | 2,599 | 2,935 | 3,271 | 452 |
+| L | 3 | 2,599 | 2,870 | 3,271 | 442 |
 
 ## By model and effort
 
