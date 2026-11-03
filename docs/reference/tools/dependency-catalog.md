@@ -342,3 +342,48 @@ The driver also depends on `Microsoft.Data.SqlClient.SNI.runtime`, a native Wind
 
 - [Microsoft.Extensions.Hosting.Abstractions 10.0.14 on NuGet](https://www.nuget.org/packages/Microsoft.Extensions.Hosting.Abstractions/10.0.14) (checked 2026-11-02)
 - [Background tasks with hosted services](https://learn.microsoft.com/aspnet/core/fundamentals/host/hosted-services) (checked 2026-11-02)
+
+## StackExchange.Redis
+
+**Purpose.** The client library that speaks the Redis protocol, which Valkey also speaks. It opens one multiplexed connection that many callers share, sends commands, and delivers the messages of a subscription. The catalog opens two connections with it, one under the shared cache (L2) and one under the backplane that tells the other nodes to drop an entry.
+
+**Rationale.** FusionCache's Redis backplane and the distributed cache of Microsoft both build on it, so the repository uses it and does not choose it. It is MIT licensed, and the allow-list of [ADR-0004](../../adr/0004-licensing-and-dependency-license-policy.md) accepts it. Version 2.10.1 is the one that [spike 1.b](../../research/spikes/1.b-fusioncache-valkey.md) ran and that the backplane package asks for.
+A 3.x line exists (3.4.31, checked 2026-11-03), and `Directory.Packages.props` pins 2.10.1 until the backplane package supports it ([ADR-0038](../../adr/0038-catalog-cache-adapter-and-valkey-connection.md)). Two behaviors of the client matter here: its handshake reads the cluster topology and the settings of the server, reads a key to choose between masters, and listens on a channel for a change of master, and `ConfigurationOptions.ToString()` includes the password (checked 2026-11-03).
+`ValkeyConnection` switches the four reads of the handshake off, and no code prints the options.
+
+**Setup.** The project names the package, and the central file holds the version. The connection never aborts when the server is down, so the host starts without Valkey.
+
+```xml
+<PackageReference Include="StackExchange.Redis" />
+```
+
+```csharp
+AbortOnConnectFail = false, CommandMap = CommandMap.Create(new HashSet<string> { "CLUSTER", "CONFIG" }, available: false)
+```
+
+**Used by.** `src/Catalog.Infrastructure`, in `Caching/ValkeyConnection.cs`, and `tests/Catalog.Infrastructure.Tests`, which read what the code under test left in Valkey and read the log of denied commands.
+
+**Sources.**
+
+- [StackExchange.Redis 2.10.1 on NuGet](https://www.nuget.org/packages/StackExchange.Redis/2.10.1) (checked 2026-11-03)
+- [The configuration page of StackExchange.Redis](https://stackexchange.github.io/StackExchange.Redis/Configuration) (checked 2026-11-03)
+
+## Microsoft.Extensions.Caching.StackExchangeRedis
+
+**Purpose.** Implements `IDistributedCache` over Valkey. It stores an entry as a hash and gives it an expiration, and it is the shared cache (L2) that FusionCache reads and writes, so a node that starts warm finds the entries of the others.
+
+**Rationale.** FusionCache needs an `IDistributedCache`, and this is the one that Microsoft ships for the Redis protocol. It is MIT licensed, and version 10.0.14 matches the other Microsoft packages of the solution (checked 2026-11-03 in the nuspec file). The commands that it sends are `hmset`, `hmget`, `expire`, and `unlink`, which is the part of the access control list of the application user that comes from it.
+It asks for `StackExchange.Redis` 2.7.27, and the central pin to 2.10.1 wins ([ADR-0038](../../adr/0038-catalog-cache-adapter-and-valkey-connection.md)).
+
+**Setup.** The project names the package, and the central file holds the version. The composition root disposes what the factory returns.
+
+```xml
+<PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" />
+```
+
+**Used by.** `src/Catalog.Infrastructure`, in `Caching/ValkeyConnection.cs`.
+
+**Sources.**
+
+- [Microsoft.Extensions.Caching.StackExchangeRedis 10.0.14 on NuGet](https://www.nuget.org/packages/Microsoft.Extensions.Caching.StackExchangeRedis/10.0.14) (checked 2026-11-03)
+- [Distributed caching in ASP.NET Core](https://learn.microsoft.com/aspnet/core/performance/caching/distributed) (checked 2026-11-03)

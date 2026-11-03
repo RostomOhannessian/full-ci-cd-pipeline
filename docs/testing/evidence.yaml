@@ -2,7 +2,7 @@
 # carrying its ID, so they need no entry here. Each entry names a file that must exist. `governance trace` reads this file, checks every
 # path, and renders docs/testing/traceability.md. The schema is evidence.schema.json, and ADR-0022 explains the rules.
 schema-version: 1
-last-verified: '2026-11-02'
+last-verified: '2026-11-03'
 entries:
   - requirements: [REQ-GOV-001]
     kind: docs
@@ -179,3 +179,13 @@ entries:
     path: docs/adr/0037-credential-rotation-and-pool-clearing.md
     summary: ADR-0037 records the cached source, the interceptor, the single connection string function, the janitor and the order rotate, switch, clear, revoke, the handling of a bad file, and the rule that no credential value reaches any text.
     recorded: '2026-11-02'
+  - requirements: [REQ-CACHE-001, REQ-CACHE-003]
+    kind: manual
+    path: docs/testing/evidence/2026-11-03-cache-adapter-run.md
+    summary: The cache adapter ran against a real Valkey 8.1 container that an assembly fixture starts from the digest of compose.yaml, on Windows with Docker Desktop and in the pinned Linux SDK image. The keys follow the scheme of the contract, the application user passes the whole scenario with the rules read from compose.yaml and no denied command, a refusal never reaches Valkey, and no key, value, or log line holds the password.
+    recorded: '2026-11-03'
+  - requirements: [REQ-CACHE-001, REQ-CACHE-002, REQ-CACHE-003]
+    kind: docs
+    path: docs/adr/0038-catalog-cache-adapter-and-valkey-connection.md
+    summary: ADR-0038 records the layers of the adapter and the connection, the keys and the version of the contract, what is kept and what is not, the circuit breakers and the removal that reports that it is incomplete, the metrics, the access control list, and where plan section 8.5 and a real Valkey differ.
+    recorded: '2026-11-03'

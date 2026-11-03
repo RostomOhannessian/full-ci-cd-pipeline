@@ -55,6 +55,18 @@
     <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.14" />
   </ItemGroup>
 
+  <!-- Catalog caching (ADR-0016, ADR-0038). Every package is MIT licensed (the license expression of each nuspec, checked 2026-11-03), and 2.9.0 is the newest FusionCache (checked 2026-11-03), which is the version of
+       plan section 17 that spike 1.b ran. CrossCutting holds FusionCache and its System.Text.Json serializer. Infrastructure holds the connection to Valkey: the distributed cache and the backplane, both over
+       StackExchange.Redis. The backplane package depends on StackExchange.Redis 2.10.1 and the distributed cache package on 2.7.27, so the pin below makes the version that the spike ran the one that every
+       project resolves. 3.x of StackExchange.Redis exists (checked 2026-11-03), and the repository stays on the 2.x line until FusionCache's backplane package supports it. -->
+  <ItemGroup>
+    <PackageVersion Include="ZiggyCreatures.FusionCache" Version="2.9.0" />
+    <PackageVersion Include="ZiggyCreatures.FusionCache.Serialization.SystemTextJson" Version="2.9.0" />
+    <PackageVersion Include="ZiggyCreatures.FusionCache.Backplane.StackExchangeRedis" Version="2.9.0" />
+    <PackageVersion Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.0.14" />
+    <PackageVersion Include="StackExchange.Redis" Version="2.10.1" />
+  </ItemGroup>
+
   <!-- Catalog.Infrastructure.Tests (ADR-0034). Testcontainers is MIT licensed. 4.16.0 exists (checked 2026-11-01), and the repository keeps the 4.15.0 of plan section 17 that spike 1.d ran
        until Dependabot proposes the update. -->
   <ItemGroup>

@@ -133,6 +133,12 @@ namespace Catalog.Architecture.Tests.Fixtures.Violations.Infrastructure
     {
         private readonly Api.Startup _startup = new();
     }
+
+    // Breaks "infrastructure-uses-no-part-of-fusioncache-beyond-the-backplane": the connection to Valkey builds the backplane, and the cache itself is the adapter's.
+    public sealed class FusionAwareStore
+    {
+        public ZiggyCreatures.Caching.Fusion.FusionCache? Cache { get; init; }
+    }
 }
 
 namespace Catalog.Architecture.Tests.Fixtures.Violations.CrossCutting
@@ -147,6 +153,18 @@ namespace Catalog.Architecture.Tests.Fixtures.Violations.CrossCutting
     public sealed class DirectDatabaseDecorator
     {
         private readonly Infrastructure.SqlProductStore _store = new();
+    }
+
+    // Breaks "cross-cutting-does-not-use-the-valkey-client": the connection to Valkey is Infrastructure's.
+    public sealed class ValkeyAwareAdapter
+    {
+        public StackExchange.Redis.ConnectionMultiplexer? Connection { get; init; }
+    }
+
+    // Breaks "only-the-caching-namespace-of-cross-cutting-uses-fusioncache": a type outside the caching namespace names the library.
+    public sealed class FusionAwareAdapter
+    {
+        public ZiggyCreatures.Caching.Fusion.FusionCache? Cache { get; init; }
     }
 }
 

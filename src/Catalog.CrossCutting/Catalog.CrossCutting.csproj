@@ -11,4 +11,10 @@
     <PackageReference Include="FluentValidation" />
   </ItemGroup>
 
+  <!-- The cache adapter uses FusionCache over the abstract distributed cache and backplane that Infrastructure builds (plan section 8.1, ADR-0038). -->
+  <ItemGroup>
+    <PackageReference Include="ZiggyCreatures.FusionCache" />
+    <PackageReference Include="ZiggyCreatures.FusionCache.Serialization.SystemTextJson" />
+  </ItemGroup>
+
 </Project>

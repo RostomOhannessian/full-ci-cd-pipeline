@@ -86,6 +86,9 @@ Describe 'compose.yaml, the API-only stack' {
         $appLine | Should -Match '-@all'
         $appLine | Should -Not -Match '\+@all|\+@dangerous|\+flushall|\+flushdb|\+keys|\+eval|\+acl|\+config\|set|\+debug|\+shutdown'
         $appLine | Should -Match '~v2:catalog:dev:\*'
+        $appLine | Should -Match '&catalog:dev\.Backplane:v2'
+        $appLine | Should -Not -Match '~catalog:dev|&catalog:dev:|__Booksleeve' -Because 'only the patterns that the tests of WP1.9 verified remain (ADR-0038)'
+        $appLine | Should -Not -Match '\+config|\+cluster|\+get\b' -Because 'the connection of the cache switches off the commands of the handshake that it does not need (ADR-0038)'
         $appLine | Should -Not -Match '~\*'
         $appLine | Should -Not -Match '&\*'
     }

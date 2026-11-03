@@ -44,6 +44,17 @@ internal static class ArchitectureRules
     // Anything that looks a member up or calls it by name is runtime dispatch, which the explicit pipeline replaces. Reading the name of a type is not, so MemberInfo and Type stay allowed.
     private const string Reflection = @"^(System\.Reflection\.(MethodInfo|MethodBase|ConstructorInfo|PropertyInfo|FieldInfo|Assembly|Emit(\..*)?)|System\.Activator)$";
 
+    // The connection to Valkey is Infrastructure's (plan section 8.1, ADR-0038): the client of StackExchange.Redis, the distributed cache over it, and the backplane over it.
+    private const string ValkeyClient = @"^(StackExchange\.Redis|Microsoft\.Extensions\.Caching\.StackExchangeRedis|ZiggyCreatures\.Caching\.Fusion\.Backplane\.StackExchangeRedis)\.";
+
+    // FusionCache itself is CrossCutting's. Infrastructure builds the backplane that the adapter uses, so it may name the backplane namespace and nothing else of the library.
+    private const string FusionCacheBeyondTheBackplane = @"^ZiggyCreatures\.Caching\.Fusion\.(?!Backplane\.)";
+
+    private const string FusionCache = @"^ZiggyCreatures\.Caching\.Fusion\.";
+
+    // The adapter and its helpers live in this namespace of CrossCutting, and no other type of the project names the library.
+    private const string CachingNamespace = @"\.Caching(\..*)?$";
+
     public static IReadOnlyList<NamedRule> All { get; } =
     [
         new(
@@ -71,6 +82,23 @@ internal static class ArchitectureRules
             "cross-cutting-does-not-depend-on-infrastructure-or-the-composition-root",
             "REQ-ARC-001",
             (layers, strict) => Finish(Types().That().Are(layers.CrossCutting).Should().NotDependOnAnyTypesThat().Are(AnyOf(layers.Infrastructure, layers.Api)), strict)),
+
+        new(
+            "cross-cutting-does-not-use-the-valkey-client",
+            "REQ-CACHE-001",
+            (layers, strict) => Finish(Types().That().Are(layers.CrossCutting).Should().NotDependOnAnyTypesThat().HaveFullNameMatching(ValkeyClient), strict)),
+
+        new(
+            "infrastructure-uses-no-part-of-fusioncache-beyond-the-backplane",
+            "REQ-CACHE-001",
+            (layers, strict) => Finish(Types().That().Are(layers.Infrastructure).Should().NotDependOnAnyTypesThat().HaveFullNameMatching(FusionCacheBeyondTheBackplane), strict)),
+
+        new(
+            "only-the-caching-namespace-of-cross-cutting-uses-fusioncache",
+            "REQ-CACHE-001",
+            (layers, strict) => Finish(
+                Types().That().Are(layers.CrossCutting).And().DoNotResideInNamespaceMatching(CachingNamespace).Should().NotDependOnAnyTypesThat().HaveFullNameMatching(FusionCache),
+                strict)),
 
         new(
             "no-service-locator-outside-the-composition-root",

@@ -80,6 +80,14 @@ namespace Catalog.Architecture.Tests.Fixtures.Clean.Infrastructure
     {
         public Domain.Widget Find() => new();
     }
+
+    // Infrastructure owns the connection to Valkey, and it builds the backplane that the adapter of CrossCutting uses.
+    internal sealed class ValkeyConnectionFactory
+    {
+        public StackExchange.Redis.ConnectionMultiplexer? Connection { get; init; }
+
+        public ZiggyCreatures.Caching.Fusion.Backplane.IFusionCacheBackplane? Backplane { get; init; }
+    }
 }
 
 namespace Catalog.Architecture.Tests.Fixtures.Clean.CrossCutting
@@ -93,6 +101,17 @@ namespace Catalog.Architecture.Tests.Fixtures.Clean.CrossCutting
     internal static class WidgetPipeline
     {
         public static WidgetLoggingDecorator Compose() => new();
+    }
+}
+
+namespace Catalog.Architecture.Tests.Fixtures.Clean.CrossCutting.Caching
+{
+    // The adapter of the cache is the one place of CrossCutting that names FusionCache.
+    internal sealed class WidgetCacheAdapter
+    {
+        public ZiggyCreatures.Caching.Fusion.FusionCache? Cache { get; init; }
+
+        public ZiggyCreatures.Caching.Fusion.Backplane.IFusionCacheBackplane? Backplane { get; init; }
     }
 }
 
