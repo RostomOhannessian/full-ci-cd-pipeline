@@ -903,6 +903,59 @@ entries:
     adrs: ["0016", "0038"]
     notes: It stores an entry as a hash with the fields absexp, sldexp, and data, and it uses the commands hmset, hmget, expire, and unlink, which is the part of the ACL of the application user that comes from the distributed cache (checked 2026-11-03). It asks for StackExchange.Redis 2.7.27, and the central pin to 2.10.1 wins. Version 10.0.14 matches the other Microsoft.Extensions packages of the solution.
     detect: ["nuget:Microsoft.Extensions.Caching.StackExchangeRedis"]
+  - id: microsoft-aspnetcore-authentication-jwtbearer
+    name: Microsoft.AspNetCore.Authentication.JwtBearer
+    category: dotnet-library
+    tier: C
+    lifecycle: adopt
+    usage: in-use
+    introduced: phase-1
+    purpose: Validates the bearer token of every request of the catalog API against the issuer, the audience, the signing keys of the identity provider, and the lifetime.
+    license: MIT
+    license-source: https://www.nuget.org/packages/Microsoft.AspNetCore.Authentication.JwtBearer/10.0.14/license
+    version: "10.0.14"
+    repo: https://github.com/dotnet/aspnetcore
+    sources:
+      - https://www.nuget.org/packages/Microsoft.AspNetCore.Authentication.JwtBearer
+      - https://learn.microsoft.com/aspnet/core/security/authentication/jwt-authn
+    adrs: ["0026", "0040"]
+    notes: Catalog.Api configures it in Security/ConfigureJwtBearer.cs from WP1.10 (checked 2026-11-03). It depends on Microsoft.IdentityModel.Protocols.OpenIdConnect 8.19.2 (MIT), which reads the metadata and the keys. The defaults that the API changes are the exact issuer (the handler also accepts the issuer that the metadata names), the algorithm allow-list RS256 and ES256, and the last known good configuration (off, because it keeps a withdrawn key for an hour). The token handler reads the system clock and has no TimeProvider, so the tests build tokens from the clock of the machine with a margin of one second.
+    detect: ["nuget:Microsoft.AspNetCore.Authentication.JwtBearer"]
+  - id: microsoft-extensions-diagnostics-healthchecks-abstractions
+    name: Microsoft.Extensions.Diagnostics.HealthChecks.Abstractions
+    category: dotnet-library
+    tier: C
+    lifecycle: adopt
+    usage: in-use
+    introduced: phase-1
+    purpose: Defines IHealthCheck, so Catalog.Infrastructure and Catalog.CrossCutting implement the checks of the readiness probe without a reference to ASP.NET Core.
+    license: MIT
+    license-source: https://www.nuget.org/packages/Microsoft.Extensions.Diagnostics.HealthChecks.Abstractions/10.0.14/license
+    version: "10.0.14"
+    sources:
+      - https://www.nuget.org/packages/Microsoft.Extensions.Diagnostics.HealthChecks.Abstractions
+      - https://learn.microsoft.com/aspnet/core/host-and-deploy/health-checks
+    adrs: ["0040"]
+    notes: The package holds only the abstractions, and the Api registers the checks and serves the endpoints from the shared framework of ASP.NET Core (checked 2026-11-03). The version matches the other Microsoft.Extensions packages of the solution.
+    detect: ["nuget:Microsoft.Extensions.Diagnostics.HealthChecks.Abstractions"]
+  - id: microsoft-aspnetcore-mvc-testing
+    name: Microsoft.AspNetCore.Mvc.Testing
+    category: dotnet-library
+    tier: C
+    lifecycle: adopt
+    usage: in-use
+    introduced: phase-1
+    purpose: Starts the composition root of the API in process for the integration tests, with the test server of ASP.NET Core.
+    license: MIT
+    license-source: https://www.nuget.org/packages/Microsoft.AspNetCore.Mvc.Testing/10.0.14/license
+    version: "10.0.14"
+    repo: https://github.com/dotnet/aspnetcore
+    sources:
+      - https://www.nuget.org/packages/Microsoft.AspNetCore.Mvc.Testing
+      - https://learn.microsoft.com/aspnet/core/test/integration-tests
+    adrs: ["0034", "0040"]
+    notes: Only tests/Catalog.Api.Tests references it, and no production project does (checked 2026-11-03). It brings Microsoft.AspNetCore.TestHost, Microsoft.Extensions.DependencyModel, and Microsoft.Extensions.Hosting, all MIT. The tests build the host from the same registrations as Program, and PactNet needs a real socket in Phase 4, which UseKestrel gives (spike 1.a).
+    detect: ["nuget:Microsoft.AspNetCore.Mvc.Testing"]
   - id: system-commandline
     name: System.CommandLine
     category: dotnet-library

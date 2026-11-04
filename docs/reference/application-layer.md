@@ -11,7 +11,7 @@ owner: "@RostomOhannessian"
 # Application layer
 
 The application layer is the project [`src/Catalog.Application`](../../src/Catalog.Application/Catalog.Application.csproj). It holds the use cases of the catalog and the ports that the outer layers implement. It references the domain model and the base class library only
-([ADR-0032](../adr/0032-decorator-pipeline-and-application-results.md)). The decorator code is in `Catalog.CrossCutting`, the registration lives in the composition root, and the adapters of the ports arrive with the persistence (WP1.8), the cache (WP1.9), and the endpoints (WP1.10). WP1.7 delivered the results, the errors, the permission table, and the ports (first pull request), the pipeline (second), and the use cases with their read stores, validators, and registration (third).
+([ADR-0032](../adr/0032-decorator-pipeline-and-application-results.md)). The decorator code is in `Catalog.CrossCutting`, the registration lives in the composition root (`Catalog.Api`, [the HTTP API host](http-api.md)), and the adapters of the ports came with the persistence (WP1.8), the cache (WP1.9), and the API (WP1.10). WP1.7 delivered the results, the errors, the permission table, and the ports (first pull request), the pipeline (second), and the use cases with their read stores, validators, and registration (third).
 
 ## Handler interfaces
 
@@ -48,7 +48,7 @@ becomes an application error with `ApplicationError.From`, as [the domain model 
 ## Permissions
 
 Each request declares one access level. A caller needs the scope of the level and one of its roles, because Keycloak 26.8.0 grants a requested scope to a user who lacks the role that the scope maps to ([ADR-0026](../adr/0026-api-only-compose-stack-and-catalog-realm.md), risk R21 in
-[the risk register](../project/risk-register.md)). `PermissionPolicy` holds the table, and the API binds the same table to its endpoint policies (WP1.10).
+[the risk register](../project/risk-register.md)). `PermissionPolicy` holds the table, and the API binds the same table to its endpoint policies (`AccessRequirementHandler`, [the HTTP API host](http-api.md#endpoint-policies)).
 
 | Access level | Scope | Roles that grant it |
 | --- | --- | --- |
@@ -65,7 +65,7 @@ Commands pass through telemetry and logging, validation, authorization, idempote
 [ADR-0032](../adr/0032-decorator-pipeline-and-application-results.md).
 
 The decorators are in `src/Catalog.CrossCutting/Decorators`, and [`CommandPipeline.Compose` and `QueryPipeline.Compose`](../../src/Catalog.CrossCutting/Decorators/Pipelines.cs) are the only places that name them, so the order is plain code. The composition root calls `Compose` once for each handler that a feature registers
-(WP1.10, planned). A rule of `Catalog.Architecture.Tests` fails when a decorator names another decorator.
+(`ServiceCollectionFeatureRegistry`, WP1.10). A rule of `Catalog.Architecture.Tests` fails when a decorator names another decorator.
 
 | Decorator | Used by | What it does |
 | --- | --- | --- |
@@ -97,7 +97,7 @@ Each operation of [the API contract](api-contract.md) has one request and one ha
 - `GetProduct` and `ListProducts` implement `ICachedQuery`. A product has the key `product:{id}` and the tag `product:{id}`, and a list has the key `products:list:{hash}` and the tags `products:list` and `category:{id}`. `CacheTags` builds the three kinds of tag, so a query and the invalidation policy cannot disagree about a name. The cache decorator uses the keys and the tags, and the FusionCache adapter turns them into entries ([the cache reference](caching.md), WP1.9).
 - A list has a page size of 1 to 100 (20 by default) and an opaque, versioned cursor over a keyset position (`PageCursor`). A cursor that was made for another sort order is refused. `IProductReadStore` and `ICategoryReadStore` return one row more than the page size, and the handler turns the extra row into `NextCursor`.
 - The validators are in `Catalog.CrossCutting.Validation`. Each runs the factories of the value objects of the domain model for the fields of its request and reports every failure, so the `errors` member names all invalid fields at once. A handler still refuses a broken rule when no validator runs.
-- `AddCategories` and `AddProducts` register the handlers through `IFeatureRegistry`, in a fixed order. The composition root implements the registry (WP1.10).
+- `AddCategories` and `AddProducts` register the handlers through `IFeatureRegistry`, in a fixed order. The composition root implements the registry (`ServiceCollectionFeatureRegistry`, WP1.10), and a test resolves every use case through its chain.
 
 ## Ports
 
@@ -111,8 +111,8 @@ The application defines the ports, and a rule of `Catalog.Architecture.Tests` fa
 | `IOutboxDispatcher` | Deliver the messages of the last commit of the scope in process, on a best-effort basis, and then wake the processor of the node | `OutboxDispatcher`, in `Catalog.Infrastructure` (WP1.8, [ADR-0035](../adr/0035-outbox-processor-design.md), [ADR-0039](../adr/0039-cache-invalidation-by-immediate-dispatch-and-the-outbox.md)) |
 | `IOutboxMessageHandler` | Take one message of the outbox, idempotently, and report failure by throwing | `CacheInvalidationSubscriber`, in this layer (WP1.9, [ADR-0039](../adr/0039-cache-invalidation-by-immediate-dispatch-and-the-outbox.md)), which removes the tags that `CacheInvalidationPolicy` names for the event. The processor of WP1.8 and the dispatcher call every registered one |
 | `ICatalogCache` | Return a cached result or load it, and remove the entries of a tag. A removal that cannot be confirmed on the shared cache or the backplane throws `CacheInvalidationIncompleteException` | `FusionCatalogCache`, in `Catalog.CrossCutting` (WP1.9, [ADR-0038](../adr/0038-catalog-cache-adapter-and-valkey-connection.md)) |
-| `ICurrentPrincipal` | Give the caller, its scopes, and its roles | API (WP1.10, planned) |
-| `IUseCaseTelemetry` | Observe a use case: trace, count, and log its outcome | Observability (WP1.11, planned) |
+| `ICurrentPrincipal` | Give the caller, its scopes, and its roles | `HttpContextCurrentPrincipal`, in `Catalog.Api` (WP1.10, [the HTTP API host](http-api.md#token-validation)) |
+| `IUseCaseTelemetry` | Observe a use case: trace, count, and log its outcome | `LoggingUseCaseTelemetry`, in `Catalog.Api`, writes one log line for each outcome until the observability work (WP1.11, planned) replaces it |
 | `IIdGenerator` | Create the identifier of a new product or category | `GuidV7IdGenerator`, in this layer |
 | `IProductReadStore`, `ICategoryReadStore` | Read one view, or a page of views after a keyset position, without loading an aggregate | `ProductReadStore` and `CategoryReadStore`, in `Catalog.Infrastructure` (WP1.8) |
 

@@ -52,7 +52,8 @@ requirements:
   - architecture
   - manual
   evidence: composition-root review
-  status: planned
+  status: in_progress
+  notes: The first pull request of WP1.10 makes Catalog.Api the composition root. CatalogComposition registers the persistence, the cache, the handlers, and the security, ServiceCollectionFeatureRegistry composes the chains, and the rule api-names-infrastructure-and-cross-cutting-only-in-its-composition-namespace fails on a violating fixture when an endpoint or a handler of the Api names an adapter (ADR-0040, ArchitectureRules). The review of the endpoints, which must hold no business logic, is recorded when the endpoints exist, in the second pull request (checked 2026-11-03).
 - id: REQ-ARC-003
   title: Application ports are interface-segregated
   statement: Application ports are segregated by capability and include repositories, IUnitOfWork, ICatalogCache, IIdGenerator, ICurrentPrincipal, the outbox dispatcher, and telemetry abstractions so handlers depend only on the interfaces they use.
@@ -317,7 +318,7 @@ requirements:
   - contract
   evidence: Problem Details snapshots
   status: in_progress
-  notes: The contract and the error catalog define 17 error types and agree on each status and title, and a test fails when they disagree. The Problem Details snapshots and the mapping of application errors arrive in WP1.7 and WP1.10.
+  notes: The contract and the error catalog define 17 error types and agree on each status and title, and a test fails when they disagree. The first pull request of WP1.10 adds the one writer of errors in the API, with a trace identifier, the 8 types that the API owns (ApiAgreementTests compare them with the catalog), and tests of its shape and of the answers for a failed token, a refused scope, an exception, and an unknown route (ProblemDetailsTests). The mapping of application errors to responses and the Problem Details snapshots arrive in the second and third pull requests of WP1.10.
 - id: REQ-API-006
   title: JSON input is strict and bounded
   statement: The API rejects unknown JSON properties with 400 and enforces the configured body-size and depth limits for request payloads.
@@ -340,7 +341,8 @@ requirements:
   - integration
   - performance
   evidence: rate-limit API tests and rollout metrics
-  status: planned
+  status: in_progress
+  notes: The first pull request of WP1.10 delivers the limiter, a fixed window for each caller (or for each address when the request has no token), with 429, Retry-After, the error body of the catalog, no limit on the management port, and a window that resets when the fake clock moves (RateLimitTests, ADR-0040). The performance proof under load arrives with WP4.4 (checked 2026-11-03).
 - id: REQ-API-008
   title: Representative product flows exercise CQRS cache and events
   statement: The representative product flows prove CQRS handlers, domain events, cache fill and invalidation, and their end-to-end behavior through integration tests and Labs 1 to 3.
@@ -620,7 +622,7 @@ requirements:
   - integration
   evidence: realm file and JWT assertions
   status: in_progress
-  notes: WP1.4 delivers the realm file and proves the scopes, the audience, and the role matrix with Pester tests and with `dev compose check` against a live Keycloak. Keycloak 26.8.0 grants a requested scope to a user without the mapped role, so the realm also emits the user's roles (ADR-0026, risk R21). The API's own checks arrive in WP1.10, and the platform realm in WP3.5.
+  notes: WP1.4 delivers the realm file and proves the scopes, the audience, and the role matrix with Pester tests and with `dev compose check` against a live Keycloak. Keycloak 26.8.0 grants a requested scope to a user without the mapped role, so the realm also emits the user's roles (ADR-0026, risk R21). The first pull request of WP1.10 reads the scope claim and realm_access.roles in the API and requires both (TokenClaimsTests, AccessPolicyTests); the realm contract tests with a real Keycloak container arrive in the third pull request of WP1.10, and the platform realm in WP3.5.
 - id: REQ-IDN-002
   title: Catalog permissions map scopes to endpoint behavior
   statement: catalog.read grants all GET operations, catalog.write grants product create and update operations, and catalog.admin grants discontinue plus all category write operations.
@@ -636,7 +638,7 @@ requirements:
   - contract
   evidence: authorization matrix tests
   status: in_progress
-  notes: The first pull request of WP1.7 delivers PermissionPolicy, the one table that maps each access level to its scope and to the roles that grant it, because Keycloak 26.8.0 grants a requested scope to a user without the role (R21, ADR-0026, ADR-0032). An exhaustive test covers all 64 combinations of scopes and roles for each level, and an agreement test compares the scopes with the contract and the roles with the realm file. Each of the ten requests declares its level, and ApplicationAgreementTests compare the level of each with the scope that the contract names for its operation. WP1.10 binds the table to the endpoints, and WP3.5 proves it against the real realm.
+  notes: The first pull request of WP1.7 delivers PermissionPolicy, the one table that maps each access level to its scope and to the roles that grant it, because Keycloak 26.8.0 grants a requested scope to a user without the role (R21, ADR-0026, ADR-0032). An exhaustive test covers all 64 combinations of scopes and roles for each level, and an agreement test compares the scopes with the contract and the roles with the realm file. Each of the ten requests declares its level, and ApplicationAgreementTests compare the level of each with the scope that the contract names for its operation. WP1.10 binds the table to the endpoints, and WP3.5 proves it against the real realm. The first pull request of WP1.10 adds one endpoint policy for each access level that requires the scope and one of the roles from that same table, and a test that checks all 192 combinations of scope and role against an independent oracle (AccessPolicyTests, ADR-0040); the matrix over the real operations arrives in the third pull request (checked 2026-11-03).
 - id: REQ-IDN-003
   title: JWT validation checks issuer audience algorithms and clock skew
   statement: JWT validation enforces exact issuer and audience checks, allows only RS256 and ES256, tolerates no more than 30 seconds of clock skew, and accepts JWKS rotation.
@@ -646,7 +648,8 @@ requirements:
   verification:
   - integration
   evidence: token validation cases
-  status: planned
+  status: verified
+  notes: The first pull request of WP1.10 proves every case against the real composition and an in-process identity provider that serves the metadata and the keys over HTTP and signs with keys made at run time. The issuer and the audience are exact (a token with another issuer, another audience, or none is a 401), the algorithm allow-list is RS256 and ES256 and a token signed with HS256, with the unsigned algorithm, or with a public key used as a secret is refused, a token needs an expiry and the skew is at most 30 seconds (a token that expired 29 seconds ago is accepted and one that expired 31 seconds ago is not), and a key that the issuer adds is accepted after a refresh while a key that it withdraws stops working because the last known good configuration is off (ADR-0040, JwtValidationTests, JwksRotationTests, ConfigurationValidationTests). WP3.5 proves the platform realm, which this requirement does not list (checked 2026-11-03).
 - id: REQ-IDN-004
   title: Platform UIs use the platform realm and remove local admins
   statement: Vault, Grafana, Argo CD, and Kargo use the platform realm for sign-in, and local admin accounts are disabled after bootstrap.

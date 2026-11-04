@@ -13,7 +13,7 @@ owner: "@RostomOhannessian"
 Every error that the API returns is an RFC 9457 Problem Details document with the content type `application/problem+json`. Its `type` member is the address of an entry on this page, so a client can branch on the type
 and a person can follow the address to read what to do. The conventions behind the table are in [ADR-0028](../adr/0028-http-api-conventions-of-v1.md), and the shapes are in [the contract](api-contract.md).
 
-This page describes the API as the contract defines it. The API itself arrives in WP1.10, so no endpoint returns these errors yet. The address of each entry, such as
+This page describes the API as the contract defines it. The host of the API owns the eight entries that only the API raises ([the HTTP API host](http-api.md#errors)), and the endpoints that return the other nine arrive in the second pull request of WP1.10 (planned). The address of each entry, such as
 `https://rostomohannessian.github.io/full-ci-cd-pipeline/reference/error-catalog.html#validation-failed`, resolves once the documentation site is published at the Phase 1 exit (WP1.13). Until then, read this page in the repository.
 
 ## How an error looks

@@ -10,7 +10,7 @@ owner: "@RostomOhannessian"
 
 # Persistence
 
-The persistence layer is the project [`src/Catalog.Infrastructure`](../../src/Catalog.Infrastructure/Catalog.Infrastructure.csproj). It implements the ports that the application layer defines, on SQL Server through EF Core ([ADR-0033](../adr/0033-ef-core-mapping-read-model-and-migrations.md)). It references the application layer only, and the Domain stays free of every attribute and framework type. This page describes what exists today. The Api composes these pieces in WP1.10, and the section "The composition" lists what it registers.
+The persistence layer is the project [`src/Catalog.Infrastructure`](../../src/Catalog.Infrastructure/Catalog.Infrastructure.csproj). It implements the ports that the application layer defines, on SQL Server through EF Core ([ADR-0033](../adr/0033-ef-core-mapping-read-model-and-migrations.md)). It references the application layer only, and the Domain stays free of every attribute and framework type. This page describes what exists today. The Api composes these pieces ([the HTTP API host](http-api.md)), and the section "The composition" lists what it registers.
 
 ## The schema
 
@@ -126,7 +126,7 @@ The order of a rotation is **rotate, switch, clear, revoke**. New connections us
 
 ## The composition
 
-The Api is the composition root (WP1.10), and an architecture rule keeps `IServiceProvider` out of the other layers, so this project holds no registration code. The reference composition is `tests/Catalog.Infrastructure.Tests/Support/TestComposition.cs`, and a real container built from it runs a commit through the loop. It registers:
+The Api is the composition root (WP1.10, `CatalogComposition.AddCatalogPersistence`), and an architecture rule keeps `IServiceProvider` out of the other layers, so this project holds no registration code. The reference composition is `tests/Catalog.Infrastructure.Tests/Support/TestComposition.cs`, and a real container built from it runs a commit through the loop. It registers:
 
 - the options of the database, the outbox, and the idempotency store, each with its validator and start-up validation (`DatabaseOptions` is bound from the section `Catalog:Database`);
 - the credential source that `CredentialSources.Create` builds for the settings, the metrics, the interceptor, and the janitor as a hosted service;

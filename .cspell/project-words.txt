@@ -2,6 +2,7 @@ absexp
 adrs
 archunitnet
 aspnet
+aspnetcore
 authenticode
 automapper
 awesomeassertions
@@ -33,6 +34,7 @@ getsentry
 gitea
 globaltool
 goldens
+healthchecks
 hmget
 hmset
 hostable
@@ -45,6 +47,7 @@ hybridcache
 inotify
 inspectable
 julianday
+jwtbearer
 kargo
 kindnet
 kiota

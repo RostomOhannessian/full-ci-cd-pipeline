@@ -11,7 +11,7 @@ owner: "@RostomOhannessian"
 # Caching
 
 The cache of the catalog keeps the results of the queries `GetProduct` and `ListProducts` on two levels, in the memory of each API node (L1) and in Valkey (L2), and a backplane tells the other nodes to drop an entry. The Application layer knows only the port `ICatalogCache`. The adapter is in [`src/Catalog.CrossCutting/Caching`](../../src/Catalog.CrossCutting/Caching/FusionCatalogCache.cs), and the connection to Valkey is in [`src/Catalog.Infrastructure/Caching`](../../src/Catalog.Infrastructure/Caching/ValkeyConnection.cs)
-([ADR-0038](../adr/0038-catalog-cache-adapter-and-valkey-connection.md), [ADR-0016](../adr/0016-cache-implementation-fusioncache.md)). This page describes what exists today. The Api composes the pieces in WP1.10, and the section "The composition" lists what it registers. How long each node can serve old data in each failure is on [the consistency model](../explanation/cache-consistency-model.md).
+([ADR-0038](../adr/0038-catalog-cache-adapter-and-valkey-connection.md), [ADR-0016](../adr/0016-cache-implementation-fusioncache.md)). This page describes what exists today. The Api composes the pieces ([the HTTP API host](http-api.md)), and the section "The composition" lists what it registers. How long each node can serve old data in each failure is on [the consistency model](../explanation/cache-consistency-model.md).
 
 ## The layers
 
@@ -113,7 +113,7 @@ The plan says the ACL names `~catalog:{env}:*` and `&catalog:{env}:*`. FusionCac
 
 ## The composition
 
-The Api is the composition root (WP1.10), and an architecture rule keeps `IServiceProvider` out of the other layers, so the two projects hold no registration code. The Api registers:
+The Api is the composition root (WP1.10, `CatalogComposition.AddCatalogCache`), and an architecture rule keeps `IServiceProvider` out of the other layers, so the two projects hold no registration code. The Api registers:
 
 - the options `CatalogCacheOptions` and `ValkeyOptions` with their validators and start-up validation;
 - one `CacheMetrics` as a singleton, which it disposes;
