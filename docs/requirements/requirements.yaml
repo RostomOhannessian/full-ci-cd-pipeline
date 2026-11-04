@@ -81,7 +81,8 @@ requirements:
   - architecture
   - integration
   evidence: endpoint dependency rules and API tests
-  status: planned
+  status: verified
+  notes: The rule api-endpoints-depend-on-contracts-and-handler-interfaces-only fails on a violating fixture when a type of the namespace Catalog.Api.Endpoints depends on the domain model, an adapter of Infrastructure, or a decorator of CrossCutting, and the production run holds it for the ten endpoints. The endpoints read a request through Catalog.Api.Mapping, run the handler through its interface, and write the response through Catalog.Api.Http, so a rule of the catalog has no place in them (ADR-0041). CategoryEndpointTests, ProductEndpointTests, RequestBodyTests, and VersioningTests run the endpoints over HTTP against a real SQL Server and a real Valkey (checked 2026-11-04).
 - id: REQ-ARC-005
   title: Handlers are sealed and state is not global
   statement: Command and query handlers are internal sealed types, and the solution forbids static mutable state outside the composition root.
@@ -135,8 +136,8 @@ requirements:
   - unit
   - integration
   evidence: lifecycle tests and API denied-change cases
-  status: in_progress
-  notes: WP1.6 delivers the rule in the model. A discontinued product refuses a new price and a new category with ProductDiscontinued and still changes its name and description, discontinuing twice changes nothing, and a model-based property test holds the rule over random sequences of operations. The HTTP behavior and the denied-change API cases arrive in WP1.10.
+  status: verified
+  notes: WP1.6 delivers the rule in the model. A discontinued product refuses a new price and a new category with ProductDiscontinued and still changes its name and description, discontinuing twice changes nothing, and a model-based property test holds the rule over random sequences of operations. The second pull request of WP1.10 proves it through HTTP. A price change of a discontinued product is 409 product-discontinued, and discontinuing a product that is already discontinued answers 200 with the same representation and the same ETag (ProductEndpointTests, checked 2026-11-04).
 - id: REQ-DOM-004
   title: Domain events are versioned and time-stamped
   statement: Each domain event carries a schemaVersion and an occurredAt value sourced from TimeProvider so outbox payloads stay versioned and deterministic.
@@ -217,8 +218,8 @@ requirements:
   - unit
   - integration
   evidence: Result<T> tests and Problem Details mapping cases
-  status: in_progress
-  notes: The first pull request of WP1.7 delivers Result<T>, the seven typed errors, and ProblemMapping, the one table that maps each error to an entry of the error catalog, with unit tests and an agreement test against the catalog page. WP1.10 serializes the mapping as Problem Details through HTTP (ADR-0032).
+  status: verified
+  notes: The first pull request of WP1.7 delivers Result<T>, the seven typed errors, and ProblemMapping, the one table that maps each error to an entry of the error catalog, with unit tests and an agreement test against the catalog page. The second pull request of WP1.10 serializes the mapping as Problem Details through HTTP. The endpoints answer 400, 404, 409, 412, 422, and 428 with the entry of the catalog for each typed error (CategoryEndpointTests and ProductEndpointTests, ADR-0032, ADR-0041, checked 2026-11-04).
 - id: REQ-APP-005
   title: Validators and use-case authorization run before handlers
   statement: FluentValidation validators and application-layer authorization requirements run before handler logic for every protected command and query.
@@ -233,8 +234,8 @@ requirements:
   - unit
   - integration
   evidence: validator tests and denied-path tests
-  status: in_progress
-  notes: The second pull request of WP1.7 delivers the validation and authorization decorators, with tests that show that no handler runs for an invalid request or a caller without the scope and a role, for a command and for a query. The validators of the ten use cases run the factories of the value objects of the model and report every invalid field at once, and the handlers refuse a broken rule when no validator runs. WP1.10 proves the denied paths through HTTP.
+  status: verified
+  notes: The second pull request of WP1.7 delivers the validation and authorization decorators, with tests that show that no handler runs for an invalid request or a caller without the scope and a role, for a command and for a query. The validators of the ten use cases run the factories of the value objects of the model and report every invalid field at once, and the handlers refuse a broken rule when no validator runs. WP1.10 proves the denied paths through HTTP. The endpoint policy refuses a caller without the scope or the role before the body is read (AccessPolicyTests and RequestBodyTests), and an invalid name, SKU, price, or category is a validation error for each field (CategoryEndpointTests and ProductEndpointTests, checked 2026-11-04).
 - id: REQ-APP-006
   title: Feature registration is explicit and deterministic
   statement: Each feature registers its handlers and decorators through explicit extension methods so dependency wiring remains deterministic and reviewable.
@@ -246,8 +247,8 @@ requirements:
   - architecture
   - unit
   evidence: registration extension tests
-  status: in_progress
-  notes: WP1.7 delivers IFeatureRegistry and the extension methods AddCategories and AddProducts, which name each handler once in a fixed order, and RegistrationTests record what they register and prove that every request of the Application is registered exactly once. WP1.10 implements the registry over the container in the composition root and resolves each handler through it.
+  status: verified
+  notes: WP1.7 delivers IFeatureRegistry and the extension methods AddCategories and AddProducts, which name each handler once in a fixed order, and RegistrationTests record what they register and prove that every request of the Application is registered exactly once. The first pull request of WP1.10 implements the registry over the container in the composition root (ServiceCollectionFeatureRegistry), and CompositionTests resolve each of the ten requests through the chain that the pipelines compose (ADR-0040, checked 2026-11-03).
 - id: REQ-API-001
   title: v1 endpoints expose products and categories
   statement: The v1 API exposes /api/v1/categories, /api/v1/categories/{id}, /api/v1/products, /api/v1/products/{id}, and POST discontinue actions, and product listing supports categoryId, status, q, sort, pageSize of at most 100, and cursor.
@@ -264,7 +265,7 @@ requirements:
   - docs
   evidence: OpenAPI contract and endpoint integration tests
   status: in_progress
-  notes: WP1.5 authors the 10 operations with their filters, pages, and scopes in the contract, and contract tests compare them with the permission matrix of the API contract page. The endpoints and their integration tests arrive in WP1.10.
+  notes: WP1.5 authors the 10 operations with their filters, pages, and scopes in the contract, and contract tests compare them with the permission matrix of the API contract page. The second pull request of WP1.10 serves all ten operations, and CategoryEndpointTests and ProductEndpointTests run them over HTTP against a real SQL Server and a real Valkey, including every filter, the sort orders, the page size, and the pages that follow the Link header (ADR-0041). Implementing them found that the use cases lacked the category status filter and the SKU in the search, and both were added. The check that the served document equals the contract arrives in the third pull request of WP1.10, and the status stays in progress until then (checked 2026-11-04).
 - id: REQ-API-002
   title: Responses advertise API versions and deprecation
   statement: Versioned responses send api-supported-versions and use the Deprecation header from RFC 9745 plus the Sunset header from RFC 8594 when a version enters its documented support window.
@@ -277,7 +278,7 @@ requirements:
   - integration
   evidence: header assertions and API versioning tests
   status: in_progress
-  notes: The contract documents api-supported-versions, api-deprecated-versions, Deprecation, and Sunset on every response, tests check their formats, and the style guide sets the 180-day support window. Asp.Versioning sends them from WP1.10, and the first deprecation arrives with WP4.1.
+  notes: The contract documents api-supported-versions, api-deprecated-versions, Deprecation, and Sunset on every response, tests check their formats, and the style guide sets the 180-day support window. The second pull request of WP1.10 sends api-supported-versions from Asp.Versioning on every response of a versioned route, including a 401, a 403, and a 400 that a middleware or a reader writes, through ApiVersionReportMiddleware (VersioningTests, CategoryEndpointTests, ADR-0041). No version is deprecated yet, so the first deprecation, with Deprecation and Sunset, arrives with WP4.1 (checked 2026-11-04).
 - id: REQ-API-003
   title: Conditional requests enforce strong ETags
   statement: GET supports If-None-Match with 304, and update or discontinue operations require If-Match so a missing header returns 428 and a stale header returns 412.
@@ -289,8 +290,8 @@ requirements:
   - integration
   - contract
   evidence: 412, 428, and 304 API cases
-  status: in_progress
-  notes: The contract requires If-Match on every change with the 412 and 428 answers, and If-None-Match with the 304 answer on every read of one item. The linter and the contract tests hold them. The API cases arrive in WP1.10.
+  status: verified
+  notes: The contract requires If-Match on every change with the 412 and 428 answers, and If-None-Match with the 304 answer on every read of one item. The linter and the contract tests hold them. The second pull request of WP1.10 proves the API cases for categories and products against a real SQL Server and a real Valkey. A missing If-Match is 428 and changes nothing, a stale one is 412, the current ETag in If-None-Match is 304 with no body, a weak tag, a list, or * is a validation error for the header, a change shows in the next read at once (the cache is invalidated), and discontinuing twice returns the same ETag (CategoryEndpointTests and ProductEndpointTests, ADR-0041, checked 2026-11-04).
 - id: REQ-API-004
   title: POST creates require an Idempotency-Key
   statement: Product-creation POST requests require an Idempotency-Key header, and reusing a key with a different payload returns 422 while concurrent use returns 409.
@@ -303,8 +304,8 @@ requirements:
   - integration
   - contract
   evidence: idempotency replay and conflict cases
-  status: in_progress
-  notes: The contract requires the Idempotency-Key header on both creates, with the 400, 409, and 422 answers, and tests check the format of the key. The idempotency store is delivered in WP1.8 (ADR-0036), and the replay and conflict cases over HTTP arrive in WP1.10.
+  status: verified
+  notes: The contract requires the Idempotency-Key header on both creates, with the 400, 409, and 422 answers, and tests check the format of the key. The idempotency store is delivered in WP1.8 (ADR-0036). The second pull request of WP1.10 proves the cases over HTTP for both creates. The same key and body replay the first answer (201 with the same id, Location, and ETag, and one resource), another body is 422, a missing or malformed key is 400 before the body is read, and a key whose first request still runs is 409. The running request is a reservation that the test writes into the real store with the fingerprint that the pipeline would make, because a test cannot hold a request open without a sleep, and the store tests of WP1.8 hold the race itself (CategoryEndpointTests and ProductEndpointTests, ADR-0041, checked 2026-11-04).
 - id: REQ-API-005
   title: Errors use RFC 9457 Problem Details
   statement: Errors are returned as application/problem+json with RFC 9457 Problem Details whose type URIs resolve to the published error catalog and whose payloads include traceId and per-field validation messages when relevant.
@@ -318,7 +319,7 @@ requirements:
   - contract
   evidence: Problem Details snapshots
   status: in_progress
-  notes: The contract and the error catalog define 17 error types and agree on each status and title, and a test fails when they disagree. The first pull request of WP1.10 adds the one writer of errors in the API, with a trace identifier, the 8 types that the API owns (ApiAgreementTests compare them with the catalog), and tests of its shape and of the answers for a failed token, a refused scope, an exception, and an unknown route (ProblemDetailsTests). The mapping of application errors to responses and the Problem Details snapshots arrive in the second and third pull requests of WP1.10.
+  notes: The contract and the error catalog define 17 error types and agree on each status and title, and a test fails when they disagree. The first pull request of WP1.10 adds the one writer of errors in the API, with a trace identifier, the 8 types that the API owns (ApiAgreementTests compare them with the catalog), and tests of its shape and of the answers for a failed token, a refused scope, an exception, and an unknown route (ProblemDetailsTests). The mapping of application errors to responses is proven over HTTP in the second pull request (the 400, 404, 409, 412, 422, and 428 answers of CategoryEndpointTests and ProductEndpointTests, ADR-0041), and the Problem Details snapshots arrive in the third pull request of WP1.10, so the status stays in progress until then (checked 2026-11-04).
 - id: REQ-API-006
   title: JSON input is strict and bounded
   statement: The API rejects unknown JSON properties with 400 and enforces the configured body-size and depth limits for request payloads.
@@ -329,7 +330,8 @@ requirements:
   - integration
   - contract
   evidence: 400 input validation cases
-  status: planned
+  status: in_progress
+  notes: The second pull request of WP1.10 reads every body with JsonBody, which requires application/json (415), counts the bytes that it reads against the limit of 32 KiB whether or not the length is announced (413), parses with a depth limit of 8 (400 malformed-request), and lists every member that the contract does not name with its path and every value of the wrong type (400 validation-failed). RequestBodyTests prove each case on a host with no database, including a body of exactly the limit, one byte more, and a streamed body of twice the limit (ADR-0041). The contract mode (the closed request schemas of the served document) is proven by the conformance check in the third pull request of WP1.10, so the status stays in progress until then (checked 2026-11-04).
 - id: REQ-API-007
   title: Rate limits return 429 and Retry-After
   statement: When a caller exceeds the configured request limits, the API returns 429 and includes a Retry-After header.
@@ -405,8 +407,8 @@ requirements:
   verification:
   - integration
   evidence: IdempotencyRecords tests
-  status: in_progress
-  notes: WP1.8 delivers the IdempotencyRecords store with the fingerprint, the 24-hour expiry, and the completion inside the transaction of the command (ADR-0036). WP1.10 wires it into the API.
+  status: verified
+  notes: WP1.8 delivers the IdempotencyRecords store with the fingerprint, the 24-hour expiry, and the completion inside the transaction of the command (ADR-0036). The second pull request of WP1.10 wires it into the API and proves it over HTTP. A replay returns the first result, a different body is refused, and a key whose first request still runs is refused, with the real store, the real pipeline, and a real SQL Server (CategoryEndpointTests and ProductEndpointTests, checked 2026-11-04).
 - id: REQ-DATA-005
   title: Database connections rotate credentials without disabling pooling
   statement: An IDbConnectionInterceptor reads credentials from a cached ICredentialSource on ConnectionOpeningAsync, keeps pooling enabled, and clears pools keyed by the old credential after a grace period when rotation occurs.

@@ -217,5 +217,15 @@ entries:
   - requirements: [REQ-ARC-002, REQ-IDN-001, REQ-IDN-002]
     kind: docs
     path: docs/reference/http-api.md
-    summary: The reference page of the host lists the settings and their validators, the order of the middleware, the checks of the token, the policies, the error table, the headers, the limits, the proxies, and the probes of the management port.
+    summary: The reference page of the host and its endpoints lists the settings and their validators, the order of the middleware, the checks of the token, the policies, the error table, the headers, the limits, the proxies, the probes of the management port, the ten operations, the versions, the conditional requests, the idempotent creates, the pages, and the rules for bodies.
     recorded: '2026-11-03'
+  - requirements: [REQ-API-001, REQ-API-002, REQ-API-003, REQ-API-004, REQ-API-005, REQ-API-006, REQ-ARC-004]
+    kind: docs
+    path: docs/adr/0041-http-endpoints-versioning-and-conditional-requests.md
+    summary: ADR-0041 records where each part of the translation between HTTP and the use cases lives, the version segment and its reporting, the strict and bounded body reader, the strong tags of the preconditions, the quoted idempotency key, the Link header, the spelling of amounts and instants, and the two gaps of the use cases that were closed instead of the contract.
+    recorded: '2026-11-04'
+  - requirements: [REQ-API-001, REQ-API-002, REQ-API-003, REQ-API-004, REQ-API-005, REQ-API-006, REQ-ARC-004, REQ-DOM-003, REQ-DATA-004, REQ-APP-004, REQ-APP-005]
+    kind: manual
+    path: docs/testing/evidence/2026-11-04-http-api-endpoints-run.md
+    summary: The ten operations ran over HTTP against a real SQL Server 2022 container and a real Valkey 8.1 container started from the digests of compose.yaml, on Windows with Docker Desktop and in the pinned Linux SDK image. It records the headers, the conditional requests, the idempotent creates, the filters, the pages, the strict reading of bodies, the version headers, and the rule that keeps the endpoints thin.
+    recorded: '2026-11-04'

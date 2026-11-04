@@ -652,16 +652,19 @@ entries:
     category: dotnet-library
     tier: C
     lifecycle: adopt
-    usage: planned
+    usage: in-use
     introduced: phase-1
     purpose: Implements explicit API version routing and OpenAPI grouping for the catalog API.
     license: MIT
     license-source: https://www.nuget.org/packages/Asp.Versioning.Http/10.2.3/license
     version: "10.2.3"
+    repo: https://github.com/dotnet/aspnet-api-versioning
     sources:
       - https://www.nuget.org/packages/Asp.Versioning.Http
       - https://dotnet.github.io/aspnet-api-versioning
-    adrs: ["0017"]
+    adrs: ["0017", "0041"]
+    notes: Catalog.Api uses Asp.Versioning.Http for the version segment of the path and for the api-supported-versions header, from WP1.10 (checked 2026-11-04). Its one dependency on net10.0 is Asp.Versioning.Abstractions 10.2.1, which is MIT licensed too. It reports the versions when an endpoint runs, so ApiVersionReportMiddleware reports them on the answers that a middleware writes before the endpoint, such as a 401. The OpenAPI grouping package Asp.Versioning.Mvc.ApiExplorer is not used, because the served document is built to match the authored contract (WP1.10, third pull request).
+    detect: ["nuget:Asp.Versioning.Http"]
   - id: automapper
     name: AutoMapper
     category: dotnet-library

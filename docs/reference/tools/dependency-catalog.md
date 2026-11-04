@@ -446,3 +446,23 @@ Only the test project references it ([ADR-0040](../../adr/0040-http-api-composit
 
 - [Microsoft.AspNetCore.Mvc.Testing 10.0.14 on NuGet](https://www.nuget.org/packages/Microsoft.AspNetCore.Mvc.Testing/10.0.14) (checked 2026-11-03)
 - [Integration tests in ASP.NET Core](https://learn.microsoft.com/aspnet/core/test/integration-tests) (checked 2026-11-03)
+
+## Asp.Versioning
+
+**Purpose.** Routes the version segment of the path (`/api/v1`) and writes the `api-supported-versions` header of every versioned response. The package is Asp.Versioning.Http, the part of the Asp.Versioning family that minimal APIs use. The inventory entry is `asp-versioning`.
+
+**Rationale.** The contract puts the version in the path and says that every response lists the supported versions and, later, the deprecated ones with `Deprecation` and `Sunset`. The package does all of it and is the one that the plan names. It is MIT licensed, 10.2.3 is its newest release, and its one dependency on net10.0, Asp.Versioning.Abstractions 10.2.1, is MIT licensed too (checked 2026-11-04, [ADR-0041](../../adr/0041-http-endpoints-versioning-and-conditional-requests.md)).
+The API turns off the default version, so a path without a version is not routed, and it adds a small middleware that reports the versions on the answers that a middleware writes before the endpoint runs. The grouping package for OpenAPI documents is not used.
+
+**Setup.** The project names the package, and the central file holds the version. The registration is in `Composition/CatalogComposition.cs`, and the version set is in `Endpoints/CatalogEndpoints.cs`.
+
+```xml
+<PackageReference Include="Asp.Versioning.Http" />
+```
+
+**Used by.** `src/Catalog.Api`.
+
+**Sources.**
+
+- [Asp.Versioning.Http 10.2.3 on NuGet](https://www.nuget.org/packages/Asp.Versioning.Http/10.2.3) (checked 2026-11-04)
+- [API Versioning for ASP.NET Core](https://dotnet.github.io/aspnet-api-versioning) (checked 2026-11-04)
