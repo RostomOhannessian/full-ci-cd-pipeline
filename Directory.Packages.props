@@ -73,4 +73,17 @@
     <PackageVersion Include="Testcontainers.MsSql" Version="4.15.0" />
   </ItemGroup>
 
+  <!-- Catalog.Api and the health checks (WP1.10, ADR-0040). Both packages are MIT licensed (the license expression of each nuspec, checked 2026-11-03). 10.0.14 is the newest 10.0 patch (checked 2026-11-03), and it is the
+       version of the EF Core and hosting packages above, so the whole solution runs one patch of the 10.0 line. JwtBearer depends on Microsoft.IdentityModel.Protocols.OpenIdConnect 8.19.2 (MIT). The health check
+       abstractions are a package of their own, so Infrastructure and CrossCutting can implement a check without a reference to ASP.NET Core. -->
+  <ItemGroup>
+    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.14" />
+    <PackageVersion Include="Microsoft.Extensions.Diagnostics.HealthChecks.Abstractions" Version="10.0.14" />
+  </ItemGroup>
+
+  <!-- Catalog.Api.Tests (WP1.10, ADR-0040). The test host of ASP.NET Core is MIT licensed (checked 2026-11-03), and it starts the real composition root in process. -->
+  <ItemGroup>
+    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.14" />
+  </ItemGroup>
+
 </Project>

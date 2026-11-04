@@ -11,6 +11,7 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" />
     <PackageReference Include="Microsoft.Data.SqlClient" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.Abstractions" />
   </ItemGroup>
 
   <!-- The connection to Valkey: the distributed cache and the backplane that the FusionCache adapter of CrossCutting uses (WP1.9, ADR-0038). Infrastructure builds them and never names FusionCache itself. -->
