@@ -14,7 +14,7 @@ The contract of the product catalog API is an OpenAPI 3.1 document that is writt
 ([ADR-0017](../adr/0017-contract-first-api-design.md)). It is the only description of the HTTP surface, so this page summarizes it and does not repeat it. Read the document for every schema and example:
 [`contracts/openapi/catalog/v1/catalog.openapi.yaml`](../../contracts/openapi/catalog/v1/catalog.openapi.yaml).
 
-The endpoints that serve this contract exist ([the HTTP API](http-api.md#endpoints), [ADR-0041](../adr/0041-http-endpoints-versioning-and-conditional-requests.md)), and the check that the served document equals this one arrives in the third pull request of WP1.10 (planned). The rules and their reasons are in [the API style guide](api-style-guide.md) and
+The endpoints that serve this contract exist ([the HTTP API](http-api.md#endpoints), [ADR-0041](../adr/0041-http-endpoints-versioning-and-conditional-requests.md)), and the check that the served document equals this one runs in CI ([ADR-0042](../adr/0042-served-contract-conformance-and-snapshots.md)). The rules and their reasons are in [the API style guide](api-style-guide.md) and
 [ADR-0028](../adr/0028-http-api-conventions-of-v1.md), and every error type is in [the error catalog](error-catalog.md).
 
 ## Operations
@@ -108,16 +108,16 @@ The contract is checked in three ways, and each one is a command that you can ru
    [!code-bash[Contract lint in CI](../../.github/workflows/ci.yml#contract-lint)]
 
 2. **The tests.** `tests/Catalog.Contract.Tests` reads the contract and checks it against this page and the error catalog, and it runs in the build and test job. `tools/ci/ContractRules.Tests.ps1` breaks the contract once for each lint rule and expects the rule to fire, and it runs in the script tests.
-3. **The conformance check.** From WP1.10, the build generates the served document, and this command compares it with the contract and ignores descriptions, examples, and summaries. The script and its tests exist today:
+3. **The conformance check.** Since WP1.10, `ServedContractTests` write the document that the host generates, and the `ci` workflow compares it with the contract and ignores descriptions, examples, and summaries:
 
    ```bash illustrative
-   pwsh -NoProfile -File tools/ci/Test-ContractConformance.ps1 -Served path/to/served.json
+   pwsh -NoProfile -File tools/ci/Test-ContractConformance.ps1 -Served TestResults/served/catalog.openapi.json
    ```
 
 The tools are described on the pages for [OpenAPI](tools/openapi.md), [Spectral](tools/spectral.md), and [oasdiff](tools/oasdiff.md), and the choice between them is [ADR-0027](../adr/0027-contract-linter-and-conformance-tooling.md).
 
 ## What comes later
 
-- **WP1.10** serves the contract, generates the served document, and runs the conformance check. Scalar renders the contract in the Development environment only.
+- **WP1.10** (delivered) serves the contract, generates the served document, and runs the conformance check. Scalar renders the served document in the Development environment only ([Scalar](tools/scalar.md)).
 - **WP4.1** adds the check against the last released contract, the generated `Catalog.Client`, and Schemathesis. **WP4.2** adds the Pact consumer tests.
 - **WP1.13** publishes this page and the error catalog on the documentation site.

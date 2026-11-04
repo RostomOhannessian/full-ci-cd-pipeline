@@ -264,8 +264,8 @@ requirements:
   - integration
   - docs
   evidence: OpenAPI contract and endpoint integration tests
-  status: in_progress
-  notes: WP1.5 authors the 10 operations with their filters, pages, and scopes in the contract, and contract tests compare them with the permission matrix of the API contract page. The second pull request of WP1.10 serves all ten operations, and CategoryEndpointTests and ProductEndpointTests run them over HTTP against a real SQL Server and a real Valkey, including every filter, the sort orders, the page size, and the pages that follow the Link header (ADR-0041). Implementing them found that the use cases lacked the category status filter and the SKU in the search, and both were added. The check that the served document equals the contract arrives in the third pull request of WP1.10, and the status stays in progress until then (checked 2026-11-04).
+  status: verified
+  notes: WP1.5 authors the 10 operations with their filters, pages, and scopes in the contract, and contract tests compare them with the permission matrix of the API contract page. The second pull request of WP1.10 serves all ten operations, and CategoryEndpointTests and ProductEndpointTests run them over HTTP against a real SQL Server and a real Valkey, including every filter, the sort orders, the page size, and the pages that follow the Link header (ADR-0041). Implementing them found that the use cases lacked the category status filter and the SKU in the search, and both were added. The third pull request generates the served document from the ten endpoints and the CI run of oasdiff finds it structurally equal to the contract, ServedContractTests list the operations with their scopes, and TransportAgreementTests compare every transport record with its schema (ADR-0042, docs in docs/reference/http-api.md, checked 2026-11-04).
 - id: REQ-API-002
   title: Responses advertise API versions and deprecation
   statement: Versioned responses send api-supported-versions and use the Deprecation header from RFC 9745 plus the Sunset header from RFC 8594 when a version enters its documented support window.
@@ -318,8 +318,8 @@ requirements:
   - integration
   - contract
   evidence: Problem Details snapshots
-  status: in_progress
-  notes: The contract and the error catalog define 17 error types and agree on each status and title, and a test fails when they disagree. The first pull request of WP1.10 adds the one writer of errors in the API, with a trace identifier, the 8 types that the API owns (ApiAgreementTests compare them with the catalog), and tests of its shape and of the answers for a failed token, a refused scope, an exception, and an unknown route (ProblemDetailsTests). The mapping of application errors to responses is proven over HTTP in the second pull request (the 400, 404, 409, 412, 422, and 428 answers of CategoryEndpointTests and ProductEndpointTests, ADR-0041), and the Problem Details snapshots arrive in the third pull request of WP1.10, so the status stays in progress until then (checked 2026-11-04).
+  status: verified
+  notes: The contract and the error catalog define 17 error types and agree on each status and title, and a test fails when they disagree. The first pull request of WP1.10 adds the one writer of errors in the API, with a trace identifier, the 8 types that the API owns (ApiAgreementTests compare them with the catalog), and tests of its shape and of the answers for a failed token, a refused scope, an exception, and an unknown route (ProblemDetailsTests). The mapping of application errors to responses is proven over HTTP in the second pull request (the 400, 404, 409, 412, 422, and 428 answers of CategoryEndpointTests and ProductEndpointTests, ADR-0041). The third pull request adds the snapshots of 20 error answers, the 12 that the API makes by itself, the 7 that the use cases raise, and the 429 with its headers, with the trace identifier replaced and no value that a caller sent (SnapshotTests, ADR-0042, checked 2026-11-04).
 - id: REQ-API-006
   title: JSON input is strict and bounded
   statement: The API rejects unknown JSON properties with 400 and enforces the configured body-size and depth limits for request payloads.
@@ -330,8 +330,8 @@ requirements:
   - integration
   - contract
   evidence: 400 input validation cases
-  status: in_progress
-  notes: The second pull request of WP1.10 reads every body with JsonBody, which requires application/json (415), counts the bytes that it reads against the limit of 32 KiB whether or not the length is announced (413), parses with a depth limit of 8 (400 malformed-request), and lists every member that the contract does not name with its path and every value of the wrong type (400 validation-failed). RequestBodyTests prove each case on a host with no database, including a body of exactly the limit, one byte more, and a streamed body of twice the limit (ADR-0041). The contract mode (the closed request schemas of the served document) is proven by the conformance check in the third pull request of WP1.10, so the status stays in progress until then (checked 2026-11-04).
+  status: verified
+  notes: The second pull request of WP1.10 reads every body with JsonBody, which requires application/json (415), counts the bytes that it reads against the limit of 32 KiB whether or not the length is announced (413), parses with a depth limit of 8 (400 malformed-request), and lists every member that the contract does not name with its path and every value of the wrong type (400 validation-failed). RequestBodyTests prove each case on a host with no database, including a body of exactly the limit, one byte more, and a streamed body of twice the limit (ADR-0041). The contract mode is proven in the third pull request, because the request schemas of the served document are the closed schemas of the authored contract, oasdiff finds the served document equal to it in CI, and TransportAgreementTests compare each request record with its schema (ADR-0042, checked 2026-11-04).
 - id: REQ-API-007
   title: Rate limits return 429 and Retry-After
   statement: When a caller exceeds the configured request limits, the API returns 429 and includes a Retry-After header.
@@ -624,7 +624,7 @@ requirements:
   - integration
   evidence: realm file and JWT assertions
   status: in_progress
-  notes: WP1.4 delivers the realm file and proves the scopes, the audience, and the role matrix with Pester tests and with `dev compose check` against a live Keycloak. Keycloak 26.8.0 grants a requested scope to a user without the mapped role, so the realm also emits the user's roles (ADR-0026, risk R21). The first pull request of WP1.10 reads the scope claim and realm_access.roles in the API and requires both (TokenClaimsTests, AccessPolicyTests); the realm contract tests with a real Keycloak container arrive in the third pull request of WP1.10, and the platform realm in WP3.5.
+  notes: WP1.4 delivers the realm file and proves the scopes, the audience, and the role matrix with Pester tests and with `dev compose check` against a live Keycloak. Keycloak 26.8.0 grants a requested scope to a user without the mapped role, so the realm also emits the user's roles (ADR-0026, risk R21). The first pull request of WP1.10 reads the scope claim and realm_access.roles in the API and requires both (TokenClaimsTests, AccessPolicyTests). The third pull request runs the pinned Keycloak image with the realm file and proves with real tokens of the two service-account clients that the audience is catalog-api, that the scopes and the roles are those of the realm, that a client cannot ask for a scope that it was not given, and that the real API accepts them (KeycloakRealmContractTests, ADR-0042). The platform realm and the cluster proof are owed to WP3.5, so the status stays in progress (checked 2026-11-04).
 - id: REQ-IDN-002
   title: Catalog permissions map scopes to endpoint behavior
   statement: catalog.read grants all GET operations, catalog.write grants product create and update operations, and catalog.admin grants discontinue plus all category write operations.
@@ -640,7 +640,7 @@ requirements:
   - contract
   evidence: authorization matrix tests
   status: in_progress
-  notes: The first pull request of WP1.7 delivers PermissionPolicy, the one table that maps each access level to its scope and to the roles that grant it, because Keycloak 26.8.0 grants a requested scope to a user without the role (R21, ADR-0026, ADR-0032). An exhaustive test covers all 64 combinations of scopes and roles for each level, and an agreement test compares the scopes with the contract and the roles with the realm file. Each of the ten requests declares its level, and ApplicationAgreementTests compare the level of each with the scope that the contract names for its operation. WP1.10 binds the table to the endpoints, and WP3.5 proves it against the real realm. The first pull request of WP1.10 adds one endpoint policy for each access level that requires the scope and one of the roles from that same table, and a test that checks all 192 combinations of scope and role against an independent oracle (AccessPolicyTests, ADR-0040); the matrix over the real operations arrives in the third pull request (checked 2026-11-03).
+  notes: The first pull request of WP1.7 delivers PermissionPolicy, the one table that maps each access level to its scope and to the roles that grant it, because Keycloak 26.8.0 grants a requested scope to a user without the role (R21, ADR-0026, ADR-0032). An exhaustive test covers all 64 combinations of scopes and roles for each level, and an agreement test compares the scopes with the contract and the roles with the realm file. Each of the ten requests declares its level, and ApplicationAgreementTests compare the level of each with the scope that the contract names for its operation. WP1.10 binds the table to the endpoints, and WP3.5 proves it against the real realm. The first pull request of WP1.10 adds one endpoint policy for each access level that requires the scope and one of the roles from that same table, and a test that checks all 192 combinations of scope and role against an independent oracle (AccessPolicyTests, ADR-0040). The third pull request reads the scope of each operation from the authored contract and sends all 64 combinations of scope and role to each of the ten operations of the real endpoints against a ladder of roles that the test writes apart from the table, and it checks the 401 cases (AuthorizationMatrixTests, ADR-0042). The users of the realm cannot get a token without a login flow (the password grant is off), so the proof against the real users in the cluster is owed to WP3.5, and the status stays in progress (checked 2026-11-04).
 - id: REQ-IDN-003
   title: JWT validation checks issuer audience algorithms and clock skew
   statement: JWT validation enforces exact issuer and audience checks, allows only RS256 and ES256, tolerates no more than 30 seconds of clock skew, and accepts JWKS rotation.
@@ -677,7 +677,7 @@ requirements:
   - docs
   evidence: shared realm files and import tests
   status: in_progress
-  notes: The catalog realm file under identity/keycloak/realms with ${ENV} placeholders feeds the Compose stack, and a test checks the placeholders and that no secret is a literal. The Testcontainers import arrives in WP1.10 and the keycloak-config-cli reconciliation in WP3.5.
+  notes: The catalog realm file under identity/keycloak/realms with ${ENV} placeholders feeds the Compose stack, and a test checks the placeholders and that no secret is a literal. The third pull request of WP1.10 imports the same file into a Keycloak Testcontainer with random secrets for the placeholders (KeycloakRealmContractTests, ADR-0042). The keycloak-config-cli reconciliation is owed to WP3.5, so the status stays in progress (checked 2026-11-04).
 - id: REQ-IDN-006
   title: Workload identity uses bound GitHub OIDC and Kubernetes claims
   statement: Vault JWT auth binds GitHub OIDC tokens to the expected repository, workflow ref, ref, event, and audience claims, and Vault Kubernetes auth binds workloads to the exact namespace and service account pairs that are documented for them.
@@ -771,7 +771,8 @@ requirements:
   - integration
   - ci
   evidence: Testcontainers CI reports
-  status: planned
+  status: in_progress
+  notes: The persistence and cache suites of WP1.8 and WP1.9 run against real SQL Server and Valkey containers, the API suites of WP1.10 add the same two and a real Keycloak container from the digests of compose.yaml (ADR-0034, ADR-0042), and the Linux run and the hosted CI run all of them. The provider-verification tests are owed to WP4.2, so the status stays in progress (checked 2026-11-04).
 - id: REQ-QUA-002
   title: The suite matrix blocks changes at the right depth
   statement: The suite matrix in section 10.1 runs the required unit, architecture, snapshot, integration, contract, policy, IaC, performance, script, docs, onboarding, and drill checks on the paths and events they are designed to gate.
@@ -1325,8 +1326,8 @@ requirements:
   - contract
   - snapshot
   evidence: oasdiff conformance output
-  status: in_progress
-  notes: WP1.5 delivers the comparison, which runs oasdiff and ignores descriptions, examples, and summaries, and tests that show wording changes passing and seven kinds of structural change failing. The served document and the blocking run arrive in WP1.10.
+  status: verified
+  notes: WP1.5 delivers the comparison, which runs oasdiff and ignores descriptions, examples, and summaries, and tests that show wording changes passing and seven kinds of structural change failing. WP1.10 generates the served document from the endpoints and the shared components of the authored contract, ServedContractTests write it, and the ci workflow runs the comparison on it and blocks. The run finds the two documents structurally equal. The snapshot of the generated paths is committed and compared on every run (ServedPathsSnapshotTests), and Verify is not used because its build gate asks the owner for a sponsorship declaration (ADR-0042, checked 2026-11-04).
 - id: REQ-CON-003
   title: Breaking v1 contract changes are blocked before merge
   statement: From WP4.1 onward, every pull request compares the candidate v1 contract to the last released contract and blocks any breaking change.

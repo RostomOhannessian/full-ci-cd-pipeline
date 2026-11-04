@@ -229,3 +229,18 @@ entries:
     path: docs/testing/evidence/2026-11-04-http-api-endpoints-run.md
     summary: The ten operations ran over HTTP against a real SQL Server 2022 container and a real Valkey 8.1 container started from the digests of compose.yaml, on Windows with Docker Desktop and in the pinned Linux SDK image. It records the headers, the conditional requests, the idempotent creates, the filters, the pages, the strict reading of bodies, the version headers, and the rule that keeps the endpoints thin.
     recorded: '2026-11-04'
+  - requirements: [REQ-CON-002, REQ-API-001, REQ-API-005, REQ-API-006, REQ-IDN-001, REQ-IDN-002, REQ-IDN-005, REQ-QUA-001]
+    kind: docs
+    path: docs/adr/0042-served-contract-conformance-and-snapshots.md
+    summary: ADR-0042 records how the host generates the served document from its endpoints and the shared components of the authored contract, the oasdiff check in CI, the viewer that exists in Development only, the authorization matrix over every operation, the tests against a real Keycloak, and the snapshots that a helper in the test project compares because Verify 33 asks the owner for a sponsorship declaration.
+    recorded: '2026-11-04'
+  - requirements: [REQ-API-001, REQ-CON-002]
+    kind: docs
+    path: docs/reference/tools/scalar.md
+    summary: The tool page of the dev-only viewer explains what it shows, why only the Development environment registers it, and how to run the tests that prove the viewer and the document.
+    recorded: '2026-11-04'
+  - requirements: [REQ-CON-002, REQ-API-001, REQ-API-005, REQ-API-006, REQ-IDN-001, REQ-IDN-002, REQ-IDN-005, REQ-QUA-001]
+    kind: manual
+    path: docs/testing/evidence/2026-11-04-http-api-conformance-run.md
+    summary: The conformance check, the authorization matrix, the snapshots, and the realm tests ran on Windows with Docker Desktop and in the pinned Linux SDK image, with a real Keycloak 26.8.0 container started from the digest of compose.yaml. It records the structural equality that oasdiff found, the 640 combinations of scope and role, the snapshots, the claims of real tokens, the finding about Verify, and what ran where.
+    recorded: '2026-11-04'

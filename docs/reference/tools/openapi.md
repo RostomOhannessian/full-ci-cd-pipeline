@@ -7,7 +7,7 @@ tools: [openapi, microsoft-openapi, microsoft-openapi-yamlreader, spectral, oasd
 introduced: "phase-1"
 prerequisites: ["Docker with Compose 2.23 or newer", "The repository cloned", "A POSIX shell for the hands-on commands (Linux, macOS, WSL, or the Dev Container)", "PowerShell 7 as pwsh for the conformance step (the Dev Container has it, and dotnet tool restore gives a native host dotnet pwsh)"]
 estimated-time: "30 minutes"
-last-verified: 2026-10-11
+last-verified: 2026-11-04
 verified-against: { openapi: "3.1.0" }
 owner: "@RostomOhannessian"
 ---
@@ -55,12 +55,12 @@ The specification has patch versions, and they only fix errors or clarify the te
 ```mermaid
 flowchart LR
   accTitle: How the authored OpenAPI contract is checked
-  accDescr: The authored contract, catalog.openapi.yaml, is linted by Spectral in the contract-lint job and read by the C# contract tests through Microsoft.OpenApi. The conformance script compares it with the served document using oasdiff. The served document comes from the API build, which is planned for WP1.10. The breaking-change gate and the Kiota client in WP4.1 and the Pact tests in WP4.2 are planned, and they use the same contract.
+  accDescr: The authored contract, catalog.openapi.yaml, is linted by Spectral in the contract-lint job and read by the C# contract tests through Microsoft.OpenApi. The conformance script compares it with the served document using oasdiff. The served document comes from the API host, which WP1.10 delivered. The breaking-change gate and the Kiota client in WP4.1 and the Pact tests in WP4.2 are planned, and they use the same contract.
   AUTH["Authored contract: catalog.openapi.yaml (OpenAPI 3.1.0)"]
   LINT["contract-lint: Spectral 6.17.0"]
   TESTS["Catalog.Contract.Tests: Microsoft.OpenApi 2.12.2"]
   CONF["Test-ContractConformance.ps1: oasdiff v1.33.0"]
-  SERVED["Served document from the API build (planned, WP1.10)"]
+  SERVED["Served document from the API host (WP1.10)"]
   LATER["Breaking-change gate and Kiota client (planned, WP4.1), Pact tests (planned, WP4.2)"]
   AUTH --> LINT
   AUTH --> TESTS
@@ -69,7 +69,7 @@ flowchart LR
   AUTH -.-> LATER
 ```
 
-What exists today is the contract, its ruleset, the lint job, the conformance script and its tests, and the contract test project. No API serves the contract yet. WP1.10 adds the API and the served document, WP4.1 and WP4.2 add the checks on the right of the
+What exists today is the contract, its ruleset, the lint job, the conformance script and its tests, the contract test project, the API that serves the contract, and the blocking conformance check on its served document. WP4.1 and WP4.2 add the checks on the right of the
 diagram, and a contract lab is planned for WP1.13.
 
 ## Decision rationale
@@ -163,7 +163,7 @@ Four trade-offs follow from the choice:
    ✖ 2 problems (2 errors, 0 warnings, 0 infos, 0 hints)
    ```
 
-4. Compare a served document with the authored contract. A copy that you did not change is structurally equal. From WP1.10 the served document is the JSON that the API build generates, and the script accepts a `.json`, `.yaml`, or `.yml` file.
+4. Compare a served document with the authored contract. A copy that you did not change is structurally equal. From WP1.10 the served document is the JSON that the host generates, and the script accepts a `.json`, `.yaml`, or `.yml` file.
 
    ```bash illustrative
    cp contracts/openapi/catalog/v1/catalog.openapi.yaml scratch/served.yaml
@@ -249,9 +249,9 @@ Where the contract uses the 3.1 features that this page teaches:
 | Servers | The Compose stack on `http://localhost:8080`, and the local cluster, planned for Phase 3 |
 
 **Data flow and trust boundary.** Every input is a file of the repository. The Spectral container reads the repository through a read-only mount. The conformance script copies the two documents into a temporary folder and mounts that folder read-only into the oasdiff container.
-The C# tests read the contract from disk. Nothing crosses a network at run time. From WP1.10 the served document is a build artifact that the API build generates (plan section 8.6, step 5), and it is not fetched from a running server.
+The C# tests read the contract from disk, and the Api project embeds a copy of it at build time. Nothing crosses a network at run time. Since WP1.10 the served document is a build artifact that `ServedContractTests` write to `TestResults/served/catalog.openapi.json` (plan section 8.6, step 5), and it is not fetched from a running server.
 
-**Ownership.** WP1.5 delivered the contract, the ruleset, the lint job, the conformance script, and the test project. WP1.10 serves the contract and runs the conformance check on the served document. WP4.1 adds the comparison with the last
+**Ownership.** WP1.5 delivered the contract, the ruleset, the lint job, the conformance script, and the test project. WP1.10 serves the contract and runs the conformance check on the served document, which the host generates from its endpoints and the shared components of the authored file ([ADR-0042](../../adr/0042-served-contract-conformance-and-snapshots.md)). WP4.1 adds the comparison with the last
 released contract, the generated `Catalog.Client`, and Schemathesis, and WP4.2 adds Pact (all planned). WP1.13 writes the contract lab and publishes the contract pages on the documentation site.
 
 **Failure modes.**
@@ -297,7 +297,7 @@ The C# contract tests run with the other tests of the solution, in the `dotnet t
 
 ## Lab
 
-None yet for the contract. WP1.13 (planned) writes a contract lab. [Lab 1: Quick start](../../labs/quick-start-api-stack.md) starts the stack that the API will run in, but it does not touch the contract, and the API calls that serve it arrive in WP1.10.
+None yet for the contract. WP1.13 (planned) writes a contract lab. [Lab 1: Quick start](../../labs/quick-start-api-stack.md) starts the stack that the API runs in, but it does not touch the contract. Since WP1.10 the Development host shows the served document at `/openapi/v1.json` and the viewer at `/scalar/v1` ([Scalar](scalar.md)).
 
 ## Further research
 
@@ -305,7 +305,7 @@ None yet for the contract. WP1.13 (planned) writes a contract lab. [Lab 1: Quick
 - [Learn OpenAPI](https://learn.openapis.org/): guides to the structure of a description, reuse with references, examples, security, and the upgrade from 3.0 to 3.1 (checked 2026-10-11)
 - [Migrating from OpenAPI 3.0 to 3.1.0](https://www.openapis.org/blog/2021/02/16/migrating-from-openapi-3-0-to-3-1-0): why `nullable` became a type array and why schema `example` became `examples` (checked 2026-10-11)
 - [JSON Schema Draft 2020-12](https://json-schema.org/draft/2020-12): the dialect that the Schema Object extends (checked 2026-10-11)
-- [OpenAPI document generation in ASP.NET Core](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/openapi/aspnetcore-openapi?view=aspnetcore-10.0): how the API will produce the served document in WP1.10, and which OpenAPI versions it can write (checked 2026-10-11)
+- [OpenAPI document generation in ASP.NET Core](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/openapi/aspnetcore-openapi?view=aspnetcore-10.0): the framework generator, which the API does not use because the check counts shared components by name ([ADR-0042](../../adr/0042-served-contract-conformance-and-snapshots.md)), and which OpenAPI versions it can write (checked 2026-10-11)
 - [Upgrade guide to OpenAPI.NET 2.0](https://github.com/microsoft/OpenAPI.NET/blob/main/docs/upgrade-guide-2.md): the 2.x object model, the separate YAML reader, and the compatibility with ASP.NET Core (checked 2026-10-11)
 - [Spectral rulesets](https://docs.stoplight.io/docs/spectral/e5b9616d6d50c-rulesets): how `contracts/openapi/spectral.yaml` is written (checked 2026-10-11)
 - [oasdiff](https://www.oasdiff.com/): the comparison tool behind the conformance check and, from WP4.1, the breaking-change gate (checked 2026-10-11)

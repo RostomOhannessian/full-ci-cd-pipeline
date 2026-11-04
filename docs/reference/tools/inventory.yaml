@@ -90,8 +90,8 @@ entries:
       - https://github.com/Microsoft/OpenAPI.NET
       - https://www.nuget.org/packages/Microsoft.OpenApi
       - https://github.com/Microsoft/OpenAPI.NET/releases/tag/v2.12.2
-    adrs: ["0017", "0027"]
-    notes: The latest package release is 3.10.2 (checked 2026-10-11), and the repository pins 2.12.2, because Microsoft.AspNetCore.OpenApi 10.0.12 depends on Microsoft.OpenApi from 2.12.0 and below 3.0.0, and the conformance check compares documents that this library wrote. Only the contract test project references it today, and WP1.10 adds the API's own reference.
+    adrs: ["0017", "0027", "0042"]
+    notes: The latest package release is 3.10.2 (checked 2026-10-11), and the repository pins 2.12.2, because Microsoft.AspNetCore.OpenApi 10.0.12 depends on Microsoft.OpenApi from 2.12.0 and below 3.0.0, and the conformance check compares documents that this library wrote. The contract test project and, from WP1.10 (2026-11-04), Catalog.Api reference it with Microsoft.OpenApi.YamlReader, and the API reads its embedded copy of the authored contract with it to generate the served document. The library writes 3.1.1 for a document that declares 3.1.0, so the generator takes the declared version from the file.
     detect: ["nuget:Microsoft.OpenApi"]
   - id: nswag
     name: NSwag
@@ -127,8 +127,8 @@ entries:
       - https://github.com/oasdiff/oasdiff
       - https://github.com/oasdiff/oasdiff/releases/tag/v1.33.0
       - https://www.oasdiff.com/
-    adrs: ["0017", "0027"]
-    notes: WP1.5 runs it as the digest-pinned tufin/oasdiff:v1.33.0 container of the contract-conformance service in tools/lint/compose.yaml. tools/ci/Test-ContractConformance.ps1 compares a served document with the authored contract and ignores descriptions, examples, and summaries, and its tests show that a changed constraint, a missing response, a renamed header, and a renamed endpoint all fail (checked 2026-10-11). WP1.10 generates the served document, and WP4.1 adds the breaking-change comparison with the last released contract.
+    adrs: ["0017", "0027", "0042"]
+    notes: WP1.5 runs it as the digest-pinned tufin/oasdiff:v1.33.0 container of the contract-conformance service in tools/lint/compose.yaml. tools/ci/Test-ContractConformance.ps1 compares a served document with the authored contract and ignores descriptions, examples, and summaries, and its tests show that a changed constraint, a missing response, a renamed header, and a renamed endpoint all fail (checked 2026-10-11). WP1.10 generates the served document from the endpoints of the running host, and the ci job Build and test runs the script on it and blocks (2026-11-04, ADR-0042). WP4.1 adds the breaking-change comparison with the last released contract.
     detect: ["image:tufin/oasdiff"]
   - id: spectral
     name: Spectral
@@ -173,18 +173,20 @@ entries:
     category: api-contract
     tier: B
     lifecycle: adopt
-    usage: planned
+    usage: in-use
     introduced: phase-1
-    purpose: Hosts the dev-only API reference UI for the authored contract.
+    purpose: Hosts the dev-only API reference UI for the document that the running host generates.
     license: MIT
-    license-source: https://github.com/scalar/scalar
-    version: "release-2026-10-02-0962afc"
+    license-source: https://www.nuget.org/packages/Scalar.AspNetCore/2.18.7/license
+    version: "2.18.7"
     repo: https://github.com/scalar/scalar
     sources:
+      - https://www.nuget.org/packages/Scalar.AspNetCore
       - https://github.com/scalar/scalar
-      - https://github.com/scalar/scalar/releases/tag/release-2026-10-02-0962afc
       - https://guides.scalar.com/scalar/scalar-api-references/integrations/net-aspnet-core
-    adrs: ["0017"]
+    adrs: ["0017", "0042"]
+    notes: Catalog.Api references the NuGet package Scalar.AspNetCore 2.18.7 (MIT, no dependency on net10.0 besides the shared framework, checked 2026-11-04). Only the Development environment registers the viewer and the document, and a test proves that a Production host answers 404 for both. The viewer has a content policy of its own, and the strict policy of the API stays on every other response.
+    detect: ["nuget:Scalar.AspNetCore"]
 
   # CI services
   - id: github-actions
@@ -1319,7 +1321,7 @@ entries:
       - https://github.com/keycloak/keycloak/releases/tag/26.8.0
       - https://www.keycloak.org/server/db
     adrs: ["0008", "0009", "0026"]
-    notes: compose.yaml (WP1.4) runs quay.io/keycloak/keycloak 26.8.0 at digest sha256:27b3230fbabb8c9ff3c66c864cf09dcd8a41aca82e5100679d109ef0eeb05741 in development mode with an in-memory database, and imports identity/keycloak/realms/catalog-realm.json on every start. On 2026-10-10 the stack showed that Keycloak 26.8.0 does not withhold a requested client scope from a user who lacks the role that the scope maps to (a reader that asked for catalog.admin received it in the scope claim), while the realm_access.roles claim holds only the roles that the user has and the requested scopes cover. ADR-0026 records the finding, and the API must authorize on the role claim as well as the scope.
+    notes: compose.yaml (WP1.4) runs quay.io/keycloak/keycloak 26.8.0 at digest sha256:27b3230fbabb8c9ff3c66c864cf09dcd8a41aca82e5100679d109ef0eeb05741 in development mode with an in-memory database, and imports identity/keycloak/realms/catalog-realm.json on every start. On 2026-10-10 the stack showed that Keycloak 26.8.0 does not withhold a requested client scope from a user who lacks the role that the scope maps to (a reader that asked for catalog.admin received it in the scope claim), while the realm_access.roles claim holds only the roles that the user has and the requested scopes cover. ADR-0026 records the finding, and the API must authorize on the role claim as well as the scope. WP1.10 (2026-11-04) starts the same image from the digest of compose.yaml in the API tests, with the generic Testcontainers builder and the realm file, and proves with real tokens of the two service-account clients that the audience, the scopes, and the roles are what the API needs and that a client cannot ask for a scope that it was not given (ADR-0042).
     detect: ["image:quay.io/keycloak/keycloak"]
   - id: keycloak-config-cli
     name: keycloak-config-cli
@@ -2649,16 +2651,16 @@ entries:
       - https://github.com/testcontainers/testcontainers-dotnet
       - https://dotnet.testcontainers.org/
     adrs: ["0018", "0034"]
-    notes: Spike 1.d (2026-10-06) started a digest-pinned SQL Server 2022 image in about 6 seconds from a shared xUnit v3 assembly fixture on Windows x86-64, and WP1.8 runs the same pattern for the persistence suites on Windows and in the Linux SDK image (checked 2026-11-02). Pin images by digest and always set a generated password, because the SQL Server builder's default password is a well-known constant and its parameterless constructor is obsolete. The builder sets ACCEPT_EULA to Y on the user's behalf. The reaper container (Ryuk) is pinned by digest in the fixture, and it runs without the privileged flag on Docker Desktop. It mounts the Docker socket, and so does the linux-tests service of tools/lint/compose.yaml, which is a reviewed exception for a developer machine (ADR-0034, docs/security/threat-model.md). Version 4.16.0 exists (checked 2026-11-01), and the repository keeps the 4.15.0 that the spike ran until Dependabot proposes the update.
+    notes: Spike 1.d (2026-10-06) started a digest-pinned SQL Server 2022 image in about 6 seconds from a shared xUnit v3 assembly fixture on Windows x86-64, and WP1.8 runs the same pattern for the persistence suites on Windows and in the Linux SDK image (checked 2026-11-02). Pin images by digest and always set a generated password, because the SQL Server builder's default password is a well-known constant and its parameterless constructor is obsolete. The builder sets ACCEPT_EULA to Y on the user's behalf. The reaper container (Ryuk) is pinned by digest in the fixture, and it runs without the privileged flag on Docker Desktop. The Keycloak fixture of the API tests (WP1.10) uses the generic ContainerBuilder of this package and not the separate Testcontainers.Keycloak package, so no package was added (ADR-0042). It mounts the Docker socket, and so does the linux-tests service of tools/lint/compose.yaml, which is a reviewed exception for a developer machine (ADR-0034, docs/security/threat-model.md). Version 4.16.0 exists (checked 2026-11-01), and the repository keeps the 4.15.0 that the spike ran until Dependabot proposes the update.
     detect: ["nuget:Testcontainers.MsSql"]
   - id: verify
     name: Verify
     category: test-tool
-    tier: B
-    lifecycle: adopt
-    usage: planned
-    introduced: phase-1
-    purpose: Stores snapshot baselines for generated contracts and other deterministic artifacts.
+    tier: n/a
+    lifecycle: hold
+    usage: evaluated-only
+    introduced: n/a
+    purpose: Was evaluated as the snapshot library for the error bodies and the generated paths of the API tests.
     license: MIT
     license-source: https://www.nuget.org/packages/Verify.XunitV3/33.2.0/license
     version: "33.2.0"
@@ -2666,4 +2668,5 @@ entries:
     sources:
       - https://www.nuget.org/packages/Verify.XunitV3
       - https://github.com/VerifyTests/Verify
-    adrs: ["0018"]
+    adrs: ["0018", "0042"]
+    notes: Held on 2026-11-04 (WP1.10). The package is MIT licensed, but from 33.0.0 its build fails (SponsorCheck SC021) unless the owner declares a GitHub sponsorship or a time-limited exemption of at most 12 months, which is a maintenance-fee model next to the ban on commercial terms in ADR-0004, and the owner chose not to declare one. The releases up to 32.0.1 have no such check but ask for xunit.v3.extensibility.core 3.2.2, where the repository uses xunit.v3 4.0.1. The API tests compare their snapshots with a helper in the test project (ADR-0042), and Dependabot must not propose Verify until the check is gone or the owner decides to declare an exemption.
