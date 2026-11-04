@@ -112,6 +112,15 @@ internal static class ArchitectureRules
             "REQ-ARC-002",
             (layers, strict) => Finish(Types().That().Are(layers.ApiOutsideComposition).Should().NotDependOnAnyTypesThat().Are(AnyOf(layers.Infrastructure, layers.CrossCutting)), strict)),
 
+        // An endpoint maps a request to a handler and a result to a response, so it depends on the contracts and on the handler interfaces and the requests of the Application, and never on the domain model, an adapter,
+        // or a decorator (REQ-ARC-004, ADR-0041). The mapping of values is in the Mapping namespace, which is not an endpoint.
+        new(
+            "api-endpoints-depend-on-contracts-and-handler-interfaces-only",
+            "REQ-ARC-004",
+            (layers, strict) => Finish(
+                Types().That().Are(layers.ApiEndpoints).Should().NotDependOnAnyTypesThat().Are(AnyOf(layers.Domain, layers.Infrastructure)).AndShould().NotDependOnAnyTypesThat().Are(layers.CrossCutting),
+                strict)),
+
         new(
             "handlers-are-internal-and-sealed",
             "REQ-ARC-005",

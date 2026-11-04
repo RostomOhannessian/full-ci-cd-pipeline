@@ -51,6 +51,7 @@ public sealed class ArchitectureRulesTests
         ["only-the-caching-namespace-of-cross-cutting-uses-fusioncache"] = "FusionAwareAdapter",
         ["no-service-locator-outside-the-composition-root"] = "ServiceLocatorUser",
         ["api-names-infrastructure-and-cross-cutting-only-in-its-composition-namespace"] = "LeakyEndpoint",
+        ["api-endpoints-depend-on-contracts-and-handler-interfaces-only"] = "EntityExposingEndpoint",
         ["application-ports-are-segregated"] = "IEverythingStore",
         ["decorators-are-composed-only-by-pipelines"] = "ChainingDecorator",
         ["handlers-implement-a-handler-interface"] = "UntypedHandler",
@@ -103,9 +104,14 @@ public sealed class ArchitectureRulesTests
     public void Production_cache_code_stays_in_its_layers_so_fusioncache_is_the_adapters_and_the_connection_to_valkey_is_infrastructures() => AssertProductionFollowsRulesFor("REQ-CACHE-001");
 
     [Fact]
+    [Trait("Requirement", "REQ-ARC-004")]
+    public void Production_endpoints_depend_on_contracts_and_handler_interfaces_only() => AssertProductionFollowsRulesFor("REQ-ARC-004");
+
+    [Fact]
     [Trait("Requirement", "REQ-ARC-001")]
     [Trait("Requirement", "REQ-ARC-002")]
     [Trait("Requirement", "REQ-ARC-003")]
+    [Trait("Requirement", "REQ-ARC-004")]
     [Trait("Requirement", "REQ-APP-001")]
     [Trait("Requirement", "REQ-APP-002")]
     [Trait("Requirement", "REQ-ARC-005")]
@@ -116,7 +122,7 @@ public sealed class ArchitectureRulesTests
             ArchitectureRules.All.Select(rule => rule.Id).Order(StringComparer.Ordinal),
             ReportedType.Keys.Order(StringComparer.Ordinal));
         Assert.Equal(
-            ["REQ-APP-001", "REQ-APP-002", "REQ-ARC-001", "REQ-ARC-002", "REQ-ARC-003", "REQ-ARC-005", "REQ-CACHE-001"],
+            ["REQ-APP-001", "REQ-APP-002", "REQ-ARC-001", "REQ-ARC-002", "REQ-ARC-003", "REQ-ARC-004", "REQ-ARC-005", "REQ-CACHE-001"],
             ArchitectureRules.All.Select(rule => rule.Requirement).Distinct().Order(StringComparer.Ordinal));
     }
 
@@ -125,6 +131,7 @@ public sealed class ArchitectureRulesTests
     [Trait("Requirement", "REQ-ARC-001")]
     [Trait("Requirement", "REQ-ARC-002")]
     [Trait("Requirement", "REQ-ARC-003")]
+    [Trait("Requirement", "REQ-ARC-004")]
     [Trait("Requirement", "REQ-APP-001")]
     [Trait("Requirement", "REQ-APP-002")]
     [Trait("Requirement", "REQ-ARC-005")]
@@ -141,6 +148,7 @@ public sealed class ArchitectureRulesTests
     [Trait("Requirement", "REQ-ARC-001")]
     [Trait("Requirement", "REQ-ARC-002")]
     [Trait("Requirement", "REQ-ARC-003")]
+    [Trait("Requirement", "REQ-ARC-004")]
     [Trait("Requirement", "REQ-APP-001")]
     [Trait("Requirement", "REQ-APP-002")]
     [Trait("Requirement", "REQ-ARC-005")]

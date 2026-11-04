@@ -180,3 +180,12 @@ namespace Catalog.Architecture.Tests.Fixtures.Violations.Api
         private readonly Infrastructure.SqlProductStore _store = new();
     }
 }
+
+namespace Catalog.Architecture.Tests.Fixtures.Violations.Api.Endpoints
+{
+    // Breaks "api-endpoints-depend-on-contracts-and-handler-interfaces-only": an endpoint holds a type of the domain model.
+    public sealed class EntityExposingEndpoint
+    {
+        public Domain.LeakyProduct? Product { get; init; }
+    }
+}

@@ -32,6 +32,7 @@
     <Compile Include="..\Catalog.Infrastructure.Tests\Support\ComposeImage.cs" Link="Support\Shared\ComposeImage.cs" />
     <Compile Include="..\Catalog.Infrastructure.Tests\Support\InvariantCulture.cs" Link="Support\Shared\InvariantCulture.cs" />
     <Compile Include="..\Catalog.Infrastructure.Tests\Support\Poll.cs" Link="Support\Shared\Poll.cs" />
+    <Compile Include="..\Catalog.Infrastructure.Tests\Support\ValkeySupport.cs" Link="Support\Shared\ValkeySupport.cs" />
   </ItemGroup>
 
   <!-- Parallelism is declared per assembly in this file (plan section 10.3). -->
