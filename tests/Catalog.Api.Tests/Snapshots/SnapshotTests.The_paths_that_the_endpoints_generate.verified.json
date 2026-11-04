@@ -1,0 +1,872 @@
+{
+  "/api/v1/categories": {
+    "get": {
+      "operationId": "listCategories",
+      "tags": [
+        "Categories"
+      ],
+      "security": [
+        {
+          "oauth2": [
+            "catalog.read"
+          ]
+        }
+      ],
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/CategoryStatusFilter"
+        },
+        {
+          "$ref": "#/components/parameters/PageSize"
+        },
+        {
+          "$ref": "#/components/parameters/Cursor"
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Success.",
+          "headers": {
+            "Link": {
+              "$ref": "#/components/headers/Link"
+            },
+            "api-supported-versions": {
+              "$ref": "#/components/headers/ApiSupportedVersions"
+            },
+            "api-deprecated-versions": {
+              "$ref": "#/components/headers/ApiDeprecatedVersions"
+            },
+            "Deprecation": {
+              "$ref": "#/components/headers/Deprecation"
+            },
+            "Sunset": {
+              "$ref": "#/components/headers/Sunset"
+            }
+          },
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CategoryPage"
+              }
+            }
+          }
+        },
+        "400": {
+          "$ref": "#/components/responses/BadRequest"
+        },
+        "401": {
+          "$ref": "#/components/responses/Unauthorized"
+        },
+        "403": {
+          "$ref": "#/components/responses/Forbidden"
+        },
+        "429": {
+          "$ref": "#/components/responses/TooManyRequests"
+        },
+        "500": {
+          "$ref": "#/components/responses/InternalServerError"
+        },
+        "503": {
+          "$ref": "#/components/responses/ServiceUnavailable"
+        }
+      }
+    },
+    "post": {
+      "operationId": "createCategory",
+      "tags": [
+        "Categories"
+      ],
+      "security": [
+        {
+          "oauth2": [
+            "catalog.admin"
+          ]
+        }
+      ],
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/IdempotencyKey"
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/CategoryCreate"
+            }
+          }
+        }
+      },
+      "responses": {
+        "201": {
+          "description": "Success.",
+          "headers": {
+            "Location": {
+              "$ref": "#/components/headers/Location"
+            },
+            "ETag": {
+              "$ref": "#/components/headers/ETag"
+            },
+            "api-supported-versions": {
+              "$ref": "#/components/headers/ApiSupportedVersions"
+            },
+            "api-deprecated-versions": {
+              "$ref": "#/components/headers/ApiDeprecatedVersions"
+            },
+            "Deprecation": {
+              "$ref": "#/components/headers/Deprecation"
+            },
+            "Sunset": {
+              "$ref": "#/components/headers/Sunset"
+            }
+          },
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Category"
+              }
+            }
+          }
+        },
+        "400": {
+          "$ref": "#/components/responses/BadRequestIdempotent"
+        },
+        "401": {
+          "$ref": "#/components/responses/Unauthorized"
+        },
+        "403": {
+          "$ref": "#/components/responses/Forbidden"
+        },
+        "409": {
+          "$ref": "#/components/responses/IdempotencyInProgress"
+        },
+        "413": {
+          "$ref": "#/components/responses/PayloadTooLarge"
+        },
+        "415": {
+          "$ref": "#/components/responses/UnsupportedMediaType"
+        },
+        "422": {
+          "$ref": "#/components/responses/IdempotencyKeyReused"
+        },
+        "429": {
+          "$ref": "#/components/responses/TooManyRequests"
+        },
+        "500": {
+          "$ref": "#/components/responses/InternalServerError"
+        },
+        "503": {
+          "$ref": "#/components/responses/ServiceUnavailable"
+        }
+      }
+    }
+  },
+  "/api/v1/categories/{categoryId}": {
+    "parameters": [
+      {
+        "$ref": "#/components/parameters/CategoryId"
+      }
+    ],
+    "get": {
+      "operationId": "getCategory",
+      "tags": [
+        "Categories"
+      ],
+      "security": [
+        {
+          "oauth2": [
+            "catalog.read"
+          ]
+        }
+      ],
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/IfNoneMatch"
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Success.",
+          "headers": {
+            "ETag": {
+              "$ref": "#/components/headers/ETag"
+            },
+            "api-supported-versions": {
+              "$ref": "#/components/headers/ApiSupportedVersions"
+            },
+            "api-deprecated-versions": {
+              "$ref": "#/components/headers/ApiDeprecatedVersions"
+            },
+            "Deprecation": {
+              "$ref": "#/components/headers/Deprecation"
+            },
+            "Sunset": {
+              "$ref": "#/components/headers/Sunset"
+            }
+          },
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Category"
+              }
+            }
+          }
+        },
+        "304": {
+          "description": "Not modified.",
+          "headers": {
+            "ETag": {
+              "$ref": "#/components/headers/ETag"
+            },
+            "api-supported-versions": {
+              "$ref": "#/components/headers/ApiSupportedVersions"
+            },
+            "api-deprecated-versions": {
+              "$ref": "#/components/headers/ApiDeprecatedVersions"
+            },
+            "Deprecation": {
+              "$ref": "#/components/headers/Deprecation"
+            },
+            "Sunset": {
+              "$ref": "#/components/headers/Sunset"
+            }
+          }
+        },
+        "400": {
+          "$ref": "#/components/responses/BadRequest"
+        },
+        "401": {
+          "$ref": "#/components/responses/Unauthorized"
+        },
+        "403": {
+          "$ref": "#/components/responses/Forbidden"
+        },
+        "404": {
+          "$ref": "#/components/responses/NotFound"
+        },
+        "429": {
+          "$ref": "#/components/responses/TooManyRequests"
+        },
+        "500": {
+          "$ref": "#/components/responses/InternalServerError"
+        },
+        "503": {
+          "$ref": "#/components/responses/ServiceUnavailable"
+        }
+      }
+    },
+    "put": {
+      "operationId": "updateCategory",
+      "tags": [
+        "Categories"
+      ],
+      "security": [
+        {
+          "oauth2": [
+            "catalog.admin"
+          ]
+        }
+      ],
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/IfMatch"
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/CategoryUpdate"
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Success.",
+          "headers": {
+            "ETag": {
+              "$ref": "#/components/headers/ETag"
+            },
+            "api-supported-versions": {
+              "$ref": "#/components/headers/ApiSupportedVersions"
+            },
+            "api-deprecated-versions": {
+              "$ref": "#/components/headers/ApiDeprecatedVersions"
+            },
+            "Deprecation": {
+              "$ref": "#/components/headers/Deprecation"
+            },
+            "Sunset": {
+              "$ref": "#/components/headers/Sunset"
+            }
+          },
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Category"
+              }
+            }
+          }
+        },
+        "400": {
+          "$ref": "#/components/responses/BadRequest"
+        },
+        "401": {
+          "$ref": "#/components/responses/Unauthorized"
+        },
+        "403": {
+          "$ref": "#/components/responses/Forbidden"
+        },
+        "404": {
+          "$ref": "#/components/responses/NotFound"
+        },
+        "412": {
+          "$ref": "#/components/responses/PreconditionFailed"
+        },
+        "413": {
+          "$ref": "#/components/responses/PayloadTooLarge"
+        },
+        "415": {
+          "$ref": "#/components/responses/UnsupportedMediaType"
+        },
+        "428": {
+          "$ref": "#/components/responses/PreconditionRequired"
+        },
+        "429": {
+          "$ref": "#/components/responses/TooManyRequests"
+        },
+        "500": {
+          "$ref": "#/components/responses/InternalServerError"
+        },
+        "503": {
+          "$ref": "#/components/responses/ServiceUnavailable"
+        }
+      }
+    }
+  },
+  "/api/v1/categories/{categoryId}/discontinue": {
+    "parameters": [
+      {
+        "$ref": "#/components/parameters/CategoryId"
+      }
+    ],
+    "post": {
+      "operationId": "discontinueCategory",
+      "tags": [
+        "Categories"
+      ],
+      "security": [
+        {
+          "oauth2": [
+            "catalog.admin"
+          ]
+        }
+      ],
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/IfMatch"
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Success.",
+          "headers": {
+            "ETag": {
+              "$ref": "#/components/headers/ETag"
+            },
+            "api-supported-versions": {
+              "$ref": "#/components/headers/ApiSupportedVersions"
+            },
+            "api-deprecated-versions": {
+              "$ref": "#/components/headers/ApiDeprecatedVersions"
+            },
+            "Deprecation": {
+              "$ref": "#/components/headers/Deprecation"
+            },
+            "Sunset": {
+              "$ref": "#/components/headers/Sunset"
+            }
+          },
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Category"
+              }
+            }
+          }
+        },
+        "400": {
+          "$ref": "#/components/responses/BadRequest"
+        },
+        "401": {
+          "$ref": "#/components/responses/Unauthorized"
+        },
+        "403": {
+          "$ref": "#/components/responses/Forbidden"
+        },
+        "404": {
+          "$ref": "#/components/responses/NotFound"
+        },
+        "412": {
+          "$ref": "#/components/responses/PreconditionFailed"
+        },
+        "428": {
+          "$ref": "#/components/responses/PreconditionRequired"
+        },
+        "429": {
+          "$ref": "#/components/responses/TooManyRequests"
+        },
+        "500": {
+          "$ref": "#/components/responses/InternalServerError"
+        },
+        "503": {
+          "$ref": "#/components/responses/ServiceUnavailable"
+        }
+      }
+    }
+  },
+  "/api/v1/products": {
+    "get": {
+      "operationId": "listProducts",
+      "tags": [
+        "Products"
+      ],
+      "security": [
+        {
+          "oauth2": [
+            "catalog.read"
+          ]
+        }
+      ],
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/CategoryFilter"
+        },
+        {
+          "$ref": "#/components/parameters/ProductStatusFilter"
+        },
+        {
+          "$ref": "#/components/parameters/SearchText"
+        },
+        {
+          "$ref": "#/components/parameters/Sort"
+        },
+        {
+          "$ref": "#/components/parameters/PageSize"
+        },
+        {
+          "$ref": "#/components/parameters/Cursor"
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Success.",
+          "headers": {
+            "Link": {
+              "$ref": "#/components/headers/Link"
+            },
+            "api-supported-versions": {
+              "$ref": "#/components/headers/ApiSupportedVersions"
+            },
+            "api-deprecated-versions": {
+              "$ref": "#/components/headers/ApiDeprecatedVersions"
+            },
+            "Deprecation": {
+              "$ref": "#/components/headers/Deprecation"
+            },
+            "Sunset": {
+              "$ref": "#/components/headers/Sunset"
+            }
+          },
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductPage"
+              }
+            }
+          }
+        },
+        "400": {
+          "$ref": "#/components/responses/BadRequest"
+        },
+        "401": {
+          "$ref": "#/components/responses/Unauthorized"
+        },
+        "403": {
+          "$ref": "#/components/responses/Forbidden"
+        },
+        "429": {
+          "$ref": "#/components/responses/TooManyRequests"
+        },
+        "500": {
+          "$ref": "#/components/responses/InternalServerError"
+        },
+        "503": {
+          "$ref": "#/components/responses/ServiceUnavailable"
+        }
+      }
+    },
+    "post": {
+      "operationId": "createProduct",
+      "tags": [
+        "Products"
+      ],
+      "security": [
+        {
+          "oauth2": [
+            "catalog.write"
+          ]
+        }
+      ],
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/IdempotencyKey"
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ProductCreate"
+            }
+          }
+        }
+      },
+      "responses": {
+        "201": {
+          "description": "Success.",
+          "headers": {
+            "Location": {
+              "$ref": "#/components/headers/Location"
+            },
+            "ETag": {
+              "$ref": "#/components/headers/ETag"
+            },
+            "api-supported-versions": {
+              "$ref": "#/components/headers/ApiSupportedVersions"
+            },
+            "api-deprecated-versions": {
+              "$ref": "#/components/headers/ApiDeprecatedVersions"
+            },
+            "Deprecation": {
+              "$ref": "#/components/headers/Deprecation"
+            },
+            "Sunset": {
+              "$ref": "#/components/headers/Sunset"
+            }
+          },
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Product"
+              }
+            }
+          }
+        },
+        "400": {
+          "$ref": "#/components/responses/BadRequestIdempotent"
+        },
+        "401": {
+          "$ref": "#/components/responses/Unauthorized"
+        },
+        "403": {
+          "$ref": "#/components/responses/Forbidden"
+        },
+        "409": {
+          "$ref": "#/components/responses/ProductCreateConflict"
+        },
+        "413": {
+          "$ref": "#/components/responses/PayloadTooLarge"
+        },
+        "415": {
+          "$ref": "#/components/responses/UnsupportedMediaType"
+        },
+        "422": {
+          "$ref": "#/components/responses/IdempotencyKeyReused"
+        },
+        "429": {
+          "$ref": "#/components/responses/TooManyRequests"
+        },
+        "500": {
+          "$ref": "#/components/responses/InternalServerError"
+        },
+        "503": {
+          "$ref": "#/components/responses/ServiceUnavailable"
+        }
+      }
+    }
+  },
+  "/api/v1/products/{productId}": {
+    "parameters": [
+      {
+        "$ref": "#/components/parameters/ProductId"
+      }
+    ],
+    "get": {
+      "operationId": "getProduct",
+      "tags": [
+        "Products"
+      ],
+      "security": [
+        {
+          "oauth2": [
+            "catalog.read"
+          ]
+        }
+      ],
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/IfNoneMatch"
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Success.",
+          "headers": {
+            "ETag": {
+              "$ref": "#/components/headers/ETag"
+            },
+            "api-supported-versions": {
+              "$ref": "#/components/headers/ApiSupportedVersions"
+            },
+            "api-deprecated-versions": {
+              "$ref": "#/components/headers/ApiDeprecatedVersions"
+            },
+            "Deprecation": {
+              "$ref": "#/components/headers/Deprecation"
+            },
+            "Sunset": {
+              "$ref": "#/components/headers/Sunset"
+            }
+          },
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Product"
+              }
+            }
+          }
+        },
+        "304": {
+          "description": "Not modified.",
+          "headers": {
+            "ETag": {
+              "$ref": "#/components/headers/ETag"
+            },
+            "api-supported-versions": {
+              "$ref": "#/components/headers/ApiSupportedVersions"
+            },
+            "api-deprecated-versions": {
+              "$ref": "#/components/headers/ApiDeprecatedVersions"
+            },
+            "Deprecation": {
+              "$ref": "#/components/headers/Deprecation"
+            },
+            "Sunset": {
+              "$ref": "#/components/headers/Sunset"
+            }
+          }
+        },
+        "400": {
+          "$ref": "#/components/responses/BadRequest"
+        },
+        "401": {
+          "$ref": "#/components/responses/Unauthorized"
+        },
+        "403": {
+          "$ref": "#/components/responses/Forbidden"
+        },
+        "404": {
+          "$ref": "#/components/responses/NotFound"
+        },
+        "429": {
+          "$ref": "#/components/responses/TooManyRequests"
+        },
+        "500": {
+          "$ref": "#/components/responses/InternalServerError"
+        },
+        "503": {
+          "$ref": "#/components/responses/ServiceUnavailable"
+        }
+      }
+    },
+    "put": {
+      "operationId": "updateProduct",
+      "tags": [
+        "Products"
+      ],
+      "security": [
+        {
+          "oauth2": [
+            "catalog.write"
+          ]
+        }
+      ],
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/IfMatch"
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ProductUpdate"
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Success.",
+          "headers": {
+            "ETag": {
+              "$ref": "#/components/headers/ETag"
+            },
+            "api-supported-versions": {
+              "$ref": "#/components/headers/ApiSupportedVersions"
+            },
+            "api-deprecated-versions": {
+              "$ref": "#/components/headers/ApiDeprecatedVersions"
+            },
+            "Deprecation": {
+              "$ref": "#/components/headers/Deprecation"
+            },
+            "Sunset": {
+              "$ref": "#/components/headers/Sunset"
+            }
+          },
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Product"
+              }
+            }
+          }
+        },
+        "400": {
+          "$ref": "#/components/responses/BadRequest"
+        },
+        "401": {
+          "$ref": "#/components/responses/Unauthorized"
+        },
+        "403": {
+          "$ref": "#/components/responses/Forbidden"
+        },
+        "404": {
+          "$ref": "#/components/responses/NotFound"
+        },
+        "409": {
+          "$ref": "#/components/responses/ProductDiscontinuedConflict"
+        },
+        "412": {
+          "$ref": "#/components/responses/PreconditionFailed"
+        },
+        "413": {
+          "$ref": "#/components/responses/PayloadTooLarge"
+        },
+        "415": {
+          "$ref": "#/components/responses/UnsupportedMediaType"
+        },
+        "428": {
+          "$ref": "#/components/responses/PreconditionRequired"
+        },
+        "429": {
+          "$ref": "#/components/responses/TooManyRequests"
+        },
+        "500": {
+          "$ref": "#/components/responses/InternalServerError"
+        },
+        "503": {
+          "$ref": "#/components/responses/ServiceUnavailable"
+        }
+      }
+    }
+  },
+  "/api/v1/products/{productId}/discontinue": {
+    "parameters": [
+      {
+        "$ref": "#/components/parameters/ProductId"
+      }
+    ],
+    "post": {
+      "operationId": "discontinueProduct",
+      "tags": [
+        "Products"
+      ],
+      "security": [
+        {
+          "oauth2": [
+            "catalog.admin"
+          ]
+        }
+      ],
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/IfMatch"
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Success.",
+          "headers": {
+            "ETag": {
+              "$ref": "#/components/headers/ETag"
+            },
+            "api-supported-versions": {
+              "$ref": "#/components/headers/ApiSupportedVersions"
+            },
+            "api-deprecated-versions": {
+              "$ref": "#/components/headers/ApiDeprecatedVersions"
+            },
+            "Deprecation": {
+              "$ref": "#/components/headers/Deprecation"
+            },
+            "Sunset": {
+              "$ref": "#/components/headers/Sunset"
+            }
+          },
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Product"
+              }
+            }
+          }
+        },
+        "400": {
+          "$ref": "#/components/responses/BadRequest"
+        },
+        "401": {
+          "$ref": "#/components/responses/Unauthorized"
+        },
+        "403": {
+          "$ref": "#/components/responses/Forbidden"
+        },
+        "404": {
+          "$ref": "#/components/responses/NotFound"
+        },
+        "412": {
+          "$ref": "#/components/responses/PreconditionFailed"
+        },
+        "428": {
+          "$ref": "#/components/responses/PreconditionRequired"
+        },
+        "429": {
+          "$ref": "#/components/responses/TooManyRequests"
+        },
+        "500": {
+          "$ref": "#/components/responses/InternalServerError"
+        },
+        "503": {
+          "$ref": "#/components/responses/ServiceUnavailable"
+        }
+      }
+    }
+  }
+}

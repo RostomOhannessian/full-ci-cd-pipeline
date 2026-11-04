@@ -19,10 +19,16 @@ internal sealed class HostSettings
     private readonly Dictionary<string, string?> _values;
 
     public HostSettings(TestIssuer issuer)
+        : this(issuer?.Issuer ?? throw new ArgumentNullException(nameof(issuer)))
+    {
+    }
+
+    /// <summary>Starts from the defaults and names an issuer that is not the in-process one, such as a real Keycloak.</summary>
+    public HostSettings(string issuer)
     {
         _values = new()
         {
-            ["Catalog:Auth:Issuer"] = issuer.Issuer,
+            ["Catalog:Auth:Issuer"] = issuer,
             ["Catalog:Auth:RequireHttpsMetadata"] = "false",
             ["Catalog:Auth:MetadataRefreshInterval"] = "00:00:01",
 

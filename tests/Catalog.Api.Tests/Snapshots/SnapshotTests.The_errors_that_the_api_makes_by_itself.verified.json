@@ -1,0 +1,187 @@
+{
+  "unauthorized": {
+    "status": 401,
+    "contentType": "application/problem+json",
+    "headers": {
+      "WWW-Authenticate": "Bearer realm=\"catalog\"",
+      "api-supported-versions": "1.0"
+    },
+    "body": {
+      "type": "https://rostomohannessian.github.io/full-ci-cd-pipeline/reference/error-catalog.html#unauthorized",
+      "title": "Authentication is required.",
+      "status": 401,
+      "detail": "Send a valid bearer token in the Authorization header.",
+      "instance": "/api/v1/categories",
+      "traceId": "Scrubbed"
+    }
+  },
+  "forbidden": {
+    "status": 403,
+    "contentType": "application/problem+json",
+    "headers": {
+      "api-supported-versions": "1.0"
+    },
+    "body": {
+      "type": "https://rostomohannessian.github.io/full-ci-cd-pipeline/reference/error-catalog.html#forbidden",
+      "title": "The token does not allow this operation.",
+      "status": 403,
+      "detail": "This operation requires the catalog.read scope.",
+      "instance": "/api/v1/categories",
+      "traceId": "Scrubbed"
+    }
+  },
+  "validation-failed": {
+    "status": 400,
+    "contentType": "application/problem+json",
+    "headers": {
+      "api-supported-versions": "1.0"
+    },
+    "body": {
+      "errors": {
+        "categoryId": [
+          "The parameter must be a UUID."
+        ]
+      },
+      "type": "https://rostomohannessian.github.io/full-ci-cd-pipeline/reference/error-catalog.html#validation-failed",
+      "title": "One or more validation errors occurred.",
+      "status": 400,
+      "detail": "One or more fields are not valid. The errors member lists each one.",
+      "instance": "/api/v1/products",
+      "traceId": "Scrubbed"
+    }
+  },
+  "malformed-request": {
+    "status": 400,
+    "contentType": "application/problem+json",
+    "headers": {
+      "api-supported-versions": "1.0"
+    },
+    "body": {
+      "type": "https://rostomohannessian.github.io/full-ci-cd-pipeline/reference/error-catalog.html#malformed-request",
+      "title": "The request could not be parsed.",
+      "status": 400,
+      "detail": "The body is not valid JSON, or it is nested deeper than 8 levels.",
+      "instance": "/api/v1/categories",
+      "traceId": "Scrubbed"
+    }
+  },
+  "unknown-member": {
+    "status": 400,
+    "contentType": "application/problem+json",
+    "headers": {
+      "api-supported-versions": "1.0"
+    },
+    "body": {
+      "errors": {
+        "color": [
+          "The contract has no such member."
+        ]
+      },
+      "type": "https://rostomohannessian.github.io/full-ci-cd-pipeline/reference/error-catalog.html#validation-failed",
+      "title": "One or more validation errors occurred.",
+      "status": 400,
+      "detail": "One or more fields are not valid. The errors member lists each one.",
+      "instance": "/api/v1/categories",
+      "traceId": "Scrubbed"
+    }
+  },
+  "idempotency-key-required": {
+    "status": 400,
+    "contentType": "application/problem+json",
+    "headers": {
+      "api-supported-versions": "1.0"
+    },
+    "body": {
+      "type": "https://rostomohannessian.github.io/full-ci-cd-pipeline/reference/error-catalog.html#idempotency-key-required",
+      "title": "An Idempotency-Key header is required.",
+      "status": 400,
+      "detail": "Send one Idempotency-Key header with a quoted string of 1 to 128 printable ASCII characters, such as \"c1b7e2a4-5f1d-4d0a-8f2e-3a6d9e1b7c42\".",
+      "instance": "/api/v1/categories",
+      "traceId": "Scrubbed"
+    }
+  },
+  "payload-too-large": {
+    "status": 413,
+    "contentType": "application/problem+json",
+    "headers": {
+      "api-supported-versions": "1.0"
+    },
+    "body": {
+      "type": "https://rostomohannessian.github.io/full-ci-cd-pipeline/reference/error-catalog.html#payload-too-large",
+      "title": "The request body is too large.",
+      "status": 413,
+      "detail": "The request body is larger than the limit of this API.",
+      "instance": "/api/v1/categories",
+      "traceId": "Scrubbed"
+    }
+  },
+  "unsupported-media-type": {
+    "status": 415,
+    "contentType": "application/problem+json",
+    "headers": {
+      "api-supported-versions": "1.0"
+    },
+    "body": {
+      "type": "https://rostomohannessian.github.io/full-ci-cd-pipeline/reference/error-catalog.html#unsupported-media-type",
+      "title": "The request body must be application/json.",
+      "status": 415,
+      "detail": "Send the header Content-Type: application/json.",
+      "instance": "/api/v1/categories",
+      "traceId": "Scrubbed"
+    }
+  },
+  "unknown-route": {
+    "status": 404,
+    "contentType": "application/problem+json",
+    "headers": {},
+    "body": {
+      "type": "https://rostomohannessian.github.io/full-ci-cd-pipeline/reference/error-catalog.html#not-found",
+      "title": "The resource was not found.",
+      "status": 404,
+      "detail": "No resource is served at this address.",
+      "instance": "/api/v1/nothing",
+      "traceId": "Scrubbed"
+    }
+  },
+  "method-not-allowed": {
+    "status": 405,
+    "contentType": "application/problem+json",
+    "headers": {},
+    "body": {
+      "type": "about:blank",
+      "title": "Method Not Allowed",
+      "status": 405,
+      "detail": "The request cannot be served.",
+      "instance": "/api/v1/categories",
+      "traceId": "Scrubbed"
+    }
+  },
+  "internal-error": {
+    "status": 500,
+    "contentType": "application/problem+json",
+    "headers": {},
+    "body": {
+      "type": "https://rostomohannessian.github.io/full-ci-cd-pipeline/reference/error-catalog.html#internal-error",
+      "title": "An unexpected error occurred.",
+      "status": 500,
+      "detail": "The server failed while it handled the request. Report the traceId.",
+      "instance": "/test/boom",
+      "traceId": "Scrubbed"
+    }
+  },
+  "service-unavailable": {
+    "status": 503,
+    "contentType": "application/problem+json",
+    "headers": {
+      "Retry-After": "5"
+    },
+    "body": {
+      "type": "https://rostomohannessian.github.io/full-ci-cd-pipeline/reference/error-catalog.html#service-unavailable",
+      "title": "The service is temporarily unavailable.",
+      "status": 503,
+      "detail": "A dependency of the API cannot be reached. Retry after the time in Retry-After.",
+      "instance": "/test/database-down",
+      "traceId": "Scrubbed"
+    }
+  }
+}

@@ -12,6 +12,8 @@ internal static partial class ComposeImage
 
     public static string Valkey() => Find("valkey/valkey");
 
+    public static string Keycloak() => Find("quay.io/keycloak/keycloak");
+
     /// <summary>
     /// Reads the access control rules of the application user from <c>compose.yaml</c>, with the password that the caller chose, so the tests run the rules that the local stack runs and a command or a key
     /// pattern that the code needs and the file does not grant fails a test. The first rule that the file names is the word <c>on</c>, and the rest follow in the file's order.
