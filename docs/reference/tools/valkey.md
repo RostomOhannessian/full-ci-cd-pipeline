@@ -52,7 +52,7 @@ The cache adapter of `Catalog.CrossCutting` and the connection of `Catalog.Infra
 records no comparison with Redis or another store, so this page does not make one. What it records is why the rest of the design works with Valkey:
 
 - [ADR-0016](../../adr/0016-cache-implementation-fusioncache.md) compares five ways to build the cache, and it chose FusionCache with a Valkey L2 and backplane because Microsoft's HybridCache alone has no
-  cross-node L1 invalidation in .NET 10 (checked 2026-10-04 in the ADR). [ADR-0038](../../adr/0038-catalog-cache-adapter-and-valkey-connection.md) records how the adapter and the connection are built.
+  cross-node L1 invalidation in .NET 10 (checked 2026-10-04 in the ADR). It was accepted in WP1.9 on the evidence of two nodes and two hosts against the pinned Valkey and of a server that stops and returns (2026-11-03). [ADR-0038](../../adr/0038-catalog-cache-adapter-and-valkey-connection.md) records how the adapter and the connection are built, and [ADR-0039](../../adr/0039-cache-invalidation-by-immediate-dispatch-and-the-outbox.md) how a write removes the stale entries.
 - FusionCache does not certify Valkey. Spike 1.b ran the same two-host tests against Valkey 8.1.10 and 9.1.2 and got identical results, so either line works as the L2 and the backplane.
 - [ADR-0026](../../adr/0026-api-only-compose-stack-and-catalog-realm.md) records how the Compose stack runs it.
 
