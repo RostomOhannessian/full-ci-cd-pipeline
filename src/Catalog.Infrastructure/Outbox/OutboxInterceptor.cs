@@ -1,3 +1,4 @@
+using Catalog.Application.Events;
 using Catalog.Domain.Common;
 using Catalog.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -118,8 +119,15 @@ public sealed class OutboxInterceptor(TimeProvider clock, Func<Guid>? newId = nu
             aggregate.ClearDomainEvents();
         }
 
-        // The rows are written and nothing reads them back through this context, so the tracker lets them go.
-        foreach (var entry in context.ChangeTracker.Entries<OutboxMessage>().ToList())
+        // The rows are written and nothing reads them back through this context, so the tracker lets them go. The scope keeps what they say for the dispatcher that runs after the commit (ADR-0039).
+        var written = context.ChangeTracker.Entries<OutboxMessage>().ToList();
+
+        if (context is CatalogDbContext catalog)
+        {
+            catalog.Stage(written.Select(entry => entry.Entity).OrderBy(message => message.CreatedAt).ThenBy(message => message.Id).Select(message => new OutboxMessageEnvelope(message.Id, message.EventType, message.SchemaVersion, message.OccurredAt, message.Payload)));
+        }
+
+        foreach (var entry in written)
         {
             entry.State = EntityState.Detached;
         }

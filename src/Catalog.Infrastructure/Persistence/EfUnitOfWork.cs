@@ -96,8 +96,13 @@ public sealed class EfUnitOfWork(CatalogDbContext context) : IUnitOfWork
         _hooks.Add(action);
     }
 
-    // A failed or refused run leaves tracked changes that never reached the database, so the tracker is cleared and the scope can read again. Leaving the block of the transaction rolls it back.
-    private void Discard() => _context.ChangeTracker.Clear();
+    // A failed or refused run leaves tracked changes that never reached the database, so the tracker is cleared and the scope can read again. Leaving the block of the transaction rolls it back, so the
+    // messages that a save staged for the dispatcher never committed, and the dispatcher must never deliver them.
+    private void Discard()
+    {
+        _context.ChangeTracker.Clear();
+        _context.DiscardStaged();
+    }
 
     private static bool IsSkuViolation(DbUpdateException exception) =>
         exception.InnerException is SqlException { Number: UniqueIndexViolation or UniqueConstraintViolation } sql

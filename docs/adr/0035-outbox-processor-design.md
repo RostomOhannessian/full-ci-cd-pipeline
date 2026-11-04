@@ -146,3 +146,7 @@ The interceptor of the unit of work writes one row for each recorded domain even
 - ADR-0012: [0012-domain-events-outbox-vs-direct-orchestration.md](0012-domain-events-outbox-vs-direct-orchestration.md)
 - Table hints, `READPAST` and `UPDLOCK`: [https://learn.microsoft.com/sql/t-sql/queries/hints-transact-sql-table](https://learn.microsoft.com/sql/t-sql/queries/hints-transact-sql-table) (checked 2026-11-02)
 - The transactional outbox pattern: [https://microservices.io/patterns/data/transactional-outbox.html](https://microservices.io/patterns/data/transactional-outbox.html) (checked 2026-11-02)
+
+## Update of 2026-11-03 (WP1.9)
+
+The text above is unchanged. The dispatcher of the section "The wake-up" only raised the signal of the processor. From WP1.9 it also gives the messages that its scope committed to every `IOutboxMessageHandler` in process, on a best-effort basis and without a receipt, and then raises the signal, so the processor delivers the same message again with receipts. The interceptor keeps the envelopes of the rows it wrote on the write context for that, and `EfUnitOfWork` discards them when a run does not commit. The dispatcher became scoped, because it takes the write context of its scope. The decision, the reasons, and the tests are in [ADR-0039](0039-cache-invalidation-by-immediate-dispatch-and-the-outbox.md). Plan section 8.4 already asks for an immediate in-process dispatch after the commit, and this is how it is built.

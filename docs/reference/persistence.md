@@ -71,12 +71,12 @@ SQL Server orders a `uniqueidentifier` by its own rule, the last six bytes first
 | `IUnitOfWork` | `EfUnitOfWork` | Runs the work in one transaction, saves, runs the hooks, and commits. A stale write is `PreconditionFailed`, a taken SKU is `Conflict(SkuAlreadyExists)`, and every other failure rolls back and surfaces as an exception |
 | `IProductReadStore`, `ICategoryReadStore` | `ProductReadStore`, `CategoryReadStore` | Read a view, or a keyset page, from the read model. A cursor that a caller changed by hand returns no rows |
 | `IIdempotencyStore` | `IdempotencyStore` | Reserves a key, records the first result in the transaction of the command, and releases a failed reservation ([ADR-0036](../adr/0036-idempotency-store.md)) |
-| `IOutboxDispatcher` | `OutboxDispatcher` | Wakes the processor of the node after a commit ([ADR-0035](../adr/0035-outbox-processor-design.md)) |
-| `IOutboxMessageHandler` | Implemented by the handlers of the follow-on work, which arrive with WP1.9 | Takes one message of the outbox, and is idempotent |
+| `IOutboxDispatcher` | `OutboxDispatcher` | Takes the messages that the commit of its scope wrote, gives each to every handler in process on a best-effort basis, and then wakes the processor of the node ([ADR-0035](../adr/0035-outbox-processor-design.md), [ADR-0039](../adr/0039-cache-invalidation-by-immediate-dispatch-and-the-outbox.md)) |
+| `IOutboxMessageHandler` | `CacheInvalidationSubscriber`, in `Catalog.Application` (WP1.9) | Takes one message of the outbox, removes the cache entries that the event made stale, and is idempotent ([ADR-0039](../adr/0039-cache-invalidation-by-immediate-dispatch-and-the-outbox.md)) |
 
 ## The outbox
 
-A `SaveChangesInterceptor` (`OutboxInterceptor`) turns each recorded domain event of the tracked aggregates into a row of `OutboxMessages` in the same transaction as the change, and clears the events after the save. The payload is hand-written JSON that starts with `eventType`, `schemaVersion`, and `occurredAt`, and a snapshot test holds each of the eight shapes. A rollback leaves no row, and a failed save keeps the events on the aggregate.
+A `SaveChangesInterceptor` (`OutboxInterceptor`) turns each recorded domain event of the tracked aggregates into a row of `OutboxMessages` in the same transaction as the change, and clears the events after the save. The payload is hand-written JSON that starts with `eventType`, `schemaVersion`, and `occurredAt`, and a snapshot test holds each of the eight shapes. A rollback leaves no row, and a failed save keeps the events on the aggregate. After a save the interceptor also keeps what it wrote on the write context of the scope, as `OutboxMessageEnvelope` values, so the dispatcher of the scope can hand them to the handlers once the transaction has committed. A run that rolled back, or that the unit of work refused, discards them.
 
 `OutboxProcessor` delivers the rows at least once, and `OutboxBackgroundService` runs it in a loop ([ADR-0035](../adr/0035-outbox-processor-design.md)):
 
@@ -92,7 +92,7 @@ A `SaveChangesInterceptor` (`OutboxInterceptor`) turns each recorded domain even
 - **Lease.** One statement takes the due rows with `UPDLOCK, READPAST, ROWLOCK`, so two processors take different rows and neither waits. A lease that ends makes the row due again.
 - **Receipts.** After a handler returns, a row `(MessageId, Handler)` records it, and a retry skips the handlers that have a receipt.
 - **Dead letter.** After `MaxAttempts` (8) failures the message becomes `DeadLetter`, the counter `catalog.outbox.dead_lettered` on the meter `Catalog.Outbox` goes up, and an error is logged. The alert that watches the counter is planned in WP1.11.
-- **Wake-up.** The dispatcher wakes the loop after a commit, and the loop polls every 5 seconds in any case.
+- **Immediate delivery and wake-up.** After a commit the dispatcher of the scope gives each message of the commit to every handler in process, writes no receipt, and counts the outcome in `catalog.outbox.immediate`. A handler that fails is logged, never fails the use case, and leaves the message to the processor. Then the dispatcher wakes the loop, which delivers the same message again with receipts, so a handler runs at least twice under normal operation and must be idempotent. The loop polls every 5 seconds in any case.
 - **Cleanup.** Finished messages older than 7 days and expired idempotency records are deleted in batches. A dead-letter message stays.
 
 The settings are in `OutboxOptions` (batch size, lease, attempts, backoff, jitter, poll, retention), and the registration validates them at startup.
@@ -132,7 +132,7 @@ The Api is the composition root (WP1.10), and an architecture rule keeps `IServi
 - the credential source that `CredentialSources.Create` builds for the settings, the metrics, the interceptor, and the janitor as a hosted service;
 - the context factories of the write model and the read model, with the credential interceptor on both and the outbox interceptor on the write model, and a scoped context from each factory;
 - the repositories, the unit of work, the read stores, and the idempotency store as scoped services;
-- the outbox signal, the dispatcher, the metrics, the processor, the cleanup, and the loop as a hosted service, plus the `IOutboxMessageHandler` services of the cache (WP1.9).
+- the outbox signal, the metrics, the processor, the cleanup, and the loop as a hosted service, the dispatcher as a scoped service (it takes the write context of its scope), and the `IOutboxMessageHandler` services, which the processor and the dispatcher both take. The tests of the cache register `CacheInvalidationSubscriber` over the `ICatalogCache` of the node (WP1.9, `CacheHost`).
 
 ## Migrations, the bundle, and the idempotent script
 

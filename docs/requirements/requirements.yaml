@@ -476,7 +476,7 @@ requirements:
   - architecture
   evidence: two-host cache tests
   status: in_progress
-  notes: The first pull request of WP1.9 delivers the FusionCache adapter in Catalog.CrossCutting and the Valkey connection in Catalog.Infrastructure (ADR-0038). The tests prove the L1 and L2 behavior, the keys with the prefix of the environment, the shape of the shared entries, and the access control list against a real Valkey, and three architecture rules hold the layers, each with a violating fixture. The two-host backplane test, which proves that a node drops its L1 entry when another node removes a tag, is owed by the second pull request.
+  notes: The first pull request of WP1.9 delivers the FusionCache adapter in Catalog.CrossCutting and the Valkey connection in Catalog.Infrastructure (ADR-0038), with the L1 and L2 tests, the keys with the prefix of the environment, the shape of the shared entries, the access control list against a real Valkey, and three architecture rules, each with a violating fixture. The second pull request delivers the two-host proof against one Valkey (CacheAcrossNodesTests and CacheInvalidationConvergenceTests show that a removal on one node drops the entry in the memory of the other through the backplane, and that a node the backplane does not reach keeps its entry until it expires). Both verification modes are proven, and the close-out of WP1.9 sets the status.
 - id: REQ-CACHE-002
   title: Writes invalidate product and list caches deterministically
   statement: After a successful write, the writing node synchronously removes affected keys and tags, awaits L2 removal, publishes backplane invalidation, repeats the invalidation through the outbox, guarantees read-your-own-write behavior, and bounds other-reader staleness to the backplane latency or the default 30-second L1 TTL.
@@ -489,7 +489,7 @@ requirements:
   - e2e
   evidence: cross-node invalidation tests
   status: in_progress
-  notes: The first pull request of WP1.9 proves the removal by tag in the adapter against the in-process and the real shared cache, and the expiration that bounds the staleness. The immediate and outbox-guaranteed removal, the convergence test, and the two-host test are owed by the second pull request, and the e2e proof of the full flow through the API is owed by WP4.4.
+  notes: The first pull request of WP1.9 proves the removal by tag in the adapter against the in-process and the real shared cache, and the expiration that bounds the staleness. The second pull request delivers the immediate in-process removal and the outbox repeat that share one policy and one subscriber with a receipt (ADR-0039), with tests for the policy against every event of the Domain, the delivery after a commit, read-your-own-write on the writing node, the convergence of two hosts when the immediate removal never happens or Valkey is down, and the receipt that stops a second removal. The e2e proof of the full flow through the API is owed by WP4.4.
 - id: REQ-CACHE-003
   title: Cache degradation keeps readiness green and reports stale risk
   statement: If Valkey is unavailable, caching degrades behind a circuit breaker to L1 plus the database while readiness stays green, and if the backplane is unavailable the system widens staleness to the L1 TTL and reports that condition through metrics and alerts.
@@ -505,7 +505,7 @@ requirements:
   - performance
   evidence: Valkey-down chaos test and cache metrics
   status: in_progress
-  notes: The first pull request of WP1.9 delivers the circuit breakers, the metrics (the gauges of the two breakers, the counters of reads with a degraded flag, of removals, and of faults), and the proof that a read never fails because of the cache, with a shared cache that fails on every call. The Valkey-down chaos test is owed by the second pull request, the alerts by WP1.11, the readiness check by WP1.10, and the performance proof by WP4.4.
+  notes: The first pull request of WP1.9 delivers the circuit breakers, the metrics (the gauges of the two breakers, the counters of reads with a degraded flag, of removals, and of faults), and the proof that a read never fails because of the cache, with a shared cache that fails on every call. The second pull request delivers the Valkey-down test against a real server that stops and starts (CacheOutageTests show that reads and writes degrade to memory and the loader without an exception, that the gauges and the incomplete-removal counter report it, and that the node recovers by itself), a backplane that refuses the message while the shared cache works, and the retry of the outbox across an outage. The alerts are owed by WP1.11, the readiness check by WP1.10, and the performance proof by WP4.4.
 - id: REQ-SEC-001
   title: GitHub and repository content contain no stored secrets
   statement: The repository and its workflows store no secrets, gitleaks scans the full history and working tree, push protection and secret scanning stay enabled, and the blocking auditor allows only GITHUB_TOKEN and OIDC-based authentication in Actions.

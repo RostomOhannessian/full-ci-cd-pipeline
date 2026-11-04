@@ -1,3 +1,4 @@
+using Catalog.Application.Events;
 using Catalog.Domain.Categories;
 using Catalog.Domain.Products;
 using Catalog.Infrastructure.Persistence.Mapping;
@@ -16,6 +17,8 @@ public sealed class CatalogDbContext(DbContextOptions<CatalogDbContext> options)
     /// <summary>The name of the schema that holds every table of the catalog and the history of the migrations.</summary>
     public const string Schema = "catalog";
 
+    private readonly List<OutboxMessageEnvelope> _committed = [];
+
     /// <summary>Gets the products.</summary>
     public DbSet<Product> Products => Set<Product>();
 
@@ -30,6 +33,22 @@ public sealed class CatalogDbContext(DbContextOptions<CatalogDbContext> options)
 
     /// <summary>Gets the idempotency records.</summary>
     public DbSet<IdempotencyRecord> IdempotencyRecords => Set<IdempotencyRecord>();
+
+    /// <summary>Keeps the messages that a save wrote, until the dispatcher of the scope takes them after the commit (ADR-0039). A rolled-back run discards them.</summary>
+    /// <param name="messages">The messages that the save wrote.</param>
+    internal void Stage(IEnumerable<OutboxMessageEnvelope> messages) => _committed.AddRange(messages);
+
+    /// <summary>Returns the messages that the saves of this scope wrote, oldest first, and forgets them, so a second call returns none.</summary>
+    internal IReadOnlyList<OutboxMessageEnvelope> TakeStaged()
+    {
+        var taken = _committed.ToArray();
+        _committed.Clear();
+
+        return taken;
+    }
+
+    /// <summary>Forgets the messages that a run staged, because its transaction did not commit.</summary>
+    internal void DiscardStaged() => _committed.Clear();
 
     /// <inheritdoc />
     protected override void OnModelCreating(ModelBuilder modelBuilder)
