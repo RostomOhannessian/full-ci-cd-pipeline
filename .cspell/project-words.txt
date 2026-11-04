@@ -50,6 +50,7 @@ kindnet
 kiota
 kubeconfig
 kubelet
+linearizability
 localtest
 lockfiles
 lycheeverse

@@ -15,6 +15,7 @@ public sealed class OutboxMetrics : IDisposable
     private readonly Counter<long> _delivered;
     private readonly Counter<long> _failed;
     private readonly Counter<long> _deadLettered;
+    private readonly Counter<long> _immediate;
 
     /// <summary>Initializes a new instance of the <see cref="OutboxMetrics"/> class.</summary>
     public OutboxMetrics()
@@ -22,7 +23,14 @@ public sealed class OutboxMetrics : IDisposable
         _delivered = _meter.CreateCounter<long>("catalog.outbox.delivered", "{message}", "Messages that every handler took.");
         _failed = _meter.CreateCounter<long>("catalog.outbox.failed", "{message}", "Deliveries that failed and wait for a new attempt.");
         _deadLettered = _meter.CreateCounter<long>("catalog.outbox.dead_lettered", "{message}", "Messages that failed too often and moved to the dead-letter state.");
+        _immediate = _meter.CreateCounter<long>("catalog.outbox.immediate", "{delivery}", "Deliveries that the writing node made in process right after a commit, by handler and outcome.");
     }
+
+    /// <summary>Counts one delivery that the writing node made in process right after a commit.</summary>
+    /// <param name="handler">The stable name of the handler.</param>
+    /// <param name="delivered">Whether the handler took the message. A failure leaves the message to the outbox processor.</param>
+    public void Immediate(string handler, bool delivered) =>
+        _immediate.Add(1, new KeyValuePair<string, object?>("handler", handler), new KeyValuePair<string, object?>("outcome", delivered ? "delivered" : "failed"));
 
     /// <summary>Counts a message that every handler took.</summary>
     /// <param name="eventType">The event type of the message.</param>

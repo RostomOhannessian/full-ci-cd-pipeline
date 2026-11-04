@@ -107,7 +107,7 @@ public sealed record GetProduct(Guid ProductId) : IProtectedRequest, ICachedQuer
     public static AccessLevel RequiredAccess => AccessLevel.Read;
 
     /// <inheritdoc />
-    public CacheKey CacheKey => new($"product:{ProductId:D}", [$"product:{ProductId:D}"]);
+    public CacheKey CacheKey => new($"product:{ProductId:D}", [CacheTags.Product(ProductId)]);
 }
 
 /// <summary>The sort orders of a list of products, which the cursor names (ADR-0028).</summary>
@@ -149,7 +149,7 @@ public sealed record ListProducts(
     public static AccessLevel RequiredAccess => AccessLevel.Read;
 
     /// <inheritdoc />
-    public CacheKey CacheKey => new($"products:list:{Hash()}", CategoryId is { } category ? ["products:list", $"category:{category:D}"] : ["products:list"]);
+    public CacheKey CacheKey => new($"products:list:{Hash()}", CategoryId is { } category ? [CacheTags.ProductList, CacheTags.Category(category)] : [CacheTags.ProductList]);
 
     /// <summary>Reads the name of a sort order, or returns null when it is not one of the two.</summary>
     /// <param name="name">The name that the caller sent.</param>

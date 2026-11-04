@@ -29,7 +29,7 @@ public sealed class PersistenceCompositionTests(CatalogDatabaseFixture database)
     [Trait("Requirement", "REQ-DATA-002")]
     [Trait("Requirement", "REQ-DATA-003")]
     [Trait("Requirement", "REQ-DATA-005")]
-    public async Task A_commit_through_the_container_reaches_the_handler_through_the_loop_as_the_configured_login()
+    public async Task A_commit_through_the_container_reaches_the_handler_in_process_and_then_through_the_loop_as_the_configured_login()
     {
         await database.ResetAsync();
         var login = await SqlLogins.CreateAsync(database, "composed");
@@ -73,10 +73,12 @@ public sealed class PersistenceCompositionTests(CatalogDatabaseFixture database)
                 result.IsSuccess.Should().BeTrue();
             }
 
-            // The limit is a safety net: the channel ends the wait when the loop delivers the message.
-            var message = await arrivals.Reader.ReadAsync(Token).AsTask().WaitAsync(TimeSpan.FromSeconds(30), Token);
-            message.EventType.Should().Be("CategoryCreated");
-            message.Payload.Should().Contain(category.Id.Value.ToString());
+            // The limit is a safety net: the channel ends each wait when a delivery arrives. The dispatcher delivers first, in process, and the loop delivers the same message after it (ADR-0039).
+            var immediate = await arrivals.Reader.ReadAsync(Token).AsTask().WaitAsync(TimeSpan.FromSeconds(30), Token);
+            var fromLoop = await arrivals.Reader.ReadAsync(Token).AsTask().WaitAsync(TimeSpan.FromSeconds(30), Token);
+            immediate.EventType.Should().Be("CategoryCreated");
+            immediate.Payload.Should().Contain(category.Id.Value.ToString());
+            fromLoop.MessageId.Should().Be(immediate.MessageId);
 
             await using var reading = provider.CreateAsyncScope();
             var view = await reading.ServiceProvider.GetRequiredService<ICategoryReadStore>().GetAsync(category.Id, Token);

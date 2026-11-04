@@ -167,7 +167,7 @@ internal static class TestComposition
         services.AddScoped<IIdempotencyStore, IdempotencyStore>();
 
         services.AddSingleton<OutboxSignal>();
-        services.AddSingleton<IOutboxDispatcher, OutboxDispatcher>();
+        services.AddScoped<IOutboxDispatcher, OutboxDispatcher>();
         services.AddSingleton<OutboxMetrics>();
         services.AddSingleton<OutboxProcessor>();
         services.AddSingleton<CatalogMaintenance>();

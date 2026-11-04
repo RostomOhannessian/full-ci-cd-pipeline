@@ -189,3 +189,18 @@ entries:
     path: docs/adr/0038-catalog-cache-adapter-and-valkey-connection.md
     summary: ADR-0038 records the layers of the adapter and the connection, the keys and the version of the contract, what is kept and what is not, the circuit breakers and the removal that reports that it is incomplete, the metrics, the access control list, and where plan section 8.5 and a real Valkey differ.
     recorded: '2026-11-03'
+  - requirements: [REQ-CACHE-001, REQ-CACHE-002, REQ-CACHE-003]
+    kind: manual
+    path: docs/testing/evidence/2026-11-03-cache-invalidation-run.md
+    summary: The invalidation path ran with two hosts against one SQL Server 2022 container and one Valkey 8.1 container, on Windows and in the pinned Linux SDK image. A removal on one node drops the entry on the other through the backplane, a lost immediate removal and a Valkey outage are both finished by the outbox, a delivered-again message removes nothing twice, and a Valkey server that stops and returns degrades and recovers without an exception.
+    recorded: '2026-11-03'
+  - requirements: [REQ-CACHE-002, REQ-CACHE-003]
+    kind: docs
+    path: docs/adr/0039-cache-invalidation-by-immediate-dispatch-and-the-outbox.md
+    summary: ADR-0039 records the policy from an event to its tags, the subscriber and its receipt, the dispatcher that delivers in process and then wakes the processor, the retry across an outage, and the staleness that remains.
+    recorded: '2026-11-03'
+  - requirements: [REQ-CACHE-002, REQ-CACHE-003]
+    kind: docs
+    path: docs/explanation/cache-consistency-model.md
+    summary: The consistency model states what the cache promises after a write, how a write removes the stale entries, how long each failure keeps old data alive, and which test or metric shows each claim.
+    recorded: '2026-11-03'

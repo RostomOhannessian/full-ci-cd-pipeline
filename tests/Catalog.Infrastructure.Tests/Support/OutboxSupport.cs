@@ -2,6 +2,8 @@ using System.Collections.Concurrent;
 using Catalog.Application.Events;
 using Catalog.Domain.Tests.Support;
 using Catalog.Infrastructure.Outbox;
+using Catalog.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Time.Testing;
 
@@ -127,3 +129,22 @@ internal sealed class ProcessorRig : IDisposable
 
 /// <summary>The columns of an outbox row that the processor tests check.</summary>
 internal sealed record OutboxRow(string Status, int Attempts, DateTimeOffset NextAttemptAt, DateTimeOffset? LeasedUntil, string LeaseId, DateTimeOffset? CompletedAt, string LastError);
+
+/// <summary>Makes the dispatcher of a scope with the handlers, the metrics, and the log that a test names.</summary>
+internal static class DispatcherSupport
+{
+    /// <summary>Makes a context that has no database behind it, for a test that dispatches nothing that was written.</summary>
+    public static CatalogDbContext NoDatabase()
+    {
+        var builder = new DbContextOptionsBuilder<CatalogDbContext>();
+        builder.UseCatalogSqlServer("Server=127.0.0.1,1;Database=unused");
+
+        return new CatalogDbContext(builder.Options);
+    }
+
+    public static OutboxDispatcher Create(CatalogDbContext context, OutboxSignal signal, params IOutboxMessageHandler[] handlers) =>
+        new(context, handlers, signal, new OutboxMetrics(), new CapturingLogger<OutboxDispatcher>());
+
+    public static OutboxDispatcher Create(CatalogDbContext context, OutboxSignal signal, CapturingLogger<OutboxDispatcher> logger, params IOutboxMessageHandler[] handlers) =>
+        new(context, handlers, signal, new OutboxMetrics(), logger);
+}

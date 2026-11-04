@@ -187,3 +187,10 @@ The plan is not amended here. If the maintainer corrects it, the correction is i
 - Spike 1.b: [../research/spikes/1.b-fusioncache-valkey.md](../research/spikes/1.b-fusioncache-valkey.md) (checked 2026-10-06)
 - StackExchange.Redis configuration: [https://stackexchange.github.io/StackExchange.Redis/Configuration](https://stackexchange.github.io/StackExchange.Redis/Configuration) (checked 2026-11-03)
 - Valkey ACL: [https://valkey.io/topics/acl/](https://valkey.io/topics/acl/) (checked 2026-10-10)
+
+## Update of 2026-11-03 (WP1.9, second pull request)
+
+The text above is unchanged. The second pull request measured two things that this ADR left as inferences, and decided the removal path in [ADR-0039](0039-cache-invalidation-by-immediate-dispatch-and-the-outbox.md).
+
+- **The first call after an outage is bounded.** `CacheOutageTests` stop the server and time the first read of a new key. It costs at most the timeout of the shared cache plus a margin for a slow machine, and the breaker answers every later call at once, so no read waits for the server on each call. The cause that this ADR guessed (a read of a tag marker that the memory of the node does not hold) stays an inference, and the bound is what the test proves.
+- **The backplane gauge opens when a publish fails, not when the shared cache fails.** With the server stopped, the breaker of the shared cache opens and the breaker of the backplane stays closed, so `catalog.cache.backplane.down` reads 0 (measured, checked 2026-11-03). A server that refuses the channel while it accepts the keys makes the publish fail, the backplane breaker opens, the gauge reads 1, and `RemoveByTagAsync` throws `CacheInvalidationIncompleteException`. A removal is incomplete in both cases, and the alert of WP1.11 watches both gauges.

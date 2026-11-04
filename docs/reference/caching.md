@@ -11,15 +11,16 @@ owner: "@RostomOhannessian"
 # Caching
 
 The cache of the catalog keeps the results of the queries `GetProduct` and `ListProducts` on two levels, in the memory of each API node (L1) and in Valkey (L2), and a backplane tells the other nodes to drop an entry. The Application layer knows only the port `ICatalogCache`. The adapter is in [`src/Catalog.CrossCutting/Caching`](../../src/Catalog.CrossCutting/Caching/FusionCatalogCache.cs), and the connection to Valkey is in [`src/Catalog.Infrastructure/Caching`](../../src/Catalog.Infrastructure/Caching/ValkeyConnection.cs)
-([ADR-0038](../adr/0038-catalog-cache-adapter-and-valkey-connection.md), [ADR-0016](../adr/0016-cache-implementation-fusioncache.md)). This page describes what exists today. The Api composes the pieces in WP1.10, and the section "The composition" lists what it registers.
+([ADR-0038](../adr/0038-catalog-cache-adapter-and-valkey-connection.md), [ADR-0016](../adr/0016-cache-implementation-fusioncache.md)). This page describes what exists today. The Api composes the pieces in WP1.10, and the section "The composition" lists what it registers. How long each node can serve old data in each failure is on [the consistency model](../explanation/cache-consistency-model.md).
 
 ## The layers
 
 | Piece | Project | Role |
 | --- | --- | --- |
-| `ICatalogCache`, `ICachedQuery`, `CacheKey`, `CacheInvalidationIncompleteException` | `Catalog.Application` | The port and the key of a query. Nothing here names a library |
+| `ICatalogCache`, `ICachedQuery`, `CacheKey`, `CacheTags`, `CacheInvalidationIncompleteException`, `CacheInvalidationPolicy`, `CacheInvalidationSubscriber` | `Catalog.Application` | The port, the key and the tags of a query, the table that maps an event to the tags it makes stale, and the outbox handler that removes them. Nothing here names a library |
 | `FusionCatalogCache`, `CatalogCacheFactory`, `CatalogCacheOptions`, `CacheMetrics`, `CacheContract`, `CacheJsonContext` | `Catalog.CrossCutting`, namespace `Caching` | The adapter over FusionCache, its settings, its metrics, and the contract of the shared entries |
 | `ValkeyOptions`, `ValkeyConnection` | `Catalog.Infrastructure`, namespace `Caching` | The shared cache (`IDistributedCache`) and the backplane over StackExchange.Redis |
+| `OutboxDispatcher`, `OutboxInterceptor` | `Catalog.Infrastructure`, namespace `Outbox` | Give the messages of a commit to the handlers in process right after it, and keep them for that ([ADR-0039](../adr/0039-cache-invalidation-by-immediate-dispatch-and-the-outbox.md)) |
 | `QueryCacheDecorator` | `Catalog.CrossCutting`, namespace `Decorators` | Serves a marked query from the cache. It was delivered in WP1.7 |
 
 Three architecture rules hold the split, each with a violating fixture: CrossCutting does not use the Valkey client types, Infrastructure uses no FusionCache type beyond the backplane namespace, and only the `Caching` namespace of CrossCutting names FusionCache.
@@ -66,11 +67,24 @@ A tag carries no version, so a removal reaches the entries of two versions of th
 The shared cache holds System.Text.Json from a source-generated context, `CacheJsonContext`. It lists `ProductView`, `Page<ProductView>`, and the wrappers that FusionCache adds (`FusionCacheDistributedEntry<T>` for each of the two types and for the `long` of a tag marker). The names are camel case, and an enum is its name.
 `CacheContractTests` holds the JSON of each type as a snapshot and fails when a query returns a type that the contract does not list. Raise `CacheContract.Version` when a shape changes, so the old entries are never read.
 
+## How a write invalidates
+
+A write removes the entries that it made stale in two steps that call one subscriber ([ADR-0039](../adr/0039-cache-invalidation-by-immediate-dispatch-and-the-outbox.md), [the consistency model](../explanation/cache-consistency-model.md)). Right after the commit, the dispatcher of the request gives each message that the commit wrote to `CacheInvalidationSubscriber`, in process, and the request waits for it. The outbox processor then delivers the same message with a receipt, which is the repeat that guarantees the removal and closes the race of a reader that loaded the old row before the commit.
+
+| Event | Tags removed, in order |
+| --- | --- |
+| `ProductCreated`, `ProductDetailsChanged`, `ProductPriceChanged`, `ProductCategoryChanged`, `ProductDiscontinued` | `product:{id}`, `products:list` |
+| `CategoryCreated`, `CategoryRenamed`, `CategoryDiscontinued` | `category:{id}` |
+
+`CacheInvalidationPolicy` is the one table, and `CacheTags` builds the tags for it and for the queries. An event that the table does not know, a payload that is not in the shape of its event, and a version of the shape other than 1 are refused, and the outbox retries and then dead-letters the message. The subscriber tries every tag of a message, and throws `CacheInvalidationIncompleteException` when one is not confirmed, so the outbox tries the message again with its backoff until the shared cache and the backplane confirm it. Its stable name is `catalog-cache-invalidation`, which is the key of its receipt.
+
 ## When Valkey is down
 
 The first failure opens the circuit breaker, and a call to the shared cache is skipped for the duration of the breaker. A read then runs on memory and the loader, and no read throws. After the duration, the next call tries again, and a success closes the breaker. `CacheMetrics` keeps the state of both breakers from the events of FusionCache, and the adapter reads it after a removal.
 
-`RemoveByTagAsync` removes the entries of the node, writes the marker to Valkey, and publishes on the backplane, awaiting both. It throws `CacheInvalidationIncompleteException` when the call failed or when either breaker is open afterward, because the other nodes may then serve the old entry until their memory time to live ends. The outbox handler and the best-effort dispatch of the second pull request of WP1.9 use both outcomes.
+`RemoveByTagAsync` removes the entries of the node, writes the marker to Valkey, and publishes on the backplane, awaiting both. It throws `CacheInvalidationIncompleteException` when the call failed or when either breaker is open afterward, because the other nodes may then serve the old entry until their memory time to live ends. The subscriber lets the exception reach the outbox, which tries again, and the dispatcher after a commit catches it, because the outbox still holds the message. The first read after the server stops costs at most the timeout of the shared cache plus a margin, and every later call is answered by the breaker (`CacheOutageTests`).
+
+The breaker of the shared cache opens when the shared cache fails, and the breaker of the backplane opens when a publish fails, for example when the server refuses the channel while it accepts the keys. A stopped server opens the first breaker and leaves the second closed, and `CacheOutageTests` shows both.
 
 ## The metrics
 
@@ -84,9 +98,9 @@ The meter is `Catalog.Cache`. A tag of a measurement holds a fixed word and neve
 | `catalog.cache.serialization_errors` | counter | none | Entries that could not be written or read |
 | `catalog.cache.circuit_changes` | counter | `level`, `state` | Changes of a breaker |
 | `catalog.cache.shared.down` | gauge | none | 1 while the breaker of the shared cache is open |
-| `catalog.cache.backplane.down` | gauge | none | 1 while the breaker of the backplane is open |
+| `catalog.cache.backplane.down` | gauge | none | 1 while the breaker of the backplane is open. A failed publish opens it, and the staleness of the other nodes then widens to the memory time to live |
 
-The alerts that watch the gauges are planned in WP1.11, and the canary analysis of Phase 4 reads the hit ratio.
+The outbox adds `catalog.outbox.immediate` on its meter `Catalog.Outbox`, with the tags `handler` and `outcome` (`delivered` or `failed`), for the delivery right after a commit. The alerts that watch the gauges are planned in WP1.11, and the canary analysis of Phase 4 reads the hit ratio.
 
 ## The connection to Valkey
 
@@ -104,9 +118,10 @@ The Api is the composition root (WP1.10), and an architecture rule keeps `IServi
 - the options `CatalogCacheOptions` and `ValkeyOptions` with their validators and start-up validation;
 - one `CacheMetrics` as a singleton, which it disposes;
 - the shared cache and the backplane from `ValkeyConnection`, as singletons that it disposes;
-- the adapter from `CatalogCacheFactory.Create` as a singleton that it disposes, and `ICatalogCache` as that instance.
+- the adapter from `CatalogCacheFactory.Create` as a singleton that it disposes, and `ICatalogCache` as that instance;
+- `CacheInvalidationSubscriber` over that `ICatalogCache` as a singleton `IOutboxMessageHandler`, which the processor and the scoped dispatcher both take.
 
-`Catalog.Infrastructure.Tests` builds the nodes of its tests the same way with `CacheNode`.
+`Catalog.Infrastructure.Tests` builds the nodes of its tests the same way with `CacheNode`, and a whole replica with `CacheHost`.
 
 ## How it is tested
 
@@ -117,4 +132,9 @@ Each test names the requirement that it proves, and `governance trace` reads the
 - `ValkeyOptionsTests` proves the settings and the switches of the connection (REQ-CACHE-001, REQ-CACHE-003).
 - `CacheOverValkeyTests` runs two nodes against the Valkey image that compose.yaml pins: a second node reads what the first stored, the keys follow the scheme, the times to live reach the server, a refusal never does, the marker of a removal is written, and no key, value, or log line holds a secret (REQ-CACHE-001, REQ-CACHE-003).
 - `ValkeyAclTests` creates the application user with the rules that it reads from compose.yaml, runs the whole scenario without a denied command, and proves what the user cannot reach (REQ-CACHE-001).
+- `CacheInvalidationTests` need no Docker. They prove the policy (every event of the Domain, the tags that a query attaches, the refusals) and the subscriber (every tag attempted, the unchanged faults, the stable name) (REQ-CACHE-002).
+- `OutboxImmediateDispatchTests` run the dispatcher against SQL Server: delivery in process, the failure that never fails the use case, the repeat of the processor with receipts, the rollback that delivers nothing, and the cancellation (REQ-DATA-003, REQ-CACHE-002).
+- `CacheAcrossNodesTests` run two nodes against one Valkey and wait for the message that an observing backplane says the other node applied, and they show a node that the backplane does not reach (REQ-CACHE-001, REQ-CACHE-002, REQ-CACHE-003).
+- `CacheInvalidationConvergenceTests` run two replicas against one SQL Server and one Valkey: the write path, the removal that never happens and is finished by the outbox of another host, the retry across a Valkey outage, the receipt that prevents a second removal, and a message that the policy refuses (REQ-CACHE-001, REQ-CACHE-002, REQ-CACHE-003).
+- `CacheOutageTests` stop and start a Valkey server of their own: reads and writes degrade to memory and the loader without an exception, the gauges report the state, a removal reports that it is not confirmed, and the node recovers by itself (REQ-CACHE-003).
 - `tests/Catalog.Architecture.Tests` holds the three rules of the layers (REQ-CACHE-001).

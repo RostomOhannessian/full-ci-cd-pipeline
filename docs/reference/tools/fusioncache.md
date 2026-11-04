@@ -103,20 +103,21 @@ Four trade-offs follow from the choice:
 - **The connection.** `src/Catalog.Infrastructure/Caching/ValkeyConnection.cs` builds the `IDistributedCache` and the backplane. It is the only place that names StackExchange.Redis, and three architecture rules keep FusionCache in CrossCutting and the Valkey client in Infrastructure.
 - **The contract.** `CacheJsonContext` lists the cached types for the source-generated JSON, and `CacheContract.Version` is part of every key. `CacheContractTests` holds the shape of each type.
 - **The metrics.** `CacheMetrics` reports on the meter `Catalog.Cache`. [The cache reference](../caching.md) lists the instruments.
-- **Who composes it.** The Api registers the cache in WP1.10. Until then `Catalog.Infrastructure.Tests` builds the nodes of a test with `CacheNode`.
+- **The invalidation.** `CacheInvalidationSubscriber` and `CacheInvalidationPolicy` in `Catalog.Application` remove the tags that an event made stale, once in process after the commit and again through the outbox with a receipt ([ADR-0039](../../adr/0039-cache-invalidation-by-immediate-dispatch-and-the-outbox.md)). [The consistency model](../../explanation/cache-consistency-model.md) states what that guarantees.
+- **Who composes it.** The Api registers the cache in WP1.10. Until then `Catalog.Infrastructure.Tests` builds the nodes of a test with `CacheNode` and a whole replica with `CacheHost`.
 
-Data flow: a query that implements `ICachedQuery` reaches `QueryCacheDecorator`, which calls `GetOrLoadAsync` with the key and the tags of the query. A removal by tag comes from the outbox handler and from the best-effort dispatch after a commit, which the second pull request of WP1.9 adds.
+Data flow: a query that implements `ICachedQuery` reaches `QueryCacheDecorator`, which calls `GetOrLoadAsync` with the key and the tags of the query. A removal by tag comes from the subscriber, which the dispatcher calls right after a commit and the outbox processor calls again with a receipt.
 
 ## Validation and troubleshooting
 
-The unit tests prove the reads, the refusals, the faults, the expiration that is set, the metrics, and the shape of the entries. The Valkey tests prove the keys, the times to live, the marker of a removal, and the access control list.
+The unit tests prove the reads, the refusals, the faults, the expiration that is set, the metrics, and the shape of the entries. The Valkey tests prove the keys, the times to live, the marker of a removal, the access control list, two nodes and the backplane between them, and a server that stops and returns. The tests of two replicas over SQL Server and Valkey prove the whole invalidation path.
 
 | Symptom | Cause | Fix |
 | --- | --- | --- |
 | `JsonTypeInfo metadata for type 'FusionCacheDistributedEntry...' was not provided` in a log | A cached type, or the wrapper that FusionCache adds to it, is not listed in `CacheJsonContext` | Add a `[JsonSerializable]` line for the type and for its wrapper, and add a sample to `CacheContractTests` |
 | Every call waits for a timeout while Valkey is down | A circuit breaker duration is zero | Set `SharedCircuitBreakerDuration` and `BackplaneCircuitBreakerDuration`. The validator refuses zero |
 | `NOPERM` in the log of the API | The access control list of the user does not allow a command, key, or channel | Read `ACL LOG` as `admin`, add the narrowest rule, and add a test to `ValkeyAclTests`. [The Valkey page](valkey.md) lists the rules |
-| A value changed in the database and the API still serves the old one | The removal did not reach the other node, or the entry has not expired | Read `catalog.cache.invalidations` for `incomplete` and `catalog.cache.backplane.down`. The old value ends when the memory time to live of 30 seconds ends |
+| A value changed in the database and the API still serves the old one | The removal did not reach the other node, or the entry has not expired | Read `catalog.cache.invalidations` for `incomplete`, `catalog.outbox.immediate` for `failed`, and `catalog.cache.backplane.down`. The outbox repeats a removal that failed, and the old value ends when the memory time to live of 30 seconds ends |
 | The password appears in a log line | Code printed a `ConfigurationOptions`, whose `ToString()` includes the password | Never print the options. Use `ToString(includePassword: false)` if you must |
 | `CacheContractTests` fails after a change to a view | The shape of a cached type changed | Raise `CacheContract.Version` and update the snapshot |
 

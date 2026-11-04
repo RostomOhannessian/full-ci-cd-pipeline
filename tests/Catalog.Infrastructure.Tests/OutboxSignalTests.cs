@@ -1,5 +1,6 @@
 using AwesomeAssertions;
 using Catalog.Infrastructure.Outbox;
+using Catalog.Infrastructure.Tests.Support;
 using Microsoft.Extensions.Time.Testing;
 using Xunit;
 
@@ -94,7 +95,8 @@ public sealed class OutboxSignalTests
     public async Task The_dispatcher_wakes_the_service_after_a_commit()
     {
         using var signal = new OutboxSignal();
-        var dispatcher = new OutboxDispatcher(signal);
+        await using var context = DispatcherSupport.NoDatabase();
+        var dispatcher = DispatcherSupport.Create(context, signal);
 
         await dispatcher.DispatchCommittedAsync(Token);
 
@@ -106,10 +108,19 @@ public sealed class OutboxSignalTests
     public async Task A_missing_signal_clock_or_dispatcher_signal_is_refused()
     {
         using var signal = new OutboxSignal();
+        await using var context = DispatcherSupport.NoDatabase();
         var clock = () => signal.WaitAsync(Timeout, null!, Token);
-        var dispatcher = () => new OutboxDispatcher(null!);
+        var noSignal = () => new OutboxDispatcher(context, [], null!, new OutboxMetrics(), new CapturingLogger<OutboxDispatcher>());
+        var noContext = () => new OutboxDispatcher(null!, [], signal, new OutboxMetrics(), new CapturingLogger<OutboxDispatcher>());
+        var noHandlers = () => new OutboxDispatcher(context, null!, signal, new OutboxMetrics(), new CapturingLogger<OutboxDispatcher>());
+        var noMetrics = () => new OutboxDispatcher(context, [], signal, null!, new CapturingLogger<OutboxDispatcher>());
+        var noLog = () => new OutboxDispatcher(context, [], signal, new OutboxMetrics(), null!);
 
         await clock.Should().ThrowAsync<ArgumentNullException>();
-        dispatcher.Should().Throw<ArgumentNullException>();
+        noSignal.Should().Throw<ArgumentNullException>();
+        noContext.Should().Throw<ArgumentNullException>();
+        noHandlers.Should().Throw<ArgumentNullException>();
+        noMetrics.Should().Throw<ArgumentNullException>();
+        noLog.Should().Throw<ArgumentNullException>();
     }
 }

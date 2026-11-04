@@ -31,7 +31,8 @@ public sealed class OutboxBackgroundServiceTests(CatalogDatabaseFixture database
         var handler = new RecordingHandler { Behavior = (message, _) => arrivals.Writer.WriteAsync(message.MessageId, Token).AsTask() };
         using var rig = new ProcessorRig(database, Make.Clock(), null, handler);
         using var signal = new OutboxSignal();
-        var dispatcher = new OutboxDispatcher(signal);
+        await using var context = database.NewContext();
+        var dispatcher = DispatcherSupport.Create(context, signal);
         var expired = Guid.NewGuid();
         var now = rig.Clock.GetUtcNow();
         await SqlServerFixture.ExecuteAsync(

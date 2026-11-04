@@ -3,7 +3,7 @@ title: "Explanation"
 description: "What the repository's concept pages will explain, and which architecture and governance concepts you can already study."
 audience: [learners, contributors, maintainers]
 type: reference
-last-verified: 2026-10-12
+last-verified: 2026-11-03
 owner: "@RostomOhannessian"
 ---
 
@@ -19,7 +19,7 @@ Explanation pages answer "why does this work this way?" They connect decisions, 
 | Aggregates and invariants | WP1.13 | planned |
 | CQRS with decorators | WP1.13 | planned |
 | Domain events and the outbox | WP1.13 | planned |
-| Caching consistency | WP1.13 | planned |
+| Caching consistency | WP1.13 | planned; it builds on [the cache consistency model](cache-consistency-model.md) of WP1.9 |
 | HTTP correctness | WP1.13 | planned |
 | OIDC and JWT validation | WP1.13 | planned |
 | Observability signals | WP1.13 | planned |
@@ -36,6 +36,7 @@ Explanation pages answer "why does this work this way?" They connect decisions, 
 
 ## Concepts you can read today
 
+- [The cache consistency model](cache-consistency-model.md): what the catalog cache promises after a write, how a write removes the stale entries on every node, how long each failure keeps old data alive, and which test or metric shows each claim.
 - [Session boundaries and AI-paired delivery](session-boundaries.md): why every task starts in a fresh session, how `governance session` decides it, and what the kickoff prompts carry.
 - [AI usage statistics](ai-usage-statistics.md): how each session records what it cost in AI units, how the ledger, the attribution rules, the report, and the estimate work, and what the numbers say so far.
 - [ADR-0001](../adr/0001-record-architecture-decisions.md): why this repository records major decisions in small, durable ADR files.

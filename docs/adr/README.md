@@ -63,6 +63,7 @@ The rules for writing them are in [ADR-0001](0001-record-architecture-decisions.
 | [0036](0036-idempotency-store.md) | Reserve idempotency keys outside the transaction, record the first result inside it, and compare keys exactly | accepted | Accepted 2026-11-02 in WP1.8 |
 | [0037](0037-credential-rotation-and-pool-clearing.md) | Set the database credential on each new connection from a cached source, and clear the pool of an old credential after a grace period | accepted | Accepted 2026-11-02 in WP1.8 |
 | [0038](0038-catalog-cache-adapter-and-valkey-connection.md) | Build the catalog cache as a FusionCache adapter in CrossCutting over a Valkey connection in Infrastructure | accepted | Accepted 2026-11-03 in WP1.9 |
+| [0039](0039-cache-invalidation-by-immediate-dispatch-and-the-outbox.md) | Invalidate the cache by an immediate in-process delivery and an outbox handler that share one policy | accepted | Accepted 2026-11-03 in WP1.9 |
 
 The evidence behind these decisions is in the [research records](../research/README.md). The plan that ties them together is
 [the implementation plan](../plans/implementation-plan.md).
