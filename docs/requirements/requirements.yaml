@@ -67,8 +67,8 @@ requirements:
   - architecture
   - unit
   evidence: port definitions and handler unit tests
-  status: in_progress
-  notes: The first pull request of WP1.7 defines the repositories, IUnitOfWork, ICatalogCache, IIdGenerator, ICurrentPrincipal, the outbox dispatcher, and the telemetry port in Catalog.Application, and the rule application-ports-are-segregated fails on a port with more than five operations, with a violating fixture. The handlers use only the ports that they need, and the rules query-handlers-depend-on-no-write-port and command-handlers-depend-on-no-read-store hold that on a violating fixture. WP1.8 and WP1.9 implement the adapters (ADR-0032).
+  status: verified
+  notes: The first pull request of WP1.7 defines the repositories, IUnitOfWork, ICatalogCache, IIdGenerator, ICurrentPrincipal, the outbox dispatcher, and the telemetry port in Catalog.Application, and the rule application-ports-are-segregated fails on a port with more than five operations, with a violating fixture. The handlers use only the ports that they need, and the rules query-handlers-depend-on-no-write-port and command-handlers-depend-on-no-read-store hold that on a violating fixture. WP1.8 implemented the repositories, the unit of work, the idempotency store, the read stores, and the dispatcher, and WP1.9 implemented ICatalogCache and added the cache handler of the outbox (ADR-0032, ADR-0039). The adapters of ICurrentPrincipal and IUseCaseTelemetry belong to WP1.10 and WP1.11, which this requirement does not list (checked 2026-11-03).
 - id: REQ-ARC-004
   title: Endpoints depend on contracts and handler interfaces only
   statement: HTTP endpoints depend only on request and response contracts plus the specific handler interfaces they call, and never on domain entities or infrastructure types.
@@ -475,8 +475,8 @@ requirements:
   - integration
   - architecture
   evidence: two-host cache tests
-  status: in_progress
-  notes: The first pull request of WP1.9 delivers the FusionCache adapter in Catalog.CrossCutting and the Valkey connection in Catalog.Infrastructure (ADR-0038), with the L1 and L2 tests, the keys with the prefix of the environment, the shape of the shared entries, the access control list against a real Valkey, and three architecture rules, each with a violating fixture. The second pull request delivers the two-host proof against one Valkey (CacheAcrossNodesTests and CacheInvalidationConvergenceTests show that a removal on one node drops the entry in the memory of the other through the backplane, and that a node the backplane does not reach keeps its entry until it expires). Both verification modes are proven, and the close-out of WP1.9 sets the status.
+  status: verified
+  notes: The first pull request of WP1.9 delivers the FusionCache adapter in Catalog.CrossCutting and the Valkey connection in Catalog.Infrastructure (ADR-0038), with the L1 and L2 tests, the keys with the prefix of the environment, the shape of the shared entries, the access control list against a real Valkey, and three architecture rules, each with a violating fixture. The second pull request delivers the two-host proof against one Valkey (CacheAcrossNodesTests and CacheInvalidationConvergenceTests show that a removal on one node drops the entry in the memory of the other through the backplane, and that a node the backplane does not reach keeps its entry until it expires). Both verification modes are proven, and the work merged as pull requests 43 and 44 (checked 2026-11-03).
 - id: REQ-CACHE-002
   title: Writes invalidate product and list caches deterministically
   statement: After a successful write, the writing node synchronously removes affected keys and tags, awaits L2 removal, publishes backplane invalidation, repeats the invalidation through the outbox, guarantees read-your-own-write behavior, and bounds other-reader staleness to the backplane latency or the default 30-second L1 TTL.

@@ -75,6 +75,11 @@ changes:
     files: 115
     additions: 12276
     deletions: 80
+  - work-package: "WP1.9"
+    pull-requests: [43, 44]
+    files: 85
+    additions: 5657
+    deletions: 111
 records:
   - session: "e3240907-63f4-4ea8-90b3-b216afd27084"
     phase: 0
@@ -839,3 +844,33 @@ records:
         output-tokens: 183001
         peak-context-tokens: 433956
         model-seconds: 1238
+  - session: "f784fcdc-a0b2-4d1f-92cc-0865e3d5d9ea"
+    phase: 1
+    work-package: "WP1.9"
+    activity: delivery
+    confidence: exact
+    window:
+      from: "2026-11-03T14:32:10.969Z"
+      to: "2026-11-03T15:26:19.983Z"
+    user-turns: 1
+    compactions: 1
+    note: "One session held WP1.9 alone. Derived from the cloud store at the prices of 2026-10-12. A large floor: the cloud events stop at 15:26:19Z, at the first question to the maintainer, and none follow, so the second pull request, the close-out, and the handoff are missing. Usage events and call successes agree at 254. No sub-agent ran."
+    usage:
+      - model: claude-sonnet-5.5
+        source: derived
+        reasoning-effort: unknown
+        agent: main
+        request-multiplier: 1.0
+        calls: 254
+        aiu: 1509.099
+        prices:
+          fresh-input: 200
+          cache-read: 10
+          cache-write: 250
+          output: 1000
+        fresh-input-tokens: 516
+        cache-read-tokens: 97905171
+        cache-write-tokens: 750690
+        output-tokens: 342272
+        peak-context-tokens: 708030
+        model-seconds: 2346

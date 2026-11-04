@@ -1,7 +1,7 @@
 ---
 title: "ADR-0016: Implement caching with FusionCache behind ICatalogCache"
 description: "Use FusionCache with a Valkey-backed L2 and backplane because bare HybridCache leaves a cross-node correctness gap in this topology."
-status: proposed
+status: accepted
 date: 2026-10-04
 decision-makers: ["@RostomOhannessian"]
 accepted-in: "WP1.9"
@@ -119,3 +119,18 @@ hash key, publish to its backplane channel, and nothing else. WP1.9 still fixes 
 - [`dotnet/runtime#125602`](https://github.com/dotnet/runtime/issues/125602) (checked 2026-10-04)
 - [FusionCache documentation, "MicrosoftHybridCache"](https://raw.githubusercontent.com/ZiggyCreatures/FusionCache/main/docs/MicrosoftHybridCache.md) (checked 2026-10-04)
 - [Spike 1.b: FusionCache backplane on Valkey 8.1 and 9.1](../research/spikes/1.b-fusioncache-valkey.md) (checked 2026-10-06)
+
+## Acceptance record
+
+**2026-11-03, WP1.9.** The status changed from proposed to accepted. The text above is unchanged. The record below maps each item of the confirmation, and each follow-up that spike 1.b carried into WP1.9, to its evidence. The tests ran on Windows with Docker Desktop and in the pinned Linux SDK image with the Docker socket, against the Valkey image that `compose.yaml` pins ([the evidence records](../testing/evidence/2026-11-03-cache-adapter-run.md) and [the second record](../testing/evidence/2026-11-03-cache-invalidation-run.md)). The work merged as pull requests 43 and 44.
+
+| Confirmation item | Evidence |
+| --- | --- |
+| WP1.0 spikes the backplane against Valkey 8.1 and 9.1 | [Spike 1.b](../research/spikes/1.b-fusioncache-valkey.md), recorded above |
+| WP1.9 adds the two-host invalidation test | `CacheAcrossNodesTests` run two nodes against one Valkey and wait for the message that the other node applied, and `CacheInvalidationConvergenceTests` run two replicas over SQL Server and Valkey. A removal on one host drops the entry on the other, and a node that the backplane does not reach keeps its entry until it expires ([ADR-0039](0039-cache-invalidation-by-immediate-dispatch-and-the-outbox.md)) |
+| The Valkey-down degradation test | `CacheOutageTests` stop and start a Valkey server: reads and writes degrade to memory and the loader without an exception, the gauges report it, a removal says that it is not confirmed, and the node recovers by itself. `CacheInvalidationConvergenceTests` show the outbox finishing a removal across an outage |
+| The key and tag strategy | The keys, the version of the contract, and the shape of the entries are in [ADR-0038](0038-catalog-cache-adapter-and-valkey-connection.md) (`CacheOverValkeyTests`, `CacheContractTests`), and the tags and the policy that removes them are in ADR-0039 (`CacheInvalidationTests`) |
+| The cache metrics | The meter `Catalog.Cache` and its instruments are in ADR-0038 and [the cache reference](../reference/caching.md), and the tests read them (`CatalogCacheTests`, `CacheOutageTests`, `CacheInvalidationConvergenceTests`) |
+| WP4.4 checks the hit ratio and the staleness during canary analysis | Open. The metrics exist, and WP4.4 reads them |
+
+The follow-ups of the spike: the circuit breakers are set, and the settings refuse a duration of zero (ADR-0038); the ACL of `compose.yaml` names the verified patterns `~v2:catalog:dev:*` and `&catalog:dev.Backplane:v2`, and plan section 8.5 is not amended and awaits the maintainer (ADR-0038); and the first call after an outage is bounded by the timeout of the shared cache plus a margin, which `CacheOutageTests` assert. The compatibility inference named under Consequences is settled for functional behavior by the spike and by these tests.
