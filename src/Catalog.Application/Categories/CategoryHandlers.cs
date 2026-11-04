@@ -130,7 +130,7 @@ internal sealed class ListCategoriesHandler(ICategoryReadStore store) : IQueryHa
             return Result.Failure<Page<CategoryView>>(request.Error);
         }
 
-        var rows = await store.ListAsync(request.Value.After, request.Value.Size + 1, cancellationToken);
+        var rows = await store.ListAsync(query.Status, request.Value.After, request.Value.Size + 1, cancellationToken);
 
         return Result.Success(Pages.Build(rows, request.Value.Size, ListCategories.SortName, row => new KeysetPosition(row.Name, row.Id)));
     }

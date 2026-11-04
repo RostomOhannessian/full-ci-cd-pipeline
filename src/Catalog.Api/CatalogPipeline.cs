@@ -1,4 +1,5 @@
 using Catalog.Api.Composition;
+using Catalog.Api.Endpoints;
 using Catalog.Api.Http;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
@@ -24,11 +25,13 @@ internal static class CatalogPipeline
         app.UseStatusCodePages(context => ApiErrorHandler.WriteStatusAsync(context.HttpContext));
         app.UseRouting();
         app.UseMiddleware<PortGateMiddleware>();
+        app.UseMiddleware<ApiVersionReportMiddleware>();
         app.UseAuthentication();
         app.UseRateLimiter();
         app.UseAuthorization();
 
         app.MapHealthEndpoints();
+        app.MapCatalogEndpoints();
 
         return app;
     }

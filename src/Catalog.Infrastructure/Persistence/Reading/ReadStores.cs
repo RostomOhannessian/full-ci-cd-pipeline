@@ -4,6 +4,7 @@ using Catalog.Application.Paging;
 using Catalog.Application.Persistence;
 using Catalog.Application.Products;
 using Catalog.Domain.Categories;
+using Catalog.Domain.Common;
 using Catalog.Domain.Pricing;
 using Catalog.Domain.Products;
 using Microsoft.EntityFrameworkCore;
@@ -52,7 +53,7 @@ public sealed class ProductReadStore(CatalogReadContext context) : IProductReadS
         if (!string.IsNullOrEmpty(filter.Search))
         {
             var search = filter.Search;
-            query = query.Where(row => row.Name.Contains(search));
+            query = query.Where(row => row.Name.Contains(search) || row.Sku.Contains(search));
         }
 
         IQueryable<ProductRow> ordered;
@@ -126,9 +127,14 @@ public sealed class CategoryReadStore(CatalogReadContext context) : ICategoryRea
     }
 
     /// <inheritdoc />
-    public async Task<IReadOnlyList<CategoryView>> ListAsync(KeysetPosition? after, int limit, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<CategoryView>> ListAsync(LifecycleStatus? status, KeysetPosition? after, int limit, CancellationToken cancellationToken)
     {
         var query = _context.Categories.AsQueryable();
+
+        if (status is { } kept)
+        {
+            query = query.Where(row => row.Status == kept);
+        }
 
         if (after is not null)
         {

@@ -14,7 +14,7 @@ The contract of the product catalog API is an OpenAPI 3.1 document that is writt
 ([ADR-0017](../adr/0017-contract-first-api-design.md)). It is the only description of the HTTP surface, so this page summarizes it and does not repeat it. Read the document for every schema and example:
 [`contracts/openapi/catalog/v1/catalog.openapi.yaml`](../../contracts/openapi/catalog/v1/catalog.openapi.yaml).
 
-The host of the API exists ([the HTTP API host](http-api.md)), and the endpoints that serve this contract arrive in the second pull request of WP1.10 (planned). Until then, the contract, its tests, and its checks are the whole of v1. The rules and their reasons are in [the API style guide](api-style-guide.md) and
+The endpoints that serve this contract exist ([the HTTP API](http-api.md#endpoints), [ADR-0041](../adr/0041-http-endpoints-versioning-and-conditional-requests.md)), and the check that the served document equals this one arrives in the third pull request of WP1.10 (planned). The rules and their reasons are in [the API style guide](api-style-guide.md) and
 [ADR-0028](../adr/0028-http-api-conventions-of-v1.md), and every error type is in [the error catalog](error-catalog.md).
 
 ## Operations

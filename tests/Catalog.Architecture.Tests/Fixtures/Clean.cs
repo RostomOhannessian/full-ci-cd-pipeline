@@ -136,3 +136,12 @@ namespace Catalog.Architecture.Tests.Fixtures.Clean.Api.Composition
         public static CrossCutting.WidgetLoggingDecorator Decorator() => CrossCutting.WidgetPipeline.Compose();
     }
 }
+
+namespace Catalog.Architecture.Tests.Fixtures.Clean.Api.Endpoints
+{
+    // An endpoint depends on the ports and the requests of the Application and on the contracts.
+    internal sealed class WidgetEndpoint
+    {
+        public Application.IWidgetStore? Store { get; init; }
+    }
+}

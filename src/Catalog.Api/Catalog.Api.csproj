@@ -9,9 +9,10 @@
     <ProjectReference Include="..\Catalog.Contracts\Catalog.Contracts.csproj" />
   </ItemGroup>
 
-  <!-- JWT bearer authentication (REQ-IDN-003). The package is MIT licensed, and the validation settings are in Security/ConfigureJwtBearer.cs. -->
+  <!-- JWT bearer authentication (REQ-IDN-003) and the version segment of the path (REQ-API-002, ADR-0041). Both packages are MIT licensed, and the validation settings are in Security/ConfigureJwtBearer.cs. -->
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
+    <PackageReference Include="Asp.Versioning.Http" />
   </ItemGroup>
 
   <!-- The integration tests read the internal types of the host, such as the options validators and the claims reader, and the contract tests compare the error table of the API with the catalog. -->

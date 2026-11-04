@@ -175,7 +175,7 @@ public sealed class ErrorCatalogTests
 
     [Fact]
     [Trait("Requirement", "REQ-API-005")]
-    public void The_catalog_page_says_that_the_api_does_not_exist_yet_and_when_the_addresses_resolve()
+    public void The_catalog_page_names_the_work_package_of_the_endpoints_and_when_the_addresses_resolve()
     {
         Assert.Contains("WP1.10", Catalog, StringComparison.Ordinal);
         Assert.Contains("WP1.13", Catalog, StringComparison.Ordinal);

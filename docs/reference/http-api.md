@@ -1,18 +1,18 @@
 ---
-title: "HTTP API host"
-description: "How the catalog API starts and protects itself: the composition root, the order of the middleware, the two ports, the settings, the token validation, the endpoint policies, the limits, the security headers, the errors, the probes, and how it is tested."
+title: "HTTP API"
+description: "How the catalog API starts, protects itself, and serves the operations of the version 1 contract: the composition root, the order of the middleware, the two ports, the settings, the token validation, the endpoint policies, the limits, the security headers, the errors, the endpoints with their versioning, conditional requests, idempotent creates, and pages, the probes, and how it is tested."
 audience: [learners, contributors, maintainers]
 type: reference
-tools: [aspnet-core, microsoft-aspnetcore-authentication-jwtbearer, microsoft-extensions-diagnostics-healthchecks-abstractions, microsoft-aspnetcore-mvc-testing, keycloak]
-last-verified: 2026-11-03
+tools: [aspnet-core, asp-versioning, microsoft-aspnetcore-authentication-jwtbearer, microsoft-extensions-diagnostics-healthchecks-abstractions, microsoft-aspnetcore-mvc-testing, keycloak]
+last-verified: 2026-11-04
 owner: "@RostomOhannessian"
 ---
 
-# HTTP API host
+# HTTP API
 
-The HTTP API is the project [`src/Catalog.Api`](../../src/Catalog.Api/Catalog.Api.csproj). It is the composition root of the catalog: it registers every adapter of the persistence layer, the cache, and the application layer, and it holds the middleware that every request passes
-([ADR-0040](../adr/0040-http-api-composition-and-token-validation.md), plan sections 8.1, 8.7, 8.9, and 9). This page describes what exists today. The endpoints of the contract ([the API contract](api-contract.md)) arrive in the second pull request of WP1.10 (planned), and the conformance check, the snapshots, and the viewer
-in the third (planned).
+The HTTP API is the project [`src/Catalog.Api`](../../src/Catalog.Api/Catalog.Api.csproj). It is the composition root of the catalog: it registers every adapter of the persistence layer, the cache, and the application layer, it holds the middleware that every request passes, and it serves the ten operations of the contract
+([ADR-0040](../adr/0040-http-api-composition-and-token-validation.md), [ADR-0041](../adr/0041-http-endpoints-versioning-and-conditional-requests.md), plan sections 8.1, 8.6, 8.7, 8.9, and 9). This page describes what exists today. The conformance check against [the API contract](api-contract.md), the snapshots, the authorization matrix over the endpoints, the realm tests, and the
+viewer arrive in the third pull request of WP1.10 (planned).
 
 ## The composition
 
@@ -25,6 +25,7 @@ in the third (planned).
 | `AddCatalogCache` | The shared cache, the backplane, the adapter, and `CacheInvalidationSubscriber` as the one singleton handler of the outbox ([the caching page](caching.md)) |
 | `AddCatalogApplication` | The identifier generator, the caller, the interim telemetry, the ten validators, and the handlers of the two features through `ServiceCollectionFeatureRegistry`, which composes each chain with `CommandPipeline` and `QueryPipeline` |
 | `AddCatalogSecurity` | The bearer handler, the endpoint policies, the rate limiter, and the forwarded headers |
+| `AddCatalogVersioning` | The version segment of the path, with no default version, and the reporting of the versions |
 | `AddCatalogHealth` | The four health checks |
 
 A rule of `Catalog.Architecture.Tests` fails when a type of the Api outside the namespace `Catalog.Api.Composition` depends on a type of `Catalog.Infrastructure` or `Catalog.CrossCutting`, so the adapters are named in one place. The handlers and their chains are scoped to the request, the dispatcher is scoped, the cache and the
@@ -35,8 +36,8 @@ subscriber are singletons, and the credential source, the metrics, and the proce
 ```mermaid
 flowchart LR
   accTitle: The order of the middleware of the API
-  accDescr: A request passes the trace, the forwarded headers, the security headers, the exception handler, the status code pages, routing, the port gate, authentication, the rate limiter, and authorization before it reaches an endpoint.
-  A[Trace] --> B[Forwarded headers] --> C[Security headers] --> D[Exception handler] --> E[Status code pages] --> F[Routing] --> G[Port gate] --> H[Authentication] --> I[Rate limiter] --> J[Authorization] --> K[Endpoint]
+  accDescr: A request passes the trace, the forwarded headers, the security headers, the exception handler, the status code pages, routing, the port gate, the version report, authentication, the rate limiter, and authorization before it reaches an endpoint.
+  A[Trace] --> B[Forwarded headers] --> C[Security headers] --> D[Exception handler] --> E[Status code pages] --> F[Routing] --> G[Port gate] --> V[Version report] --> H[Authentication] --> I[Rate limiter] --> J[Authorization] --> K[Endpoint]
 ```
 
 | Step | What it does |
@@ -47,6 +48,7 @@ flowchart LR
 | Exception handler | Turns an exception into the 500 or 503 of the error catalog and logs the exception with the trace identifier |
 | Status code pages | Writes the body of an empty 4xx or 5xx, such as the 405 of routing or the 404 of an unknown path |
 | Port gate | Keeps the management endpoints on the management port and the API on the public port, and checks the host of a request to the public port |
+| Version report | Registers the `api-supported-versions` header of the chosen endpoint, so a 401, a 403, and a 429 carry it as the contract says |
 | Authentication | Validates the bearer token, and answers 401 with the challenge and the catalog entry |
 | Rate limiter | Counts the caller and answers 429 with `Retry-After` |
 | Authorization | Checks the endpoint policy, which is the scope and one of the roles |
@@ -105,7 +107,7 @@ An endpoint binds the level of its use case with `RequireAccessOf<TRequest>()`, 
 
 ## Limits
 
-A caller with a token is counted by its identifier, and any other caller by its address. A read and a write have separate counts. The answer to a refused request is 429 `rate-limited` with `Retry-After` in whole seconds. The health endpoints are not limited. Kestrel limits the body to `MaxRequestBodyBytes` and the headers to 16 KiB, and the endpoints read a body with the size and the depth of the settings (second pull request of WP1.10, planned).
+A caller with a token is counted by its identifier, and any other caller by its address. A read and a write have separate counts. The answer to a refused request is 429 `rate-limited` with `Retry-After` in whole seconds. The health endpoints are not limited. Kestrel limits the body to `MaxRequestBodyBytes` and the headers to 16 KiB, and the endpoints read a body with the size and the depth of the settings, so the limits hold on a host that has no Kestrel limit ([the bodies](#bodies)).
 
 ## Security headers
 
@@ -121,6 +123,66 @@ A caller with a token is counted by its identifier, and any other caller by its 
 | `Strict-Transport-Security` | `max-age=31536000; includeSubDomains`, only when the request came over HTTPS, which a trusted proxy can tell |
 
 The server header is off. A header that an endpoint already set is kept.
+
+## Endpoints
+
+The ten operations of [the API contract](api-contract.md) are served under `/api/v1`, and the name of each endpoint is the `operationId` of the contract. An endpoint reads the request through `Catalog.Api.Mapping`, runs the handler through its interface, and writes the response. It holds no rule of the catalog,
+and a rule of `Catalog.Architecture.Tests` fails when a type of `Catalog.Api.Endpoints` depends on the domain model, an adapter, or a decorator ([ADR-0041](../adr/0041-http-endpoints-versioning-and-conditional-requests.md)).
+
+| Operation | Method and path | Level | Success | Reads |
+| --- | --- | --- | --- | --- |
+| `listCategories` | `GET /categories` | read | 200 | `status`, `pageSize`, `cursor` |
+| `createCategory` | `POST /categories` | admin | 201 | `Idempotency-Key`, the body |
+| `getCategory` | `GET /categories/{categoryId}` | read | 200 or 304 | `If-None-Match` |
+| `updateCategory` | `PUT /categories/{categoryId}` | admin | 200 | `If-Match`, the body |
+| `discontinueCategory` | `POST /categories/{categoryId}/discontinue` | admin | 200 | `If-Match` |
+| `listProducts` | `GET /products` | read | 200 | `categoryId`, `status`, `q`, `sort`, `pageSize`, `cursor` |
+| `createProduct` | `POST /products` | write | 201 | `Idempotency-Key`, the body |
+| `getProduct` | `GET /products/{productId}` | read | 200 or 304 | `If-None-Match` |
+| `updateProduct` | `PUT /products/{productId}` | write | 200 | `If-Match`, the body |
+| `discontinueProduct` | `POST /products/{productId}/discontinue` | admin | 200 | `If-Match` |
+
+The order of the checks of a request is the policy (401 and 403), the identifier in the path, the headers, the body, and then the use case, which reports its own errors together. A request that is wrong in two ways reports the first.
+
+### Versions
+
+The version is a segment of the path, and a path without a version or with an unknown one is not routed. The set holds `1.0`, and every response of a versioned route carries `api-supported-versions: 1.0`, including an answer that a middleware writes. No version is deprecated, so `api-deprecated-versions`, `Deprecation`, and `Sunset` are absent until WP4.1.
+
+### Conditional requests
+
+- **`ETag`.** A create, a read, a change, and a discontinue send the version of the resource as a strong `ETag`. A `GET` with the current tag in `If-None-Match` answers 304 with the `ETag` and no body.
+- **`If-Match`.** A change and a discontinue need the tag that the caller read. A missing header is 428 `precondition-required`, and a stale one is 412 `precondition-failed`. Discontinuing a resource that is already discontinued answers 200 with the same representation and the same `ETag`.
+- **The form of the headers.** One strong token in quotes of at most 64 characters, as the API returned it. A weak tag, a list, `*`, and an unquoted value are a `validation-failed` error for the header.
+
+### Idempotent creates
+
+A create needs one `Idempotency-Key`, a quoted string of 1 to 128 printable ASCII characters without a quote or a backslash. A missing or invalid key is 400 `idempotency-key-required`, and it is checked before the body. The same key with the same body replays the first answer (201 with the same `Location`, `ETag`, and body, even when the resource changed since),
+another body with the same key is 422 `idempotency-key-reused`, and the same key while the first request still runs is 409 `idempotency-request-in-progress`. The pipeline and the store do the work ([ADR-0036](../adr/0036-idempotency-store.md)).
+
+### Pages
+
+A list takes `pageSize` from 1 to 100 (20 by default) and the opaque `cursor`. The body holds `items` and `nextCursor`, and when a next page exists the response also carries `Link: <address>; rel="next"` with an absolute address that keeps every parameter of the request in its order and puts the new cursor last. A cursor is valid for the sort that made it.
+A category list can be narrowed by `status`, and a product list by `categoryId`, `status`, `q` (text in the name or the SKU, ignoring case), and `sort` (`createdAt` for newest first, `name` for A to Z).
+
+### Bodies
+
+A body must be `application/json` (with no charset or `utf-8`), at most 32 KiB (the limit counts the bytes that are read, so a body without a length is checked too), and at most 8 levels deep. The API lists every member that the contract does not name with its path, and a value of the wrong type with its path, as `validation-failed` errors, and a body that is not JSON or is too deep
+is 400 `malformed-request`. An amount is a string such as `89.99`, with no sign and no exponent, and the API writes an amount with the decimal places of its currency (`1990` for JPY). Every instant is UTC with a `Z`. A SKU is written in upper case, and a name is trimmed.
+
+### Errors of the endpoints
+
+| Status | Type | When |
+| --- | --- | --- |
+| 400 | `validation-failed` | A parameter, a header, a path identifier, or a member of the body is not valid, with the messages for each field |
+| 400 | `malformed-request` | The body is not JSON, or it is nested deeper than the limit |
+| 400 | `idempotency-key-required` | A create has no valid `Idempotency-Key` |
+| 404 | `not-found` | No category or product has the identifier |
+| 409 | `sku-already-exists`, `product-discontinued`, `idempotency-request-in-progress` | The request conflicts with the state of the catalog |
+| 412, 428 | `precondition-failed`, `precondition-required` | The version is stale, or no version was sent |
+| 413, 415 | `payload-too-large`, `unsupported-media-type` | The body is too large, or it is not `application/json` |
+| 422 | `idempotency-key-reused` | The key was used with another body |
+
+An identifier must be a UUID of version 7, because the model refuses any other, so an identifier of another version is a 400 for the field and not a 404.
 
 ## Errors
 
@@ -168,5 +230,7 @@ Each test names the requirement that it proves, and `governance trace` reads the
 - `TokenClaimsTests`, `JwtValidationTests`, `JwksRotationTests`, and `AccessPolicyTests` prove the claims, every check of the token, the rotation and the withdrawal of a key, and all 192 combinations of scope and role (REQ-IDN-002, REQ-IDN-003).
 - `ProblemDetailsTests`, `SecurityHeadersTests`, `RateLimitTests`, and `ForwardedHeadersTests` prove the error shape on every path, the headers, the limiter, and the proxies (REQ-API-005, REQ-API-007, REQ-ARC-002).
 - `HealthTests` starts real sockets and a real SQL Server 2022 container from the digest of `compose.yaml`, and proves the probes, the two ports, and that no secret reaches an answer or a log (REQ-QUA-001, REQ-CACHE-003).
+- `CategoryEndpointTests` and `ProductEndpointTests` run every operation against a real SQL Server 2022 container and a real Valkey 8.1 container, with a database and a cache environment of their own for each class: the headers, the conditional requests, the idempotent creates, the filters, and the pages (REQ-API-001, REQ-API-003, REQ-API-004, REQ-API-005).
+- `RequestBodyTests` and `VersioningTests` prove the strict and bounded reading of a body and the version headers, and they need no database (REQ-API-006, REQ-API-002).
 - The token handler reads the system clock and has no `TimeProvider`, so the tests build tokens from the clock of the machine, and every boundary keeps a margin of one second on each side.
 - `tests/Catalog.Architecture.Tests` holds the rule that keeps the adapters in the composition namespace, and `tests/Catalog.Contract.Tests/ApiAgreementTests.cs` compares the error table of the API with the error catalog.

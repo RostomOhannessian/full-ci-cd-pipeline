@@ -135,7 +135,7 @@ public sealed class ReadStoreTests(CatalogDatabaseFixture database) : IClassFixt
 
     [Fact]
     [Trait("Requirement", "REQ-DATA-001")]
-    public async Task The_filters_narrow_the_list_by_category_status_and_name()
+    public async Task The_filters_narrow_the_list_by_category_status_name_and_sku()
     {
         await database.ResetAsync();
         var clock = Make.Clock();
@@ -163,6 +163,7 @@ public sealed class ReadStoreTests(CatalogDatabaseFixture database) : IClassFixt
         (await Ids(new ProductFilter(null, null, "COTTON", ProductSort.Name))).Should().BeEquivalentTo([cotton.Id.Value, cottonish.Id.Value], "the search ignores case");
         (await Ids(new ProductFilter(null, null, "100%", ProductSort.Name))).Should().BeEquivalentTo([cotton.Id.Value], "a percent sign in the search is a character and not a wildcard");
         (await Ids(new ProductFilter(null, null, "no such name", ProductSort.Name))).Should().BeEmpty();
+        (await Ids(new ProductFilter(null, null, keyboard.Sku.Value.ToLowerInvariant(), ProductSort.Name))).Should().BeEquivalentTo([keyboard.Id.Value], "the search also matches the SKU, in any case");
     }
 
     [Fact]
@@ -194,7 +195,7 @@ public sealed class ReadStoreTests(CatalogDatabaseFixture database) : IClassFixt
         KeysetPosition? after = null;
         while (true)
         {
-            var rows = await scope.CategoryReads.ListAsync(after, 3, CancellationToken.None);
+            var rows = await scope.CategoryReads.ListAsync(null, after, 3, CancellationToken.None);
             read.AddRange(rows);
             if (rows.Count < 3)
             {
@@ -206,6 +207,28 @@ public sealed class ReadStoreTests(CatalogDatabaseFixture database) : IClassFixt
 
         read.Select(view => view.Id).Should().OnlyHaveUniqueItems().And.BeEquivalentTo(categories.Select(category => category.Id.Value));
         read.Select(view => view.Name).Should().BeInAscendingOrder(StringComparer.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    [Trait("Requirement", "REQ-API-001")]
+    public async Task A_status_keeps_only_the_categories_that_have_it_and_no_status_keeps_them_all()
+    {
+        await database.ResetAsync();
+        var clock = Make.Clock();
+        var current = Make.Category(Counters.Next(), "Cables");
+        var retired = Make.Category(Counters.Next(), "Docks");
+        retired.Discontinue(clock);
+        await using var scope = new CatalogScope(database);
+        await scope.SaveAsync(current);
+        await scope.SaveAsync(retired);
+
+        var active = await scope.CategoryReads.ListAsync(LifecycleStatus.Active, null, 10, CancellationToken.None);
+        var discontinued = await scope.CategoryReads.ListAsync(LifecycleStatus.Discontinued, null, 10, CancellationToken.None);
+        var every = await scope.CategoryReads.ListAsync(null, null, 10, CancellationToken.None);
+
+        active.Select(view => view.Name).Should().Equal("Cables");
+        discontinued.Select(view => view.Name).Should().Equal("Docks");
+        every.Select(view => view.Name).Should().Equal("Cables", "Docks");
     }
 
     // Seeds 24 products in two categories. The creation times step by one second except for runs of three that share an instant, and the names repeat and differ in case.

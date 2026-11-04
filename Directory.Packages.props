@@ -81,6 +81,12 @@
     <PackageVersion Include="Microsoft.Extensions.Diagnostics.HealthChecks.Abstractions" Version="10.0.14" />
   </ItemGroup>
 
+  <!-- Catalog.Api (WP1.10, ADR-0041). Asp.Versioning.Http routes the version segment of the path and reports the supported and deprecated versions of each response. It is MIT licensed (the license expression
+       of its nuspec, checked 2026-11-04), 10.2.3 is its newest release (checked 2026-11-04), and its one dependency on net10.0 is Asp.Versioning.Abstractions, which is MIT licensed too. -->
+  <ItemGroup>
+    <PackageVersion Include="Asp.Versioning.Http" Version="10.2.3" />
+  </ItemGroup>
+
   <!-- Catalog.Api.Tests (WP1.10, ADR-0040). The test host of ASP.NET Core is MIT licensed (checked 2026-11-03), and it starts the real composition root in process. -->
   <ItemGroup>
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.14" />

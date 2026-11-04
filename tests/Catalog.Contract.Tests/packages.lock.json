@@ -48,6 +48,14 @@
           "xunit.v3.mtp-v2": "[4.0.1]"
         }
       },
+      "Asp.Versioning.Abstractions": {
+        "type": "Transitive",
+        "resolved": "10.2.1",
+        "contentHash": "jMBztsVim+rYVrkNY23dMuOjTGXGQ9+je1xb3i17KgUof7OcBZtMMDduEWoCQ52SpTlYqKsuzgJyUMCMOFCBfg==",
+        "dependencies": {
+          "Microsoft.Extensions.Primitives": "10.0.0"
+        }
+      },
       "Microsoft.ApplicationInsights": {
         "type": "Transitive",
         "resolved": "2.23.0",
@@ -425,6 +433,7 @@
       "catalog.api": {
         "type": "Project",
         "dependencies": {
+          "Asp.Versioning.Http": "[10.2.3, )",
           "Catalog.Application": "[1.0.0, )",
           "Catalog.Contracts": "[1.0.0, )",
           "Catalog.CrossCutting": "[1.0.0, )",
@@ -465,6 +474,15 @@
           "Microsoft.Extensions.Hosting.Abstractions": "[10.0.14, )",
           "StackExchange.Redis": "[2.10.1, )",
           "ZiggyCreatures.FusionCache.Backplane.StackExchangeRedis": "[2.9.0, )"
+        }
+      },
+      "Asp.Versioning.Http": {
+        "type": "CentralTransitive",
+        "requested": "[10.2.3, )",
+        "resolved": "10.2.3",
+        "contentHash": "tx/OIyp39OP2uM57MHn8GqRSCi7+XYFU3/KqcPeiqt8rQE+oiK4bRcMXZvShtiS+SbtifqXy4zg6vr5+LPubNQ==",
+        "dependencies": {
+          "Asp.Versioning.Abstractions": "10.2.1"
         }
       },
       "FluentValidation": {
