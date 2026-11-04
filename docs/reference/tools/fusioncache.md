@@ -104,7 +104,7 @@ Four trade-offs follow from the choice:
 - **The contract.** `CacheJsonContext` lists the cached types for the source-generated JSON, and `CacheContract.Version` is part of every key. `CacheContractTests` holds the shape of each type.
 - **The metrics.** `CacheMetrics` reports on the meter `Catalog.Cache`. [The cache reference](../caching.md) lists the instruments.
 - **The invalidation.** `CacheInvalidationSubscriber` and `CacheInvalidationPolicy` in `Catalog.Application` remove the tags that an event made stale, once in process after the commit and again through the outbox with a receipt ([ADR-0039](../../adr/0039-cache-invalidation-by-immediate-dispatch-and-the-outbox.md)). [The consistency model](../../explanation/cache-consistency-model.md) states what that guarantees.
-- **Who composes it.** The Api registers the cache in WP1.10. Until then `Catalog.Infrastructure.Tests` builds the nodes of a test with `CacheNode` and a whole replica with `CacheHost`.
+- **Who composes it.** The Api registers the cache from WP1.10 (`CatalogComposition.AddCatalogCache`, [the HTTP API host](../http-api.md)). `Catalog.Infrastructure.Tests` builds the nodes of a test with `CacheNode` and a whole replica with `CacheHost`.
 
 Data flow: a query that implements `ICachedQuery` reaches `QueryCacheDecorator`, which calls `GetOrLoadAsync` with the key and the tags of the query. A removal by tag comes from the subscriber, which the dispatcher calls right after a commit and the outbox processor calls again with a receipt.
 

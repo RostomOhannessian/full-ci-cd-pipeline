@@ -204,3 +204,18 @@ entries:
     path: docs/explanation/cache-consistency-model.md
     summary: The consistency model states what the cache promises after a write, how a write removes the stale entries, how long each failure keeps old data alive, and which test or metric shows each claim.
     recorded: '2026-11-03'
+  - requirements: [REQ-IDN-003, REQ-IDN-002, REQ-ARC-002]
+    kind: manual
+    path: docs/testing/evidence/2026-11-03-http-api-host-run.md
+    summary: The host of the HTTP API ran as the real composition in process, with an identity provider that serves the metadata and keys over HTTP and signs with keys made at run time, and with a SQL Server 2022 container for the probes. It records the token checks, the rotation and the withdrawal of a key, the combinations of scope and role, the limiter, the proxies, and the two ports on real sockets, and which tests ran on Windows and which in the pinned Linux image.
+    recorded: '2026-11-03'
+  - requirements: [REQ-IDN-003, REQ-ARC-002, REQ-API-005, REQ-API-007]
+    kind: docs
+    path: docs/adr/0040-http-api-composition-and-token-validation.md
+    summary: ADR-0040 records the composition root and its one namespace for adapters, the validation of every section of settings, the token checks with the exact issuer and the algorithm allow-list, the keys that rotate and the key that is withdrawn, the policies, the one writer of errors, the limiter, the proxies, the two ports, and the health checks.
+    recorded: '2026-11-03'
+  - requirements: [REQ-ARC-002, REQ-IDN-001, REQ-IDN-002]
+    kind: docs
+    path: docs/reference/http-api.md
+    summary: The reference page of the host lists the settings and their validators, the order of the middleware, the checks of the token, the policies, the error table, the headers, the limits, the proxies, and the probes of the management port.
+    recorded: '2026-11-03'

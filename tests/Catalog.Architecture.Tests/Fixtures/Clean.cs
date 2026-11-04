@@ -125,3 +125,14 @@ namespace Catalog.Architecture.Tests.Fixtures.Clean.Api
         public static object? Resolve(IServiceProvider services) => services.GetService(typeof(Application.IWidgetStore));
     }
 }
+
+namespace Catalog.Architecture.Tests.Fixtures.Clean.Api.Composition
+{
+    // The composition namespace is the one place of the Api that names the adapters of Infrastructure and CrossCutting, because it registers them.
+    internal static class WidgetRegistration
+    {
+        public static Application.IWidgetStore Store() => new Infrastructure.SqlWidgetStore();
+
+        public static CrossCutting.WidgetLoggingDecorator Decorator() => CrossCutting.WidgetPipeline.Compose();
+    }
+}

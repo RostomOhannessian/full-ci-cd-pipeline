@@ -50,6 +50,7 @@ public sealed class ArchitectureRulesTests
         ["infrastructure-uses-no-part-of-fusioncache-beyond-the-backplane"] = "FusionAwareStore",
         ["only-the-caching-namespace-of-cross-cutting-uses-fusioncache"] = "FusionAwareAdapter",
         ["no-service-locator-outside-the-composition-root"] = "ServiceLocatorUser",
+        ["api-names-infrastructure-and-cross-cutting-only-in-its-composition-namespace"] = "LeakyEndpoint",
         ["application-ports-are-segregated"] = "IEverythingStore",
         ["decorators-are-composed-only-by-pipelines"] = "ChainingDecorator",
         ["handlers-implement-a-handler-interface"] = "UntypedHandler",

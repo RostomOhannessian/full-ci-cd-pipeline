@@ -328,7 +328,7 @@ The driver also depends on `Microsoft.Data.SqlClient.SNI.runtime`, a native Wind
 
 **Purpose.** The abstractions of the .NET generic host: `IHostedService` and the `BackgroundService` base class. The outbox processor of the persistence layer runs as a `BackgroundService`, so the Infrastructure project can ship it without a reference to the host that starts it.
 
-**Rationale.** The package is the smallest one that holds `BackgroundService`, it is MIT licensed, and the allow-list of [ADR-0004](../../adr/0004-licensing-and-dependency-license-policy.md) accepts it. Version 10.0.14 matches EF Core 10.0.14 and the runtime of the solution (checked 2026-11-02, [ADR-0035](../../adr/0035-outbox-processor-design.md)). The Api project, which is the composition root, will reference the full host when WP1.10 creates it.
+**Rationale.** The package is the smallest one that holds `BackgroundService`, it is MIT licensed, and the allow-list of [ADR-0004](../../adr/0004-licensing-and-dependency-license-policy.md) accepts it. Version 10.0.14 matches EF Core 10.0.14 and the runtime of the solution (checked 2026-11-02, [ADR-0035](../../adr/0035-outbox-processor-design.md)). The Api project, which is the composition root, references the shared framework of ASP.NET Core, which holds the full host (WP1.10).
 
 **Setup.** The project names the package, and the central file holds the version.
 
@@ -387,3 +387,62 @@ It asks for `StackExchange.Redis` 2.7.27, and the central pin to 2.10.1 wins ([A
 
 - [Microsoft.Extensions.Caching.StackExchangeRedis 10.0.14 on NuGet](https://www.nuget.org/packages/Microsoft.Extensions.Caching.StackExchangeRedis/10.0.14) (checked 2026-11-03)
 - [Distributed caching in ASP.NET Core](https://learn.microsoft.com/aspnet/core/performance/caching/distributed) (checked 2026-11-03)
+
+## Microsoft.AspNetCore.Authentication.JwtBearer
+
+**Purpose.** Validates the bearer token of every request of the catalog API. It reads the metadata and the signing keys of the identity provider, checks the signature, the issuer, the audience, and the lifetime, and gives the endpoint the claims of a valid token.
+
+**Rationale.** It is the authentication handler that the ASP.NET Core team ships for bearer tokens, it is MIT licensed, and the allow-list of [ADR-0004](../../adr/0004-licensing-and-dependency-license-policy.md) accepts it. It depends on Microsoft.IdentityModel.Protocols.OpenIdConnect 8.19.2, which is MIT licensed too (checked 2026-11-03).
+Version 10.0.14 is the newest of the 10.0 line and matches the other Microsoft packages of the solution. The API changes three defaults and keeps the claim names as they are ([ADR-0040](../../adr/0040-http-api-composition-and-token-validation.md)): the issuer is compared exactly, the algorithms are RS256 and ES256, and the previous key set is not kept after a refresh.
+
+**Setup.** The project names the package, and the central file holds the version. The settings are in `Security/ConfigureJwtBearer.cs`, which reads `Catalog:Auth`.
+
+```xml
+<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
+```
+
+**Used by.** `src/Catalog.Api`, in `Security/ConfigureJwtBearer.cs`.
+
+**Sources.**
+
+- [Microsoft.AspNetCore.Authentication.JwtBearer 10.0.14 on NuGet](https://www.nuget.org/packages/Microsoft.AspNetCore.Authentication.JwtBearer/10.0.14) (checked 2026-11-03)
+- [Configure JWT bearer authentication in ASP.NET Core](https://learn.microsoft.com/aspnet/core/security/authentication/jwt-authn) (checked 2026-11-03)
+
+## Microsoft.Extensions.Diagnostics.HealthChecks.Abstractions
+
+**Purpose.** Defines `IHealthCheck` and `HealthCheckResult`. The checks of the readiness probe live next to what they check: the database and the outbox in the persistence layer, and the cache in the cross-cutting layer. The Api registers them and serves the endpoints.
+
+**Rationale.** A check that lives in the Api would have to name the adapters that an architecture rule keeps out of it, and a reference to ASP.NET Core in the inner layers would break the layer rules. The package holds only the abstractions, it is MIT licensed, and version 10.0.14 matches the other Microsoft packages of the solution (checked 2026-11-03, [ADR-0040](../../adr/0040-http-api-composition-and-token-validation.md)).
+
+**Setup.** The project names the package, and the central file holds the version.
+
+```xml
+<PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.Abstractions" />
+```
+
+**Used by.** `src/Catalog.Infrastructure`, in `Health`, and `src/Catalog.CrossCutting`, in `Caching/CacheHealthCheck.cs`.
+
+**Sources.**
+
+- [Microsoft.Extensions.Diagnostics.HealthChecks.Abstractions 10.0.14 on NuGet](https://www.nuget.org/packages/Microsoft.Extensions.Diagnostics.HealthChecks.Abstractions/10.0.14) (checked 2026-11-03)
+- [Health checks in ASP.NET Core](https://learn.microsoft.com/aspnet/core/host-and-deploy/health-checks) (checked 2026-11-03)
+
+## Microsoft.AspNetCore.Mvc.Testing
+
+**Purpose.** Starts the real composition root of the API inside the test process, so an integration test sends requests through the middleware and the endpoints that production uses, without a network. A test can also start real sockets when it needs to know which port a request arrived on.
+
+**Rationale.** It is the package that the ASP.NET Core team documents for integration tests, it is MIT licensed, and it brings the test server and the dependency model of the host, which are MIT licensed too (checked 2026-11-03). The tests build the host from the same registrations as `Program` and read their settings from memory, so no file or environment variable of the machine changes a result.
+Only the test project references it ([ADR-0040](../../adr/0040-http-api-composition-and-token-validation.md)).
+
+**Setup.** The project names the package, and the central file holds the version.
+
+```xml
+<PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+```
+
+**Used by.** `tests/Catalog.Api.Tests`.
+
+**Sources.**
+
+- [Microsoft.AspNetCore.Mvc.Testing 10.0.14 on NuGet](https://www.nuget.org/packages/Microsoft.AspNetCore.Mvc.Testing/10.0.14) (checked 2026-11-03)
+- [Integration tests in ASP.NET Core](https://learn.microsoft.com/aspnet/core/test/integration-tests) (checked 2026-11-03)

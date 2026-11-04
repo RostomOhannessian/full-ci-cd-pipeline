@@ -8,6 +8,12 @@
         "resolved": "12.1.1",
         "contentHash": "EPpkIe1yh1a0OXyC100oOA8WMbZvqUu5plwhvYcb7oSELfyUZzfxV48BLhvs3kKo4NwG7MGLNgy1RJiYtT8Dpw=="
       },
+      "Microsoft.Extensions.Diagnostics.HealthChecks.Abstractions": {
+        "type": "Direct",
+        "requested": "[10.0.14, )",
+        "resolved": "10.0.14",
+        "contentHash": "Rz5jWujGFSbOL7lBrw5gHegramz+hFpXb2lWX0amGRUFZFkxbCtgQisy05nqm1KehrZJJInB8ahLGbdOl/cQsA=="
+      },
       "ZiggyCreatures.FusionCache": {
         "type": "Direct",
         "requested": "[2.9.0, )",
