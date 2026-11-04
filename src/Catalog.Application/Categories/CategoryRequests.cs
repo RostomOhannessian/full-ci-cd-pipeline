@@ -68,7 +68,8 @@ public sealed record GetCategory(Guid CategoryId) : IProtectedRequest
 /// <summary>Reads a page of categories ordered by name (<c>listCategories</c>). It needs the read level.</summary>
 /// <param name="PageSize">The number of items that the caller wants.</param>
 /// <param name="Cursor">The cursor of the page, or null for the first one.</param>
-public sealed record ListCategories(int PageSize = PageRequest.DefaultSize, string? Cursor = null) : IProtectedRequest
+/// <param name="Status">Only the categories with this status, or null for every status.</param>
+public sealed record ListCategories(int PageSize = PageRequest.DefaultSize, string? Cursor = null, LifecycleStatus? Status = null) : IProtectedRequest
 {
     /// <summary>The name of the only sort order of categories, which their cursors name.</summary>
     public const string SortName = "name";
@@ -87,9 +88,10 @@ public interface ICategoryReadStore
     /// <param name="cancellationToken">A token that cancels the work.</param>
     Task<CategoryView?> GetAsync(CategoryId id, CancellationToken cancellationToken);
 
-    /// <summary>Reads up to <paramref name="limit"/> categories ordered by name and then by identifier, after a position.</summary>
+    /// <summary>Reads up to <paramref name="limit"/> categories with a status, ordered by name and then by identifier, after a position.</summary>
+    /// <param name="status">The status to keep, or null for every status.</param>
     /// <param name="after">The position after which to start, or null for the first page.</param>
     /// <param name="limit">The largest number of categories to return.</param>
     /// <param name="cancellationToken">A token that cancels the work.</param>
-    Task<IReadOnlyList<CategoryView>> ListAsync(KeysetPosition? after, int limit, CancellationToken cancellationToken);
+    Task<IReadOnlyList<CategoryView>> ListAsync(LifecycleStatus? status, KeysetPosition? after, int limit, CancellationToken cancellationToken);
 }

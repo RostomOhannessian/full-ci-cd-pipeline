@@ -123,14 +123,14 @@ public enum ProductSort
 /// <summary>What a list of products is narrowed by.</summary>
 /// <param name="CategoryId">The category, or null for every category.</param>
 /// <param name="Status">The status, or null for every status.</param>
-/// <param name="Search">The text to look for in the name, or null.</param>
+/// <param name="Search">The text to look for in the name or the SKU, or null.</param>
 /// <param name="Sort">The sort order.</param>
 public sealed record ProductFilter(CategoryId? CategoryId, LifecycleStatus? Status, string? Search, ProductSort Sort);
 
 /// <summary>Reads a page of products (<c>listProducts</c>). It needs the read level, and the result may come from the cache.</summary>
 /// <param name="CategoryId">Only the products of this category, or null.</param>
 /// <param name="Status">Only the products with this status, or null.</param>
-/// <param name="Q">Only the products whose name holds this text, or null.</param>
+/// <param name="Q">Only the products whose name or SKU holds this text, or null.</param>
 /// <param name="Sort">The sort order, <c>createdAt</c> or <c>name</c>.</param>
 /// <param name="PageSize">The number of items that the caller wants.</param>
 /// <param name="Cursor">The cursor of the page, or null for the first one.</param>

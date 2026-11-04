@@ -165,6 +165,26 @@ public sealed class CategoryUseCaseTests
     }
 
     [Fact]
+    [Trait("Requirement", "REQ-API-001")]
+    public async Task Listing_categories_with_a_status_gives_the_status_to_the_read_store_and_keeps_only_the_categories_that_have_it()
+    {
+        var rig = new UseCaseRig();
+        rig.SeedCategory("Alpha");
+        rig.SeedCategory("Bravo", discontinued: true);
+        rig.SeedCategory("Charlie");
+        var handler = rig.Query<ListCategories, Paging.Page<CategoryView>>();
+
+        var active = (await handler.HandleAsync(new ListCategories(Status: LifecycleStatus.Active), CancellationToken.None)).Value;
+        var discontinued = (await handler.HandleAsync(new ListCategories(Status: LifecycleStatus.Discontinued), CancellationToken.None)).Value;
+        var every = (await handler.HandleAsync(new ListCategories(), CancellationToken.None)).Value;
+
+        active.Items.Select(view => view.Name).Should().Equal("Alpha", "Charlie");
+        discontinued.Items.Select(view => view.Name).Should().Equal("Bravo");
+        every.Items.Select(view => view.Name).Should().Equal("Alpha", "Bravo", "Charlie");
+        rig.Catalog.CategoryReads.LastStatus.Should().BeNull();
+    }
+
+    [Fact]
     [Trait("Requirement", "REQ-APP-004")]
     public async Task A_page_size_or_a_cursor_that_is_not_valid_is_a_validation_error()
     {

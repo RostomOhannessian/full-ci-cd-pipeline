@@ -142,14 +142,18 @@ internal sealed class FakeCategoryReadStore(InMemoryCatalog catalog) : ICategory
 {
     public int Limit { get; private set; }
 
+    public LifecycleStatus? LastStatus { get; private set; }
+
     public Task<CategoryView?> GetAsync(CategoryId id, CancellationToken cancellationToken) =>
         Task.FromResult(catalog.CategoryEntries.TryGetValue(id, out var entry) ? CategoryView.From(entry.Value, InMemoryCatalog.TagFor(entry.Version)) : null);
 
-    public Task<IReadOnlyList<CategoryView>> ListAsync(KeysetPosition? after, int limit, CancellationToken cancellationToken)
+    public Task<IReadOnlyList<CategoryView>> ListAsync(LifecycleStatus? status, KeysetPosition? after, int limit, CancellationToken cancellationToken)
     {
         Limit = limit;
+        LastStatus = status;
         var views = catalog.CategoryEntries.Values
             .Select(entry => CategoryView.From(entry.Value, InMemoryCatalog.TagFor(entry.Version)))
+            .Where(view => status is null || view.Status == status)
             .OrderBy(view => view.Name, StringComparer.Ordinal)
             .ThenBy(view => view.Id)
             .Where(view => after is null || string.CompareOrdinal(view.Name, after.SortKey) > 0 || (view.Name == after.SortKey && view.Id.CompareTo(after.Id) > 0))
