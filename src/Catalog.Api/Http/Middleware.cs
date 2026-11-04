@@ -1,3 +1,4 @@
+using Asp.Versioning;
 using Catalog.Api.Configuration;
 using Microsoft.Extensions.Options;
 using Microsoft.Net.Http.Headers;
@@ -50,6 +51,44 @@ internal sealed class ManagementEndpointMetadata
 {
     /// <summary>Gets the one instance, which carries no state.</summary>
     public static ManagementEndpointMetadata Instance { get; } = new();
+}
+
+/// <summary>
+/// Reports the supported versions on every response of a versioned endpoint, including a response that a middleware writes before the endpoint runs (REQ-API-002, ADR-0041). Asp.Versioning reports them when the
+/// endpoint runs, so a <c>401</c> from the bearer handler, a <c>403</c> from the policy, and a <c>429</c> from the limiter would carry none, and the contract says that every response does. This middleware sits after the
+/// routing, which has chosen the endpoint, and asks the same reporter that Asp.Versioning uses, so the headers are the ones that the endpoint would have sent. A header that is already there is kept.
+/// </summary>
+/// <param name="next">The next middleware.</param>
+/// <param name="reporter">The reporter of Asp.Versioning.</param>
+internal sealed class ApiVersionReportMiddleware(RequestDelegate next, IReportApiVersions reporter)
+{
+    private const string SupportedVersionsHeader = "api-supported-versions";
+
+    /// <summary>Registers the report to be written when the response starts, then runs the request.</summary>
+    /// <param name="context">The context of the request.</param>
+    public Task InvokeAsync(HttpContext context)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+
+        if (context.GetEndpoint()?.Metadata.GetMetadata<ApiVersionMetadata>() is { } metadata)
+        {
+            context.Response.OnStarting(
+                static state =>
+                {
+                    var (versions, response, model) = ((IReportApiVersions, HttpResponse, ApiVersionModel))state;
+
+                    if (!response.Headers.ContainsKey(SupportedVersionsHeader))
+                    {
+                        versions.Report(response, model);
+                    }
+
+                    return Task.CompletedTask;
+                },
+                (reporter, context.Response, metadata.Map(reporter.Mapping)));
+        }
+
+        return next(context);
+    }
 }
 
 /// <summary>

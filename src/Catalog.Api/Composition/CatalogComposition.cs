@@ -1,6 +1,8 @@
 using System.Net;
 using System.Threading.RateLimiting;
+using Asp.Versioning;
 using Catalog.Api.Configuration;
+using Catalog.Api.Endpoints;
 using Catalog.Api.Http;
 using Catalog.Api.Security;
 using Catalog.Application.Caching;
@@ -55,6 +57,7 @@ internal static class CatalogComposition
             .AddCatalogCache()
             .AddCatalogApplication()
             .AddCatalogSecurity()
+            .AddCatalogVersioning()
             .AddCatalogHealth();
 
         builder.WebHost.ConfigureKestrel(ConfigureKestrel);
@@ -197,6 +200,21 @@ internal static class CatalogComposition
         services.AddOptions<RateLimiterOptions>().Configure<IOptions<LimitsOptions>>(ConfigureRateLimiter);
 
         services.AddOptions<ForwardedHeadersOptions>().Configure<IOptions<ForwardedHeadersSettings>>(ConfigureForwardedHeaders);
+
+        return services;
+    }
+
+    // The version is a segment of the path (plan section 8.6, REQ-API-002, ADR-0041). A request without a version is not routed to a default, so a client always says which contract it reads, and every response of a
+    // versioned route lists the supported versions.
+    private static IServiceCollection AddCatalogVersioning(this IServiceCollection services)
+    {
+        services.AddApiVersioning(options =>
+        {
+            options.DefaultApiVersion = CatalogEndpoints.V1;
+            options.AssumeDefaultVersionWhenUnspecified = false;
+            options.ReportApiVersions = true;
+            options.ApiVersionReader = new UrlSegmentApiVersionReader();
+        });
 
         return services;
     }

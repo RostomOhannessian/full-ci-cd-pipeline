@@ -69,6 +69,13 @@ internal static class AccessEndpointExtensions
         where TBuilder : IEndpointConventionBuilder
         where TRequest : IProtectedRequest =>
         builder.RequireAuthorization(CatalogPolicies.NameOf(TRequest.RequiredAccess));
+
+    /// <summary>Requires the access level that a request type declares, for an endpoint that a route group maps.</summary>
+    /// <typeparam name="TRequest">The command or query that the endpoint runs.</typeparam>
+    /// <param name="builder">The endpoint.</param>
+    public static RouteHandlerBuilder RequireAccessOf<TRequest>(this RouteHandlerBuilder builder)
+        where TRequest : IProtectedRequest =>
+        builder.RequireAccessOf<RouteHandlerBuilder, TRequest>();
 }
 
 /// <summary>
