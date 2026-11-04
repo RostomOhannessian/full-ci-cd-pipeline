@@ -47,6 +47,9 @@ jobs:
           --coverage --coverage-output-format cobertura --report-trx --results-directory TestResults
       - name: Check coverage against the thresholds
         run: pwsh -NoProfile -File tools/ci/Test-CoverageThresholds.ps1 -CoverageFile 'TestResults/*.cobertura.xml'
+      # The tests of the API write the document that the running host generates from its endpoints (ADR-0042), and oasdiff must find it structurally equal to the authored contract.
+      - name: Check the served contract against the authored contract
+        run: pwsh -NoProfile -File tools/ci/Test-ContractConformance.ps1 -Served TestResults/served/catalog.openapi.json
       - name: Summarize coverage
         if: ${{ !cancelled() }}
         run: |

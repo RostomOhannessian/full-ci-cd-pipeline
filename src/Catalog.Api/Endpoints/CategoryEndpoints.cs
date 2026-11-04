@@ -1,4 +1,5 @@
 using Catalog.Api.Configuration;
+using Catalog.Api.Documentation;
 using Catalog.Api.Http;
 using Catalog.Api.Mapping;
 using Catalog.Api.Security;
@@ -16,17 +17,24 @@ namespace Catalog.Api.Endpoints;
 /// </summary>
 internal static class CategoryEndpoints
 {
+    private const string Tag = "Categories";
+
     /// <summary>Maps the operations under <c>/categories</c> of the version group.</summary>
     /// <param name="api">The group of the version.</param>
     public static void MapCategoryEndpoints(this RouteGroupBuilder api)
     {
-        var categories = api.MapGroup("/categories").WithTags("Categories");
+        var categories = api.MapGroup("/categories").WithTags(Tag);
 
-        categories.MapGet(string.Empty, ListAsync).WithName("listCategories").RequireAccessOf<ListCategories>();
-        categories.MapPost(string.Empty, CreateAsync).WithName("createCategory").RequireAccessOf<CreateCategory>();
-        categories.MapGet("/{categoryId}", GetAsync).WithName("getCategory").RequireAccessOf<GetCategory>();
-        categories.MapPut("/{categoryId}", RenameAsync).WithName("updateCategory").RequireAccessOf<RenameCategory>();
-        categories.MapPost("/{categoryId}/discontinue", DiscontinueAsync).WithName("discontinueCategory").RequireAccessOf<DiscontinueCategory>();
+        categories.MapGet(string.Empty, ListAsync).WithName("listCategories").RequireAccessOf<ListCategories>()
+            .WithContract(new ContractOperation(Tag, "CategoryPage", Parameters: ["CategoryStatusFilter", "PageSize", "Cursor"]));
+        categories.MapPost(string.Empty, CreateAsync).WithName("createCategory").RequireAccessOf<CreateCategory>()
+            .WithContract(new ContractOperation(Tag, "Category", StatusCodes.Status201Created, Parameters: ["IdempotencyKey"], RequestSchema: "CategoryCreate"));
+        categories.MapGet("/{categoryId}", GetAsync).WithName("getCategory").RequireAccessOf<GetCategory>()
+            .WithContract(new ContractOperation(Tag, "Category", PathParameter: "CategoryId", Parameters: ["IfNoneMatch"]));
+        categories.MapPut("/{categoryId}", RenameAsync).WithName("updateCategory").RequireAccessOf<RenameCategory>()
+            .WithContract(new ContractOperation(Tag, "Category", PathParameter: "CategoryId", Parameters: ["IfMatch"], RequestSchema: "CategoryUpdate"));
+        categories.MapPost("/{categoryId}/discontinue", DiscontinueAsync).WithName("discontinueCategory").RequireAccessOf<DiscontinueCategory>()
+            .WithContract(new ContractOperation(Tag, "Category", PathParameter: "CategoryId", Parameters: ["IfMatch"]));
     }
 
     private static async Task<IResult> ListAsync(HttpContext http, IQueryHandler<ListCategories, Page<CategoryView>> handler, CancellationToken cancellationToken)

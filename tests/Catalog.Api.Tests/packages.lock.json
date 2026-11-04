@@ -297,6 +297,11 @@
         "resolved": "2.2.8",
         "contentHash": "zG2FApP5zxSx6OcdJQLbZDk2AVlN2BNQD6MorwIfV6gVj0RRxWPEp2LXAxqDGZqeNV1Zp0BNPcNaey/GXmTdvQ=="
       },
+      "SharpYaml": {
+        "type": "Transitive",
+        "resolved": "2.1.5",
+        "contentHash": "1pNSpfXxNAgCQ9sacKKpEWO2DxTefoLEjw0v1nWMvyJScUWacoHvjXr4LfcUkhm0qYgNYripFFiUeEzW4tdXIQ=="
+      },
       "SharpZipLib": {
         "type": "Transitive",
         "resolved": "1.4.2",
@@ -429,7 +434,10 @@
           "Catalog.Contracts": "[1.0.0, )",
           "Catalog.CrossCutting": "[1.0.0, )",
           "Catalog.Infrastructure": "[1.0.0, )",
-          "Microsoft.AspNetCore.Authentication.JwtBearer": "[10.0.14, )"
+          "Microsoft.AspNetCore.Authentication.JwtBearer": "[10.0.14, )",
+          "Microsoft.OpenApi": "[2.12.2, )",
+          "Microsoft.OpenApi.YamlReader": "[2.12.2, )",
+          "Scalar.AspNetCore": "[2.18.7, )"
         }
       },
       "catalog.application": {
@@ -523,6 +531,28 @@
         "dependencies": {
           "StackExchange.Redis": "2.7.27"
         }
+      },
+      "Microsoft.OpenApi": {
+        "type": "CentralTransitive",
+        "requested": "[2.12.2, )",
+        "resolved": "2.12.2",
+        "contentHash": "ZkT7qiJe0Kj0+DTZOZo+xrDy1kNmdsWFQVPIQLNx9ZJ0T9cB2LG7r+Bi60so8/+yg1nkS7QCPadrzsTG4VPKrA=="
+      },
+      "Microsoft.OpenApi.YamlReader": {
+        "type": "CentralTransitive",
+        "requested": "[2.12.2, )",
+        "resolved": "2.12.2",
+        "contentHash": "ppHZ/+lgwdrQPyZA0ws0BsKqGc713+xL9BhpqwmP3scbWLg6GSWJQD6BX6dts7C/7QDwat4cbCGGGLMOPgvzQw==",
+        "dependencies": {
+          "Microsoft.OpenApi": "2.12.2",
+          "SharpYaml": "2.1.5"
+        }
+      },
+      "Scalar.AspNetCore": {
+        "type": "CentralTransitive",
+        "requested": "[2.18.7, )",
+        "resolved": "2.18.7",
+        "contentHash": "JrNu0Sm4TVeJ//ptvAS3yRbT0oobfR8qp0ecf3HIS9zX4V7uSABr+VYEyWT7uyXjhN2ZTrZ/cpwKv7zHjlK8Gg=="
       },
       "StackExchange.Redis": {
         "type": "CentralTransitive",
