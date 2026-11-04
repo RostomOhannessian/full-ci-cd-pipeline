@@ -8,6 +8,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Catalog.Domain\Catalog.Domain.csproj" />
     <ProjectReference Include="..\..\src\Catalog.Application\Catalog.Application.csproj" />
+    <ProjectReference Include="..\..\src\Catalog.Api\Catalog.Api.csproj" />
   </ItemGroup>
 
   <ItemGroup>

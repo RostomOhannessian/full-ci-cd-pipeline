@@ -15,6 +15,7 @@ internal sealed record LayerSet(
     IObjectProvider<IType> Infrastructure,
     IObjectProvider<IType> CrossCutting,
     IObjectProvider<IType> Api,
+    IObjectProvider<IType> ApiOutsideComposition,
     IObjectProvider<IType> OutsideComposition,
     IObjectProvider<Class> ProductionClasses,
     string DomainMayDependOn,
@@ -32,6 +33,7 @@ internal sealed record LayerSet(
 
         const string Outside = @"^Catalog\.(Domain|Application|Contracts|Infrastructure|CrossCutting)(\s*,.*)?$";
         const string All = @"^Catalog\.(Domain|Application|Contracts|Infrastructure|CrossCutting|Api)(\s*,.*)?$";
+        const string CompositionNamespace = @"^Catalog\.Api\.Composition(\..*)?$";
 
         return new(
             Types().That().ResideInAssemblyMatching(Named("Domain")).As("Domain"),
@@ -40,6 +42,7 @@ internal sealed record LayerSet(
             Types().That().ResideInAssemblyMatching(Named("Infrastructure")).As("Infrastructure"),
             Types().That().ResideInAssemblyMatching(Named("CrossCutting")).As("CrossCutting"),
             Types().That().ResideInAssemblyMatching(Named("Api")).As("Api"),
+            Types().That().ResideInAssemblyMatching(Named("Api")).And().DoNotResideInNamespaceMatching(CompositionNamespace).As("Api outside its composition namespace"),
             Types().That().ResideInAssemblyMatching(Outside).As("Production code outside the composition root"),
             Classes().That().ResideInAssemblyMatching(All).As("Production classes"),
             MayDependOn("Catalog.Domain"),
@@ -61,6 +64,7 @@ internal sealed record LayerSet(
             Types().That().ResideInNamespaceMatching(Within($"{root}.Infrastructure")).As("Infrastructure"),
             Types().That().ResideInNamespaceMatching(Within($"{root}.CrossCutting")).As("CrossCutting"),
             Types().That().ResideInNamespaceMatching(Within($"{root}.Api")).As("Api"),
+            Types().That().ResideInNamespaceMatching(Within($"{root}.Api")).And().DoNotResideInNamespaceMatching(Within($"{root}.Api.Composition")).As("Api outside its composition namespace"),
             Types().That().ResideInNamespaceMatching(outside).As("Production code outside the composition root"),
             Classes().That().ResideInNamespaceMatching(all).As("Production classes"),
             MayDependOn($"{root}.Domain"),

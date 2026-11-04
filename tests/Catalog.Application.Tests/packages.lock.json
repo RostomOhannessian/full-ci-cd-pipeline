@@ -236,6 +236,7 @@
         "dependencies": {
           "Catalog.Application": "[1.0.0, )",
           "FluentValidation": "[12.1.1, )",
+          "Microsoft.Extensions.Diagnostics.HealthChecks.Abstractions": "[10.0.14, )",
           "ZiggyCreatures.FusionCache": "[2.9.0, )",
           "ZiggyCreatures.FusionCache.Serialization.SystemTextJson": "[2.9.0, )"
         }
@@ -248,6 +249,12 @@
         "requested": "[12.1.1, )",
         "resolved": "12.1.1",
         "contentHash": "EPpkIe1yh1a0OXyC100oOA8WMbZvqUu5plwhvYcb7oSELfyUZzfxV48BLhvs3kKo4NwG7MGLNgy1RJiYtT8Dpw=="
+      },
+      "Microsoft.Extensions.Diagnostics.HealthChecks.Abstractions": {
+        "type": "CentralTransitive",
+        "requested": "[10.0.14, )",
+        "resolved": "10.0.14",
+        "contentHash": "Rz5jWujGFSbOL7lBrw5gHegramz+hFpXb2lWX0amGRUFZFkxbCtgQisy05nqm1KehrZJJInB8ahLGbdOl/cQsA=="
       },
       "ZiggyCreatures.FusionCache": {
         "type": "CentralTransitive",

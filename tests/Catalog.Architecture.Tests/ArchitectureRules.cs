@@ -105,6 +105,13 @@ internal static class ArchitectureRules
             "REQ-ARC-002",
             (layers, strict) => Finish(Types().That().Are(layers.OutsideComposition).Should().NotDependOnAnyTypesThat().HaveFullNameMatching(ServiceLocator), strict)),
 
+        // The Api names the adapters of the outer layers only where it registers them (REQ-ARC-002, ADR-0040). The rest of it, which is the middleware, the security, the error handling, and the endpoints, works through
+        // the ports and the contracts, so it never depends on an adapter by name.
+        new(
+            "api-names-infrastructure-and-cross-cutting-only-in-its-composition-namespace",
+            "REQ-ARC-002",
+            (layers, strict) => Finish(Types().That().Are(layers.ApiOutsideComposition).Should().NotDependOnAnyTypesThat().Are(AnyOf(layers.Infrastructure, layers.CrossCutting)), strict)),
+
         new(
             "handlers-are-internal-and-sealed",
             "REQ-ARC-005",

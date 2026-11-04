@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <!-- Tests of the HTTP API (WP1.10, ADR-0040): the composition root, the token validation, the endpoint policies, the limits, the headers, the health endpoints on the management port, and the HTTP semantics of the
+       endpoints. The host under test is the real composition root, started in process with TestServer, or on real sockets when a test needs the two ports. The identity provider of these tests is an in-process
+       issuer that serves the metadata and the signing keys over HTTP, and that signs tokens with a throwaway key made at run time. Most tests need no Docker. The tests that read the database use the SQL Server 2022
+       container that one assembly fixture starts from the digest of compose.yaml (REQ-QUA-001). Each test is tagged with the requirement it proves, and `governance trace` reads the tags. -->
+
+  <!-- Microsoft.Data.SqlClient does not support the invariant globalization mode (it throws NotSupportedException when it opens a connection), so this project turns the mode off, like the persistence tests do.
+       The tests still run under the invariant culture, which Support/InvariantCulture.cs sets for every thread (plan section 10.3). -->
+  <PropertyGroup>
+    <InvariantGlobalization>false</InvariantGlobalization>
+    <!-- The web SDK includes every json file as content, which duplicates the runner settings below. -->
+    <EnableDefaultContentItems>false</EnableDefaultContentItems>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Catalog.Api\Catalog.Api.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AwesomeAssertions" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+    <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
+    <PackageReference Include="Testcontainers.MsSql" />
+  </ItemGroup>
+
+  <!-- The container fixture, the database of a test class, the image pins that are read from compose.yaml, and the culture are shared with the persistence tests on purpose, so every project that needs SQL Server starts the
+       same server in the same way (ADR-0034). -->
+  <ItemGroup>
+    <Compile Include="..\Catalog.Infrastructure.Tests\Support\SqlServerFixture.cs" Link="Support\Shared\SqlServerFixture.cs" />
+    <Compile Include="..\Catalog.Infrastructure.Tests\Support\CatalogDatabaseFixture.cs" Link="Support\Shared\CatalogDatabaseFixture.cs" />
+    <Compile Include="..\Catalog.Infrastructure.Tests\Support\ComposeImage.cs" Link="Support\Shared\ComposeImage.cs" />
+    <Compile Include="..\Catalog.Infrastructure.Tests\Support\InvariantCulture.cs" Link="Support\Shared\InvariantCulture.cs" />
+    <Compile Include="..\Catalog.Infrastructure.Tests\Support\Poll.cs" Link="Support\Shared\Poll.cs" />
+  </ItemGroup>
+
+  <!-- Parallelism is declared per assembly in this file (plan section 10.3). -->
+  <ItemGroup>
+    <Content Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

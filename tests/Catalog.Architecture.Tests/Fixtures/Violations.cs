@@ -173,4 +173,10 @@ namespace Catalog.Architecture.Tests.Fixtures.Violations.Api
     public sealed class Startup
     {
     }
+
+    // Breaks "api-names-infrastructure-and-cross-cutting-only-in-its-composition-namespace": a part of the Api that is not the composition reaches for an adapter by name.
+    public sealed class LeakyEndpoint
+    {
+        private readonly Infrastructure.SqlProductStore _store = new();
+    }
 }
