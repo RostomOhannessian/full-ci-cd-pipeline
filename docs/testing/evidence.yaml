@@ -249,3 +249,18 @@ entries:
     path: docs/testing/evidence/2026-11-04-composition-root-review.md
     summary: The manual review of every file of src/Catalog.Api at the merge of the third pull request of WP1.10 found that only the Api registers services or resolves them, and no business rule in its endpoints, mapping, HTTP helpers, security, or documentation parts. It lists the method, the rules that hold each claim with their violating fixtures, and two observations that the rules allow.
     recorded: '2026-11-04'
+  - requirements: [REQ-OBS-001, REQ-OBS-002, REQ-OBS-003, REQ-SEC-006, REQ-CACHE-003]
+    kind: docs
+    path: docs/adr/0043-observability-with-opentelemetry-and-redaction.md
+    summary: ADR-0043 records that only the Api references the OpenTelemetry SDK while the layers use the activity sources and meters of the base class library, the names of the sources and meters, the real use-case telemetry, the gauges and spans of the outbox, the two pinned beta instrumentations, the redaction by classification with the processors in front of the exporters, the settings and the standard OTEL variables, and the limits that the threat model and the risk register carry.
+    recorded: '2026-11-04'
+  - requirements: [REQ-OBS-001, REQ-OBS-002, REQ-OBS-003]
+    kind: docs
+    path: docs/reference/tools/opentelemetry-dotnet.md
+    summary: The tool page of OpenTelemetry for .NET explains what each package does in this repository, why the SDK stays in the Api, why the two instrumentations are pinned betas, and how to send the telemetry of the API to the otel-lgtm container and find a trace by its identifier.
+    recorded: '2026-11-04'
+  - requirements: [REQ-OBS-001, REQ-OBS-002, REQ-OBS-003, REQ-SEC-006, REQ-CACHE-003]
+    kind: manual
+    path: docs/testing/evidence/2026-11-04-observability-run.md
+    summary: The telemetry tests ran on Windows with Docker Desktop and in the pinned Linux SDK image, with in-memory exporters over a real SQL Server 2022 container and a real Valkey 8.1 container started from the digests of compose.yaml. It records the counts, the traces with their parents, the metrics and their labels, the redaction of every signal, the OTLP export to a loopback listener, a host with no collector, a degraded cache, a manual run against the otel-lgtm container, and the findings about spans that a test process records twice and about a margin that failed once.
+    recorded: '2026-11-04'

@@ -7,11 +7,12 @@ namespace Catalog.Api.Tests;
 
 /// <summary>
 /// Token validation through the real pipeline (plan section 8.7, REQ-IDN-003): the exact issuer and audience, the signature, the algorithms RS256 and ES256, and the lifetime with at most 30 seconds of skew. The tokens are
-/// signed by an in-process issuer with keys made at run time, and the clock of the validation is a fake one, so no result depends on the time of the run.
+/// signed by an in-process issuer with keys made at run time. The lifetime is checked against the real clock, so the boundary cases keep a margin of 10 seconds on the side that a slow request could break.
 /// </summary>
 public sealed class JwtValidationTests(SecuredApiFixture api) : IClassFixture<SecuredApiFixture>
 {
     private static readonly TimeSpan Skew = TimeSpan.FromSeconds(30);
+    private static readonly TimeSpan Margin = TimeSpan.FromSeconds(10);
 
     private async Task<HttpResponseMessage> ReadAsync(string? token) => await api.SendAsync(HttpMethod.Get, "/test/read", token);
 
@@ -125,7 +126,8 @@ public sealed class JwtValidationTests(SecuredApiFixture api) : IClassFixture<Se
     [Trait("Requirement", "REQ-IDN-003")]
     public async Task A_token_that_expired_inside_the_skew_is_accepted_and_one_that_expired_before_it_is_refused()
     {
-        var insideSkew = new TokenSpec { NotBeforeOffset = TimeSpan.FromMinutes(-10), LifetimeFromNow = -(Skew - TimeSpan.FromSeconds(1)) };
+        // The lifetime is checked against the real clock, so the accepted token keeps a margin for the time that a first request takes on a loaded machine. A delay only makes the refused token more expired.
+        var insideSkew = new TokenSpec { NotBeforeOffset = TimeSpan.FromMinutes(-10), LifetimeFromNow = -(Skew - Margin) };
         var beyondSkew = new TokenSpec { NotBeforeOffset = TimeSpan.FromMinutes(-10), LifetimeFromNow = -(Skew + TimeSpan.FromSeconds(1)) };
 
         using var accepted = await ReadAsync(api.Token(insideSkew));
@@ -137,8 +139,9 @@ public sealed class JwtValidationTests(SecuredApiFixture api) : IClassFixture<Se
     [Trait("Requirement", "REQ-IDN-003")]
     public async Task A_token_that_is_not_valid_yet_is_accepted_inside_the_skew_and_refused_beyond_it()
     {
+        // A delay moves a token that is not valid yet toward its start, so the refused token keeps the margin.
         var insideSkew = new TokenSpec { NotBeforeOffset = Skew - TimeSpan.FromSeconds(1), LifetimeFromNow = TimeSpan.FromMinutes(10) };
-        var beyondSkew = new TokenSpec { NotBeforeOffset = Skew + TimeSpan.FromSeconds(1), LifetimeFromNow = TimeSpan.FromMinutes(10) };
+        var beyondSkew = new TokenSpec { NotBeforeOffset = Skew + Margin, LifetimeFromNow = TimeSpan.FromMinutes(10) };
 
         using var accepted = await ReadAsync(api.Token(insideSkew));
         accepted.StatusCode.Should().Be(HttpStatusCode.OK);

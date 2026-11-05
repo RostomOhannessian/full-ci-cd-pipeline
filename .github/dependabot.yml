@@ -64,6 +64,11 @@ updates:
           - "xunit*"
           - "Microsoft.Testing.*"
           - "TngTech.*"
+      # The packages of OpenTelemetry move together, because the instrumentations need the release of the SDK that they were built with, and the two beta packages are pinned to
+      # that release (ADR-0043). TelemetryPackageTests fail when one of them is on another release.
+      opentelemetry:
+        patterns:
+          - "OpenTelemetry*"
       nuget-minor-and-patch:
         update-types:
           - minor

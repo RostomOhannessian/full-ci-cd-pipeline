@@ -30,6 +30,9 @@ public sealed class OutboxOptions
     /// <summary>Gets or sets how often the background service runs the cleanup. Default 1 hour.</summary>
     public TimeSpan MaintenanceInterval { get; set; } = TimeSpan.FromHours(1);
 
+    /// <summary>Gets or sets how often the processor reads the backlog of the outbox for the gauges. The reading counts the dead-letter messages, so it is not made on every pass. Default 30 seconds.</summary>
+    public TimeSpan ObservationInterval { get; set; } = TimeSpan.FromSeconds(30);
+
     /// <summary>Checks the bounds and returns the problems, or an empty list when the settings are valid. The registration calls it at startup, so a wrong setting stops the host.</summary>
     public IReadOnlyList<string> Validate()
     {
@@ -60,9 +63,9 @@ public sealed class OutboxOptions
             problems.Add("JitterRatio must be between 0 and 1.");
         }
 
-        if (PollInterval <= TimeSpan.Zero || MaintenanceInterval <= TimeSpan.Zero || Retention <= TimeSpan.Zero)
+        if (PollInterval <= TimeSpan.Zero || MaintenanceInterval <= TimeSpan.Zero || Retention <= TimeSpan.Zero || ObservationInterval <= TimeSpan.Zero)
         {
-            problems.Add("PollInterval, MaintenanceInterval, and Retention must be positive.");
+            problems.Add("PollInterval, MaintenanceInterval, Retention, and ObservationInterval must be positive.");
         }
 
         return problems;

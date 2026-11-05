@@ -85,6 +85,11 @@ internal static class ApiCalls
 
     public static Action<HttpRequestMessage> WithIfNoneMatch(string value) => request => request.Headers.TryAddWithoutValidation("If-None-Match", value);
 
+    /// <summary>Makes a new trace identifier as 32 lower-case hexadecimal characters.</summary>
+    public static string NewTraceId() => System.Diagnostics.ActivityTraceId.CreateRandom().ToHexString();
+
+    /// <summary>Sends the request as a part of a trace that the test started, so the spans of the host join the trace and the test finds them by its identifier, whichever other test runs at the same time.</summary>
+    public static Action<HttpRequestMessage> WithTrace(string traceId) => request => request.Headers.TryAddWithoutValidation("traceparent", $"00-{traceId}-0123456789abcdef-01");
     public static Action<HttpRequestMessage> WithBoth(params Action<HttpRequestMessage>[] changes) => request =>
     {
         foreach (var change in changes)

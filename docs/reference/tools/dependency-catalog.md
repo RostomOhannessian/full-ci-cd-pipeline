@@ -2,7 +2,7 @@
 title: "Dependency catalog"
 description: "The libraries, Dev Container features, images, and actions that this repository uses and that need no page of their own: what each is for, why it was chosen, how it is referenced, and where to read more."
 audience: [learners, contributors]
-last-verified: 2026-11-03
+last-verified: 2026-11-04
 owner: "@RostomOhannessian"
 ---
 
@@ -426,6 +426,26 @@ Version 10.0.14 is the newest of the 10.0 line and matches the other Microsoft p
 
 - [Microsoft.Extensions.Diagnostics.HealthChecks.Abstractions 10.0.14 on NuGet](https://www.nuget.org/packages/Microsoft.Extensions.Diagnostics.HealthChecks.Abstractions/10.0.14) (checked 2026-11-03)
 - [Health checks in ASP.NET Core](https://learn.microsoft.com/aspnet/core/host-and-deploy/health-checks) (checked 2026-11-03)
+
+## Microsoft.Extensions.Compliance.Redaction
+
+**Purpose.** Replaces the value of a classified attribute before it leaves the process. A `DataClassification` names a kind of sensitive data, a `Redactor` says what replaces a value of that kind, and `AddRedaction` registers the redactors that an `IRedactorProvider` hands out. The catalog has two classes, `Secret` and `Personal`, and one redactor that writes `[redacted]`. The inventory entry is `microsoft-extensions-compliance-redaction`.
+
+**Rationale.** The plan names the package (section 8.11). Version 10.11.0 is MIT licensed, it depends on `Microsoft.Extensions.Compliance.Abstractions` 10.11.0, which is MIT licensed too, and it was published on 2026-10-14 (checked 2026-11-04). The package classifies and replaces values, and it does not decide what is sensitive in an attribute that a library chose, so `TelemetryClassifier` decides by the name of an attribute and by the shape of a text value.
+`Microsoft.Extensions.Telemetry` and `Microsoft.Gen.Logging` classify at the call site, and they were evaluated and not adopted: they cover only the calls that someone annotated, and they cannot reach what a framework or a driver logs ([ADR-0043](../../adr/0043-observability-with-opentelemetry-and-redaction.md)). [The OpenTelemetry page](opentelemetry-dotnet.md) shows where the redaction sits in the pipeline.
+
+**Setup.** The project names the package, and the central file holds the version. The registration is in `Composition/TelemetryComposition.cs`, and the classes, the redactor, and the classifier are in `Telemetry/`.
+
+```xml
+<PackageReference Include="Microsoft.Extensions.Compliance.Redaction" />
+```
+
+**Used by.** `src/Catalog.Api`, in `Composition/TelemetryComposition.cs` and in `Telemetry/`.
+
+**Sources.**
+
+- [Microsoft.Extensions.Compliance.Redaction 10.11.0 on NuGet](https://www.nuget.org/packages/Microsoft.Extensions.Compliance.Redaction/10.11.0) (checked 2026-11-04)
+- [Data redaction in .NET](https://learn.microsoft.com/en-us/dotnet/core/extensions/data-redaction) (checked 2026-11-04)
 
 ## Microsoft.AspNetCore.Mvc.Testing
 

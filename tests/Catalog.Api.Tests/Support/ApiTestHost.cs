@@ -49,6 +49,9 @@ internal sealed class HostSettings
 
             ["Catalog:Limits:ReadPermits"] = "100000",
             ["Catalog:Limits:WritePermits"] = "100000",
+
+            // A test host sends nothing over the network. A test that looks at the telemetry attaches an in-memory exporter, and the test of the exporter points it at a listener of its own.
+            ["Catalog:Telemetry:Exporter"] = "None",
         };
     }
 
@@ -163,7 +166,8 @@ internal sealed class ApiTestHost : IAsyncDisposable
         Action<WebApplication>? map = null,
         bool sockets = false,
         string environment = "Development",
-        Action<IServiceCollection>? services = null)
+        Action<IServiceCollection>? services = null,
+        Action<IServiceCollection>? telemetry = null)
     {
         ArgumentNullException.ThrowIfNull(settings);
 
@@ -199,6 +203,8 @@ internal sealed class ApiTestHost : IAsyncDisposable
 
         builder.AddCatalogApi();
 
+        // An exporter that a test adds must come after the redaction that the composition root adds, so the test sees what an exporter of the real host sees.
+        telemetry?.Invoke(builder.Services);
         var app = builder.Build();
         app.UseCatalogApi();
         map?.Invoke(app);

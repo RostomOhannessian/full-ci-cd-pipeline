@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Hosting;
@@ -6,10 +7,10 @@ using Microsoft.Extensions.Logging;
 
 namespace Catalog.Infrastructure.Credentials;
 
-/// <summary>The metrics of the credential rotation, on the meter <c>Catalog.Credentials</c> (plan section 8.4). The values hold no credential.</summary>
+/// <summary>The metrics and the activity source of the credential rotation, both named <c>Catalog.Credentials</c> (plan sections 8.4 and 8.11, ADR-0043). The values and the spans hold no credential.</summary>
 public sealed class CredentialMetrics : IDisposable
 {
-    /// <summary>The name of the meter.</summary>
+    /// <summary>The name of the meter and of the activity source.</summary>
     public const string MeterName = "Catalog.Credentials";
 
     private readonly Meter _meter = new(MeterName);
@@ -19,9 +20,13 @@ public sealed class CredentialMetrics : IDisposable
     /// <summary>Initializes a new instance of the <see cref="CredentialMetrics"/> class.</summary>
     public CredentialMetrics()
     {
+        Source = new ActivitySource(MeterName);
         _rotations = _meter.CreateCounter<long>("catalog.credentials.rotations", "{rotation}", "Switches to a new database credential.");
         _poolClears = _meter.CreateCounter<long>("catalog.credentials.pool_clears", "{clear}", "Pools of an old credential that were cleared after the grace period.");
     }
+
+    /// <summary>Gets the activity source of the rotation, which the janitor starts its spans from.</summary>
+    public ActivitySource Source { get; }
 
     /// <summary>Counts a rotation.</summary>
     public void Rotated() => _rotations.Add(1);
@@ -30,7 +35,11 @@ public sealed class CredentialMetrics : IDisposable
     public void PoolCleared() => _poolClears.Add(1);
 
     /// <inheritdoc />
-    public void Dispose() => _meter.Dispose();
+    public void Dispose()
+    {
+        Source.Dispose();
+        _meter.Dispose();
+    }
 }
 
 /// <summary>
@@ -114,6 +123,10 @@ public sealed partial class CredentialPoolJanitor : IHostedService, IDisposable
     private void OnRotated(object? sender, CredentialRotatedEventArgs args)
     {
         _metrics.Rotated();
+
+        // The span marks the moment of the switch. It carries no credential, and a trace that crosses the switch shows it next to the requests that ran on either side.
+        _metrics.Source.StartActivity("credentials.rotate", ActivityKind.Internal)?.Dispose();
+
         var old = args.Previous;
 
         if (_grace == TimeSpan.Zero)
@@ -143,8 +156,11 @@ public sealed partial class CredentialPoolJanitor : IHostedService, IDisposable
 
     private void Clear(DatabaseCredential old)
     {
+        using var activity = _metrics.Source.StartActivity("credentials.clear_pool", ActivityKind.Internal);
+
         if (old == _source.Current)
         {
+            activity?.SetTag("catalog.outcome", "skipped");
             LogSkipped();
 
             return;
@@ -155,12 +171,16 @@ public sealed partial class CredentialPoolJanitor : IHostedService, IDisposable
             using var connection = new SqlConnection(CatalogConnectionString.Build(_baseConnectionString, old));
             SqlConnection.ClearPool(connection);
             _metrics.PoolCleared();
+            activity?.SetTag("catalog.outcome", "cleared");
             LogCleared();
         }
 #pragma warning disable CA1031 // The clear runs on a timer thread, and a fault there would end the process. It is logged by its type, and the idle connections close with the pool lifetime anyway.
         catch (Exception exception)
 #pragma warning restore CA1031
         {
+            activity?.SetTag("catalog.outcome", "failed");
+            activity?.SetStatus(ActivityStatusCode.Error);
+            activity?.SetTag("error.type", exception.GetType().FullName);
             LogFailed(exception.GetType().Name);
         }
     }

@@ -51,6 +51,7 @@ public sealed partial class OutboxBackgroundService : BackgroundService
             try
             {
                 var batch = await _processor.ProcessBatchAsync(stoppingToken);
+                await ObserveBacklogAsync(stoppingToken);
 
                 if (_clock.GetUtcNow() >= nextMaintenance)
                 {
@@ -88,6 +89,28 @@ public sealed partial class OutboxBackgroundService : BackgroundService
 
     [LoggerMessage(EventId = 10, Level = LogLevel.Error, Message = "A pass of the outbox processor failed. The service waits for the next poll and tries again.")]
     private partial void LogPassFailed(Exception exception);
+
+    // The reading of the backlog serves the gauges only, so a fault of it never stops a delivery or the cleanup.
+    private async Task ObserveBacklogAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            await _processor.ObserveBacklogAsync(cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+#pragma warning disable CA1031 // The reading serves the gauges only. The fault is logged by its type, and the gauge of the age of the reading shows that it is stale.
+        catch (Exception exception)
+#pragma warning restore CA1031
+        {
+            LogObservationFailed(exception.GetType().Name);
+        }
+    }
+
+    [LoggerMessage(EventId = 12, Level = LogLevel.Warning, Message = "The outbox backlog could not be read for the gauges ({ExceptionType}).")]
+    private partial void LogObservationFailed(string exceptionType);
 
     [LoggerMessage(EventId = 11, Level = LogLevel.Debug, Message = "The cleanup deleted {Rows} expired or finished rows.")]
     private partial void LogPurged(int rows);

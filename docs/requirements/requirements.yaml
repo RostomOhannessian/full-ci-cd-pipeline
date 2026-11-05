@@ -509,7 +509,7 @@ requirements:
   - performance
   evidence: Valkey-down chaos test and cache metrics
   status: in_progress
-  notes: The first pull request of WP1.9 delivers the circuit breakers, the metrics (the gauges of the two breakers, the counters of reads with a degraded flag, of removals, and of faults), and the proof that a read never fails because of the cache, with a shared cache that fails on every call. The second pull request delivers the Valkey-down test against a real server that stops and starts (CacheOutageTests show that reads and writes degrade to memory and the loader without an exception, that the gauges and the incomplete-removal counter report it, and that the node recovers by itself), a backplane that refuses the message while the shared cache works, and the retry of the outbox across an outage. The alerts are owed by WP1.11 and the performance proof by WP4.4. The readiness check that stays green while the cache degrades is delivered by WP1.10, and HealthTests prove that a degraded cache is reported in a 200 answer and that a dead-letter outbox message makes readiness degraded while the probe stays green (ADR-0040, checked 2026-11-04).
+  notes: The first pull request of WP1.9 delivers the circuit breakers, the metrics (the gauges of the two breakers, the counters of reads with a degraded flag, of removals, and of faults), and the proof that a read never fails because of the cache, with a shared cache that fails on every call. The second pull request delivers the Valkey-down test against a real server that stops and starts (CacheOutageTests show that reads and writes degrade to memory and the loader without an exception, that the gauges and the incomplete-removal counter report it, and that the node recovers by itself), a backplane that refuses the message while the shared cache works, and the retry of the outbox across an outage. The readiness check that stays green while the cache degrades is delivered by WP1.10, and HealthTests prove that a degraded cache is reported in a 200 answer and that a dead-letter outbox message makes readiness degraded while the probe stays green (ADR-0040, checked 2026-11-04). The first pull request of WP1.11 exports the gauges and the counters through OpenTelemetry (TelemetryCacheDegradationTests show, with a Valkey that nobody runs, that the requests succeed, that the shared-cache gauge is 1, that the exported counters carry degraded reads and incomplete removals, and that readiness is degraded and not unhealthy), and the second delivers the alerts as code for the Compose stack (ADR-0043, checked 2026-11-04). The performance proof is owed by WP4.4.
 - id: REQ-SEC-001
   title: GitHub and repository content contain no stored secrets
   statement: The repository and its workflows store no secrets, gitleaks scans the full history and working tree, push protection and secret scanning stay enabled, and the blocking auditor allows only GITHUB_TOKEN and OIDC-based authentication in Actions.
@@ -591,7 +591,8 @@ requirements:
   - scan
   - manual
   evidence: privacy scan and redaction tests
-  status: planned
+  status: in_progress
+  notes: The first pull request of WP1.11 delivers the redaction tests of the telemetry (ADR-0043, checked 2026-11-04). The classifier is tested on 65 cases of names and values, the ones that must be redacted and the ones that must stay readable, and the real host is sent sentinels (a token, a connection string, an email address, the text of a driver exception, and the passwords of the settings) that no log record, span tag, or metric series holds afterwards. The text of an exception never leaves the process. The privacy scan of the repository, the release assets, the issues, and the workflow logs belongs to the publication review (LAUNCH), and the standard output of the host is not part of the pipeline (risk R24).
 - id: REQ-SEC-007
   title: Access rights stay least privilege across delivery and runtime
   statement: Vault policies, Kubernetes RBAC, SQL roles, GitHub App permissions, and workflow tokens grant only the privileges required for their documented tasks.
@@ -703,7 +704,8 @@ requirements:
   - integration
   - snapshot
   evidence: telemetry assertion tests
-  status: planned
+  status: verified
+  notes: TelemetryTraceTests read the spans of the real host over a real SQL Server 2022 and a real Valkey 8.1 in a trace that the test starts with a traceparent header, and show the HTTP server span, the use case, the cache (FusionCache), EF Core, SqlClient, the Redis commands, and the outbox handler with their parents, the trace identifier of an error as the identifier of the trace, the HttpClient spans of the key retrieval, and a snapshot of the shape of a read and of a write. EF Core and StackExchange.Redis are the pinned beta instrumentations, and TelemetryPackageTests fail when either pin moves or stops being a beta (ADR-0043, checked 2026-11-04). The traces of the outbox processor and of the credential rotation are proven by OutboxTelemetryTests and CredentialRotationTests.
 - id: REQ-OBS-002
   title: Metrics expose SLOs cache behavior and outbox health
   statement: Metrics include ASP.NET Core and runtime defaults plus custom series for cache hit, miss, and stale counts, outbox backlog, age, and failures, handler duration, credential rotations, and idempotency replays.
@@ -718,7 +720,8 @@ requirements:
   - integration
   - performance
   evidence: metrics assertions and AnalysisTemplate queries
-  status: planned
+  status: in_progress
+  notes: The first pull request of WP1.11 exports the defaults of ASP.NET Core and of the runtime and the series of the catalog (the duration of each use case, the cache, the outbox backlog, oldest pending age, dead letters, delivery age, and handler duration, the idempotency decisions, and the credential rotations) through OpenTelemetry, and TelemetryMetricsTests read the exported series from the real host, check every label against a documented list, and show that writing many products makes no new series (ADR-0043, checked 2026-11-04). The dashboards and the alerts as code for the Compose stack arrive in the second pull request. The AnalysisTemplate queries are WP3.7 and the canary analysis and the performance proof of the SLOs are WP4.4.
 - id: REQ-OBS-003
   title: Logs are structured JSON and redacted by classification
   statement: Logs are exported as structured JSON through OpenTelemetry and redacted with Microsoft.Extensions.Compliance.Redaction classifications so tokens, secrets, and personal data never appear.
@@ -731,7 +734,8 @@ requirements:
   - integration
   - snapshot
   evidence: redacted log snapshots
-  status: planned
+  status: verified
+  notes: TelemetryLogTests send the real host templates with sentinels and read the records that an in-memory exporter receives after the redaction of the host, as a template and a dictionary of the values, with a token, a connection string, an email address, and the names of secrets replaced by a marker, the text of an exception removed, and the trace identifier of the request in the record. A snapshot holds the shape of the redacted log of a fault. The export itself is proven by TelemetryOptionsTests, which start the host against a listener on the loopback address and read the OTLP bodies (ADR-0043, checked 2026-11-04).
 - id: REQ-OBS-004
   title: The collector validates a fixed OTLP processing pipeline
   statement: The OpenTelemetry Collector receives OTLP, processes data through memory_limiter, k8sattributes, attribute redaction, and batch processors, exports to Prometheus, Tempo, and Loki for the full profile, and validates the configuration with otelcol validate.

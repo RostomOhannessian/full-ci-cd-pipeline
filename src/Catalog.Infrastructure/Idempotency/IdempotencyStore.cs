@@ -15,7 +15,8 @@ namespace Catalog.Infrastructure.Idempotency;
 /// <param name="context">The write context of the scope, which the unit of work shares.</param>
 /// <param name="clock">The source of the time of the records.</param>
 /// <param name="options">The settings.</param>
-public sealed class IdempotencyStore(CatalogDbContext context, TimeProvider clock, IOptions<IdempotencyOptions> options) : IIdempotencyStore
+/// <param name="metrics">The metrics that count each decision, or null to count nothing.</param>
+public sealed class IdempotencyStore(CatalogDbContext context, TimeProvider clock, IOptions<IdempotencyOptions> options, IdempotencyMetrics? metrics = null) : IIdempotencyStore
 {
     // A violation of the primary key or of a unique index, which a second request with the same key causes.
     private const int UniqueIndexViolation = 2601;
@@ -30,6 +31,14 @@ public sealed class IdempotencyStore(CatalogDbContext context, TimeProvider cloc
 
     /// <inheritdoc />
     public async Task<IdempotencyDecision> BeginAsync(IdempotencyRequest request, CancellationToken cancellationToken)
+    {
+        var decision = await DecideAsync(request, cancellationToken);
+        metrics?.Decided(decision.Outcome);
+
+        return decision;
+    }
+
+    private async Task<IdempotencyDecision> DecideAsync(IdempotencyRequest request, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
 

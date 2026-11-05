@@ -22,6 +22,9 @@ public sealed class CatalogApiFixture(SqlServerFixture sql, ValkeyFixture valkey
 
     internal ApiTestHost Host { get; private set; } = null!;
 
+    /// <summary>Gets what the in-memory exporters of the host received. Every test of the host fills it, and a test finds its own spans by the trace that it started.</summary>
+    internal TelemetryCapture Telemetry { get; } = new();
+
     internal HttpClient Client => Host.Client;
 
     public async ValueTask InitializeAsync()
@@ -40,7 +43,7 @@ public sealed class CatalogApiFixture(SqlServerFixture sql, ValkeyFixture valkey
             .With("Catalog:Cache:SharedTimeout", "00:00:02")
             .With("Catalog:Cache:Environment", $"api{Guid.NewGuid():N}"[..11]);
 
-        Host = await ApiTestHost.StartAsync(settings);
+        Host = await ApiTestHost.StartAsync(settings, telemetry: Telemetry.AddTo);
     }
 
     public async ValueTask DisposeAsync()

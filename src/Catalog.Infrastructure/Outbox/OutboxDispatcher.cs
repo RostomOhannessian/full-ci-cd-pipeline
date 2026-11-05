@@ -59,7 +59,7 @@ public sealed partial class OutboxDispatcher : IOutboxDispatcher
     {
         try
         {
-            await handler.HandleAsync(message, cancellationToken);
+            await _metrics.ObserveHandlerAsync(handler, message, cancellationToken);
             _metrics.Immediate(handler.Name, delivered: true);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)

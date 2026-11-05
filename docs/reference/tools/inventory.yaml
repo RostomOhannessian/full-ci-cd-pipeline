@@ -792,19 +792,21 @@ entries:
     category: dotnet-library
     tier: B
     lifecycle: adopt
-    usage: planned
+    usage: in-use
     introduced: phase-1
-    purpose: Emits traces, metrics, and logs from the API and its supporting jobs.
+    purpose: Emits traces, metrics, and logs from the API, with the SDK in the composition root and the export over OTLP.
     license: Apache-2.0
     license-source: https://github.com/open-telemetry/opentelemetry-dotnet
-    version: "core-1.19.1"
+    version: "core-1.20.1"
     repo: https://github.com/open-telemetry/opentelemetry-dotnet
     sources:
       - https://github.com/open-telemetry/opentelemetry-dotnet
-      - https://github.com/open-telemetry/opentelemetry-dotnet/releases/tag/core-1.19.1
+      - https://github.com/open-telemetry/opentelemetry-dotnet/releases/tag/core-1.20.1
+      - https://www.nuget.org/packages/OpenTelemetry/1.20.1
       - https://opentelemetry.io/docs/languages/dotnet/
-    adrs: []
-    notes: The core SDK and the ASP.NET Core and SqlClient instrumentations are stable. The EF Core (1.19.1-beta.1) and StackExchange.Redis (1.19.0-beta.1) instrumentation packages have never had a stable release, so pin them exactly and review them on every upgrade.
+    adrs: ["0043"]
+    notes: Only Catalog.Api references the SDK, from WP1.11, and the tests of the API reference the in-memory exporter (ADR-0043). 1.20.1 is the newest stable release of the SDK, the OTLP exporter, the hosting package, and the instrumentation of ASP.NET Core, HttpClient, SqlClient, and the runtime, published 2026-10-20 and 2026-10-21 (checked 2026-11-04). A 1.21.0 release candidate exists (2026-10-28), and the repository stays on the stable line. The instrumentation of EF Core and of StackExchange.Redis has never had a stable release, and both are pinned exactly at 1.20.1-beta.1, so a person reads their release notes on every upgrade, and TelemetryPackageTests fail when either pin is a range, is a stable version, or is not on the release of the SDK. OpenTelemetry.Exporter.InMemory 1.20.1 is used by the tests only. Every package of the family that the repository references is Apache-2.0 licensed in its nuspec (checked 2026-11-04).
+    detect: ["nuget:OpenTelemetry*"]
   - id: sqlclient-sni-runtime
     name: Microsoft.Data.SqlClient.SNI.runtime
     category: dotnet-library
@@ -943,6 +945,24 @@ entries:
     adrs: ["0040"]
     notes: The package holds only the abstractions, and the Api registers the checks and serves the endpoints from the shared framework of ASP.NET Core (checked 2026-11-03). The version matches the other Microsoft.Extensions packages of the solution.
     detect: ["nuget:Microsoft.Extensions.Diagnostics.HealthChecks.Abstractions"]
+  - id: microsoft-extensions-compliance-redaction
+    name: Microsoft.Extensions.Compliance.Redaction
+    category: dotnet-library
+    tier: C
+    lifecycle: adopt
+    usage: in-use
+    introduced: phase-1
+    purpose: Replaces the value of a classified attribute with a marker, so a token, a credential, or personal data never leaves the process in a span tag or a log record.
+    license: MIT
+    license-source: https://www.nuget.org/packages/Microsoft.Extensions.Compliance.Redaction/10.11.0/license
+    version: "10.11.0"
+    repo: https://github.com/dotnet/extensions
+    sources:
+      - https://www.nuget.org/packages/Microsoft.Extensions.Compliance.Redaction/10.11.0
+      - https://learn.microsoft.com/en-us/dotnet/core/extensions/data-redaction
+    adrs: ["0043"]
+    notes: Catalog.Api uses it from WP1.11 (checked 2026-11-04). The package classifies and replaces values and does not decide what is sensitive, so TelemetryClassifier in Catalog.Api decides, and MarkerRedactor replaces a value with a fixed marker (ADR-0043). It depends on Microsoft.Extensions.Compliance.Abstractions 10.11.0, which holds DataClassification, Redactor, and IRedactorProvider, and on Microsoft.Extensions.Options.ConfigurationExtensions 10.0.13 on net10.0. Version 10.11.0 and the abstractions package are MIT licensed and were published 2026-10-14 (checked 2026-11-04). Microsoft.Extensions.Telemetry and Microsoft.Gen.Logging, which classify at the call site, were evaluated and not adopted, because they cover only the calls that someone annotated and cannot reach what a framework or a driver logs (ADR-0043).
+    detect: ["nuget:Microsoft.Extensions.Compliance.*"]
   - id: microsoft-aspnetcore-mvc-testing
     name: Microsoft.AspNetCore.Mvc.Testing
     category: dotnet-library

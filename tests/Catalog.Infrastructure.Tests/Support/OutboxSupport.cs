@@ -59,7 +59,7 @@ internal sealed class ProcessorRig : IDisposable
         Options = options ?? new OutboxOptions { JitterRatio = 0 };
         Handlers = handlers;
         Database = database;
-        Metrics = new OutboxMetrics();
+        Metrics = new OutboxMetrics(clock);
         Processor = new OutboxProcessor(
             database.NewContextFactory(),
             handlers,
