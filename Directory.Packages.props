@@ -93,6 +93,23 @@
     <PackageVersion Include="Scalar.AspNetCore" Version="2.18.7" />
   </ItemGroup>
 
+  <!-- Catalog.Api (WP1.11, ADR-0043). OpenTelemetry .NET is Apache-2.0 licensed (the license expression of each nuspec, checked 2026-11-04). 1.20.1 is the newest stable release of the SDK, the exporter, the hosting
+       package, and the instrumentation of ASP.NET Core, HttpClient, SqlClient, and the runtime (checked 2026-11-04). The instrumentation of EF Core and of StackExchange.Redis has never had a stable release, so both are
+       pinned to the exact beta that matches the SDK (1.20.1-beta.1), and a change of either version needs a review of its release notes (ADR-0043). Microsoft.Extensions.Compliance.Redaction is MIT licensed, and
+       10.11.0 is its newest release (checked 2026-11-04). The in-memory exporter of the tests is part of the same family and is pinned with it. -->
+  <ItemGroup>
+    <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="1.20.1" />
+    <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.20.1" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.20.1" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.Http" Version="1.20.1" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.SqlClient" Version="1.20.1" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.20.1" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.EntityFrameworkCore" Version="1.20.1-beta.1" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.StackExchangeRedis" Version="1.20.1-beta.1" />
+    <PackageVersion Include="Microsoft.Extensions.Compliance.Redaction" Version="10.11.0" />
+    <PackageVersion Include="OpenTelemetry.Exporter.InMemory" Version="1.20.1" />
+  </ItemGroup>
+
   <!-- Catalog.Api.Tests (WP1.10, ADR-0040). The test host of ASP.NET Core is MIT licensed (checked 2026-11-03), and it starts the real composition root in process. The snapshots of the API tests are
        compared by a helper in the test project and not by Verify, because Verify.XunitV3 from 33.0.0 fails the build unless the owner declares a sponsorship or an exemption (ADR-0042, checked 2026-11-04). -->
   <ItemGroup>

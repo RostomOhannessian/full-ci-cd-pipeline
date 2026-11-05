@@ -15,12 +15,15 @@ public class SecuredApiFixture : IAsyncLifetime
 
     internal virtual HostSettings Customize(HostSettings settings) => settings;
 
+    /// <summary>Gets what the host adds to the telemetry after its own pipeline, such as an in-memory exporter. A class that looks at the telemetry overrides it.</summary>
+    internal virtual Action<IServiceCollection>? AttachTelemetry => null;
+
     public async ValueTask InitializeAsync()
     {
         Issuer = await TestIssuer.StartAsync();
         EcKey = TestKey.Ec("key-ec");
         Issuer.Publish(Issuer.Signing, EcKey);
-        Host = await ApiTestHost.StartAsync(Customize(new HostSettings(Issuer)), TestEndpoints.Map);
+        Host = await ApiTestHost.StartAsync(Customize(new HostSettings(Issuer)), TestEndpoints.Map, telemetry: AttachTelemetry);
     }
 
     public async ValueTask DisposeAsync()

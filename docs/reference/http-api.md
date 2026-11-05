@@ -215,9 +215,9 @@ the information, the servers, the tags, the security, and every shared schema, p
 | `TestResults/served/catalog.openapi.json` | The document that `ServedContractTests` write. The `ci` workflow runs `tools/ci/Test-ContractConformance.ps1 -Served` on it, blocking, and the documents must be structurally equal after descriptions, examples, and summaries are ignored |
 | `GET /openapi/v1.json` and `/scalar/v1` | The document and the [Scalar](tools/scalar.md) viewer. Only the Development environment registers them, with a content policy of its own for `/scalar`, and a Production host answers 404 for `/openapi/v1.json`, `/scalar`, and `/scalar/v1` |
 
-## Telemetry until WP1.11
+## Telemetry
 
-`LoggingUseCaseTelemetry` implements `IUseCaseTelemetry` with one structured log line for each outcome of a use case, with the name of the use case and the kind of refusal. WP1.11 replaces it with an adapter over an activity source and a meter, and the registration is the one line that changes.
+`UseCaseTelemetry` implements `IUseCaseTelemetry` over an activity source and a meter, and `AddCatalogTelemetry` registers the OpenTelemetry pipeline for traces, metrics, and logs ([ADR-0043](../adr/0043-observability-with-opentelemetry-and-redaction.md), WP1.11). The `Catalog:Telemetry` section holds `Exporter` (`Otlp`, the default, or `None`), `ServiceName`, and `TraceSamplingRatio`, and a validator checks it at start. The address, the protocol, and the headers of the OTLP exporter come from the standard `OTEL_EXPORTER_OTLP_*` variables, and `appsettings.Development.json` holds none of them. The trace identifier of an error body is the identifier of the trace that the request is part of, so an operator follows a failure from the answer to its trace. A processor in front of every exporter redacts the tags, the attributes, and the log records by classification, and the text of an exception never leaves the process. The Compose stack sends the telemetry to the otel-lgtm container in the second pull request of WP1.11.
 
 ## Run it against the Compose stack
 

@@ -15,6 +15,7 @@ using Catalog.Application.Products;
 using Catalog.Application.Security;
 using Catalog.Application.Telemetry;
 using Catalog.CrossCutting.Caching;
+using Catalog.CrossCutting.Telemetry;
 using Catalog.CrossCutting.Validation;
 using Catalog.Infrastructure.Caching;
 using Catalog.Infrastructure.Credentials;
@@ -60,6 +61,7 @@ internal static class CatalogComposition
             .AddCatalogVersioning()
             .AddCatalogHealth();
 
+        builder.AddCatalogTelemetry();
         builder.WebHost.ConfigureKestrel(ConfigureKestrel);
 
         return builder;
@@ -130,6 +132,7 @@ internal static class CatalogComposition
         services.AddSingleton<OutboxSignal>();
         services.AddScoped<IOutboxDispatcher, OutboxDispatcher>();
         services.AddSingleton<OutboxMetrics>();
+        services.AddSingleton<IdempotencyMetrics>();
         services.AddSingleton<OutboxProcessor>();
         services.AddSingleton<CatalogMaintenance>();
         services.AddHostedService<OutboxBackgroundService>();
@@ -142,8 +145,9 @@ internal static class CatalogComposition
     private static IServiceCollection AddCatalogCache(this IServiceCollection services)
     {
         services.AddSingleton<CacheMetrics>();
-        services.AddSingleton(provider => ValkeyConnection.CreateSharedCache(provider.GetRequiredService<IOptions<ValkeyOptions>>().Value));
-        services.AddSingleton(provider => ValkeyConnection.CreateBackplane(provider.GetRequiredService<IOptions<ValkeyOptions>>().Value));
+        services.AddSingleton<ValkeyConnectionObserver>();
+        services.AddSingleton(provider => ValkeyConnection.CreateSharedCache(provider.GetRequiredService<IOptions<ValkeyOptions>>().Value, provider.GetRequiredService<ValkeyConnectionObserver>()));
+        services.AddSingleton(provider => ValkeyConnection.CreateBackplane(provider.GetRequiredService<IOptions<ValkeyOptions>>().Value, provider.GetRequiredService<ValkeyConnectionObserver>()));
         services.AddSingleton(provider => CatalogCacheFactory.Create(
             provider.GetRequiredService<IOptions<CatalogCacheOptions>>().Value,
             provider.GetRequiredService<CacheMetrics>(),
@@ -162,7 +166,7 @@ internal static class CatalogComposition
         services.AddHttpContextAccessor();
         services.AddSingleton<IIdGenerator, GuidV7IdGenerator>();
         services.AddScoped<ICurrentPrincipal, HttpContextCurrentPrincipal>();
-        services.AddSingleton<IUseCaseTelemetry, LoggingUseCaseTelemetry>();
+        services.AddSingleton<IUseCaseTelemetry>(provider => new UseCaseTelemetry(provider.GetRequiredService<TimeProvider>()));
 
         services.AddSingleton<IValidator<CreateCategory>, CreateCategoryValidator>();
         services.AddSingleton<IValidator<RenameCategory>, RenameCategoryValidator>();

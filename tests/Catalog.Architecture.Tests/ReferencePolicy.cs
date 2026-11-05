@@ -31,13 +31,21 @@ internal static class ReferencePolicy
         "OpenTelemetry",
     ];
 
+    // The SDK of OpenTelemetry and the redaction that it uses are the composition root's (plan section 8.11, ADR-0043). The other layers publish spans and metrics through ActivitySource and Meter of the base class
+    // library, which a listener that the composition root registers receives, so no layer but the composition root needs the SDK or names it.
+    private static readonly string[] TelemetrySdkPackagePrefixes =
+    [
+        "OpenTelemetry",
+        "Microsoft.Extensions.Compliance",
+    ];
+
     private static readonly Dictionary<string, LayerPolicy> Layers = new()
     {
         [Domain] = new([], PackageRule.None, PlainSdk),
         [Application] = new([Domain], PackageRule.NoInfrastructure, PlainSdk),
         [Contracts] = new([], PackageRule.None, PlainSdk),
-        [Infrastructure] = new([Application], PackageRule.Any, PlainSdk),
-        [CrossCutting] = new([Application], PackageRule.Any, PlainSdk),
+        [Infrastructure] = new([Application], PackageRule.NoTelemetrySdk, PlainSdk),
+        [CrossCutting] = new([Application], PackageRule.NoTelemetrySdk, PlainSdk),
         ["Catalog.Api"] = new([Application, Infrastructure, CrossCutting, Contracts], PackageRule.Any, WebSdk),
 
         // Planned for Phase 4 (WP4.1 and WP4.2). The client stays independent of every server project.
@@ -71,9 +79,12 @@ internal static class ReferencePolicy
 
         foreach (var package in project.PackageReferences.Where(package => IsForbidden(policy.Packages, package)))
         {
-            violations.Add(policy.Packages == PackageRule.None
-                ? $"{project.Name} must not use the package {package}. This layer allows no packages."
-                : $"{project.Name} must not use the infrastructure package {package}.");
+            violations.Add(policy.Packages switch
+            {
+                PackageRule.None => $"{project.Name} must not use the package {package}. This layer allows no packages.",
+                PackageRule.NoTelemetrySdk => $"{project.Name} must not use the telemetry package {package}. Only the composition root names the SDK of OpenTelemetry, and this layer publishes through ActivitySource and Meter.",
+                _ => $"{project.Name} must not use the infrastructure package {package}.",
+            });
         }
 
         return violations;
@@ -83,6 +94,7 @@ internal static class ReferencePolicy
     {
         PackageRule.None => true,
         PackageRule.NoInfrastructure => InfrastructurePackagePrefixes.Any(prefix => package.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)),
+        PackageRule.NoTelemetrySdk => TelemetrySdkPackagePrefixes.Any(prefix => package.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)),
         _ => false,
     };
 
@@ -95,6 +107,9 @@ internal static class ReferencePolicy
 
         /// <summary>Any package except the infrastructure packages listed above.</summary>
         NoInfrastructure,
+
+        /// <summary>Any package except the SDK of OpenTelemetry and its redaction, which the composition root alone names.</summary>
+        NoTelemetrySdk,
 
         /// <summary>Any package. Each one still passes the license gate.</summary>
         Any,

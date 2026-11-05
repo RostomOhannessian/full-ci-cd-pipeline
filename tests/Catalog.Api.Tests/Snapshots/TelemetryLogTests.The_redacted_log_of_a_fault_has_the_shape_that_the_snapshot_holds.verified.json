@@ -1,0 +1,29 @@
+[
+  {
+    "category": "Catalog.Api.Http.ApiErrorHandler",
+    "level": "Error",
+    "eventId": 1,
+    "body": "An unhandled exception ended a request. TraceId {TraceId}.",
+    "formattedMessage": null,
+    "traceIdIsTheRequest": true,
+    "attributes": {
+      "TraceId": "<trace>",
+      "exception.stacktrace": "<frames>",
+      "exception.type": "System.InvalidOperationException",
+      "{OriginalFormat}": "An unhandled exception ended a request. TraceId {TraceId}."
+    }
+  },
+  {
+    "category": "Microsoft.AspNetCore.Diagnostics.ExceptionHandlerMiddleware",
+    "level": "Error",
+    "eventId": 1,
+    "body": "An unhandled exception has occurred while executing the request.",
+    "formattedMessage": null,
+    "traceIdIsTheRequest": true,
+    "attributes": {
+      "exception.stacktrace": "<frames>",
+      "exception.type": "System.InvalidOperationException",
+      "{OriginalFormat}": "An unhandled exception has occurred while executing the request."
+    }
+  }
+]

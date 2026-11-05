@@ -22,6 +22,10 @@ public sealed class ReferenceRulesTests
         ["client-references-a-server-project"] = (Facts("Catalog.Client", projects: ["Catalog.Contracts"]), "Catalog.Client must not reference Catalog.Contracts"),
         ["production-references-a-test-project"] = (Facts("Catalog.Domain", projects: ["Catalog.Architecture.Tests"]), "Catalog.Domain must not reference Catalog.Architecture.Tests"),
         ["project-missing-from-the-policy"] = (Facts("Catalog.Mystery"), "Catalog.Mystery is not in the layer policy"),
+        ["infrastructure-uses-the-opentelemetry-sdk"] = (Facts("Catalog.Infrastructure", projects: ["Catalog.Application"], packages: ["OpenTelemetry.Extensions.Hosting"]), "must not use the telemetry package OpenTelemetry.Extensions.Hosting"),
+        ["cross-cutting-uses-the-opentelemetry-sdk"] = (Facts("Catalog.CrossCutting", projects: ["Catalog.Application"], packages: ["OpenTelemetry.Api"]), "must not use the telemetry package OpenTelemetry.Api"),
+        ["cross-cutting-uses-the-redaction-package"] = (Facts("Catalog.CrossCutting", projects: ["Catalog.Application"], packages: ["Microsoft.Extensions.Compliance.Redaction"]), "must not use the telemetry package Microsoft.Extensions.Compliance.Redaction"),
+        ["application-uses-the-opentelemetry-sdk"] = (Facts("Catalog.Application", projects: ["Catalog.Domain"], packages: ["OpenTelemetry"]), "must not use the infrastructure package OpenTelemetry"),
     };
 
     [Fact]
@@ -70,6 +74,10 @@ public sealed class ReferenceRulesTests
     [InlineData("client-references-a-server-project")]
     [InlineData("production-references-a-test-project")]
     [InlineData("project-missing-from-the-policy")]
+    [InlineData("infrastructure-uses-the-opentelemetry-sdk")]
+    [InlineData("cross-cutting-uses-the-opentelemetry-sdk")]
+    [InlineData("cross-cutting-uses-the-redaction-package")]
+    [InlineData("application-uses-the-opentelemetry-sdk")]
     public void The_policy_rejects_a_project_that_breaks_a_layer_rule(string caseName)
     {
         var (project, expectedMessage) = ViolatingProjects[caseName];

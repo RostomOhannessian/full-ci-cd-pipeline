@@ -2,13 +2,13 @@
 title: "Threat model"
 description: "The design-time threat model: assets, actors, trust boundaries, and the planned controls, updated as each phase builds them."
 audience: [maintainers, learners]
-last-verified: 2026-11-03
+last-verified: 2026-11-04
 owner: "@RostomOhannessian"
 ---
 
 # Threat model
 
-**Status: version 1, written in Phase 0 and updated in WP1.1, WP1.2, WP1.3, WP1.4, WP1.5, WP1.6, WP1.8, WP1.9, WP1.10, WP1.14, and WP1.15.** This model describes the *planned* system. A control is delivered only when the
+**Status: version 1, written in Phase 0 and updated in WP1.1, WP1.2, WP1.3, WP1.4, WP1.5, WP1.6, WP1.8, WP1.9, WP1.10, WP1.11, WP1.14, and WP1.15.** This model describes the *planned* system. A control is delivered only when the
 Delivered column says so, and every other control names the phase that delivers it. Each phase updates it, and Phase 4 finalizes it. A work package
 that changes a trust boundary, a data flow, or a credential must update this page (Definition of Done item 7 in [CONTRIBUTING.md](../../CONTRIBUTING.md)).
 
@@ -186,6 +186,19 @@ The boundary between a contributor's machine, the Dev Container, the downloads t
 | Over-broad RBAC | Elevation of privilege | Dedicated service accounts and least-privilege roles | Phase 3 (WP3.2) |
 | Long-lived credentials are stolen and reused | Information disclosure | Short-lived leases delivered to memory-backed files | Phase 3 (WP3.3, WP3.4) |
 | Authorization bypass | Elevation of privilege | Authorization at endpoints and at the use-case boundary, tested exhaustively. The endpoint policy and the authorization decorator read the same permission table, so they cannot disagree, and a test of the endpoints checks every combination of scope and role | Use-case boundary delivered in WP1.7; the endpoint policies delivered in the first pull request of WP1.10 on 2026-11-03; the matrix over the operations of the contract delivered in the third on 2026-11-04 ([ADR-0042](../adr/0042-served-contract-conformance-and-snapshots.md)) |
+
+### TB5a: Telemetry from the API to the collector
+
+The traces, metrics, and logs that the API sends over OTLP to the collector ([ADR-0043](../adr/0043-observability-with-opentelemetry-and-redaction.md)). The Compose stack runs one container for all backends on `127.0.0.1`, and the collector of the platform arrives in WP3.7.
+
+| Threat | Category | Control | Delivered |
+| --- | --- | --- | --- |
+| A token, a credential, a connection string, a password, or personal data reaches a backend through a log record, a span tag, an exception text, or a metric label | Information disclosure | Two processors run before every exporter: they classify an attribute by its name and a text value by its shape (a token, a connection string, an email address, the profile folder of a person) and replace a classified value with `[redacted]`. A log record never leaves with its exception, only its type and its frames without file paths, and the formatted message is not exported. The statements of the database carry placeholders and no parameter, and the span of a use case adds the type of an exception and never its text. A metric label is a fixed word. Tests send sentinels through the real host (a token, a connection string, an email address, a driver message, and the passwords of the settings) and search every record, tag, and series for them, and a snapshot holds the shape of a redacted record | WP1.11 delivered 2026-11-04 |
+| The standard output of the host holds an exception text or a value that the telemetry pipeline would have redacted | Information disclosure | Accepted as residual risk. The code never logs a value that the plan forbids, and the tests of the earlier work packages search every log line of the host for the sentinel passwords. The output is not part of the OTLP pipeline, so it is not redacted, and a deployment that collects it must treat it as sensitive until WP3.7 decides how it is collected | Residual risk R24 |
+| A metric label or a span attribute takes a value that a caller controls, and the backend grows a series for each value | Denial of service | Every label is a fixed word, a handler name, or an event type. A test lists the labels of every exported series against a documented list, searches the values for an identifier, and writes many products to show that no series is added. The instrumentation never labels with a route value, and the routes are templates | WP1.11 delivered 2026-11-04 |
+| The collector is down, slow, or wrong, and the API stops answering or fails | Denial of service | The exporters batch off the request path, so a request never waits for a collector, and a failed export is dropped. The options and the endpoint and protocol variables are checked when the host starts. A test starts the host with an OTLP endpoint that nobody serves and expects the same answers | WP1.11 delivered 2026-11-04 |
+| The export is read or changed in transit, or goes to the wrong collector, and the headers carry a credential | Information disclosure, Tampering, Spoofing | The endpoint, the protocol, and the headers come from the standard `OTEL_*` variables and never from a file of the repository, and the validator names a variable and never repeats its value. The Compose stack sends plain HTTP to the loopback address only. A deployment sets an HTTPS address, and the mutual authentication of the collector arrives with the platform | Variables and validation delivered in WP1.11 on 2026-11-04; Phase 3 (WP3.7) |
+| A caller sets the sampled flag in `traceparent` and so records every request of its own, or sends a trace identifier that it chose | Denial of service, Spoofing | The sampler is parent-based, so a caller that sets the flag decides the sampling of its trace, and a trace identifier from a caller is only an identifier. Accepted as residual risk until the gateway strips or replaces the header | Residual risk R25; Phase 3 (WP3.2) |
 
 ### TB6: Data tier
 

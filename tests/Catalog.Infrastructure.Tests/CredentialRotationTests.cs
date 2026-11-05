@@ -273,6 +273,50 @@ public sealed class CredentialRotationTests(CatalogDatabaseFixture database) : I
         return (logins, sessions);
     }
 
+    [Fact]
+    [Trait("Requirement", "REQ-OBS-001")]
+    [Trait("Requirement", "REQ-SEC-006")]
+    public async Task A_rotation_and_the_clear_of_the_old_pool_are_spans_that_hold_no_credential()
+    {
+        var a = await SqlLogins.CreateAsync(database, "a");
+        var b = await SqlLogins.CreateAsync(database, "b");
+        using var rig = new Rig(database, a, Grace);
+        using var probe = new TelemetryProbe(null, rig.Metrics.Source);
+        await RunAsync(rig.Source, 3);
+
+        rig.File.Replace(b);
+        rig.Source.Refresh();
+
+        probe.Spans.Select(span => span.OperationName).Should().Equal("credentials.rotate");
+
+        rig.Clock.Advance(Grace);
+
+        var clear = probe.Spans.Single(span => span.OperationName == "credentials.clear_pool");
+        clear.GetTagItem("catalog.outcome").Should().Be("cleared");
+        var tags = string.Join(' ', probe.Spans.SelectMany(span => span.TagObjects).Select(tag => $"{tag.Key}={tag.Value}"));
+        tags.Should().NotContain(a.UserName).And.NotContain(b.UserName).And.NotContain(a.Password).And.NotContain(b.Password);
+    }
+
+    [Fact]
+    [Trait("Requirement", "REQ-OBS-001")]
+    public async Task A_clear_that_is_skipped_because_the_credential_returned_to_use_says_so_in_its_span()
+    {
+        var a = await SqlLogins.CreateAsync(database, "a");
+        var b = await SqlLogins.CreateAsync(database, "b");
+        using var rig = new Rig(database, a, Grace);
+        using var probe = new TelemetryProbe(null, rig.Metrics.Source);
+        await RunAsync(rig.Source, 3);
+
+        rig.File.Replace(b);
+        rig.Source.Refresh();
+        rig.File.Replace(a);
+        rig.Source.Refresh();
+        rig.Clock.Advance(Grace);
+
+        probe.Spans.Count(span => span.OperationName == "credentials.rotate").Should().Be(2);
+        probe.Spans.Where(span => span.OperationName == "credentials.clear_pool").Select(span => (string?)span.GetTagItem("catalog.outcome")).Should().BeEquivalentTo("cleared", "skipped");
+    }
+
     private sealed class Rig : IDisposable
     {
         public Rig(CatalogDatabaseFixture database, DatabaseCredential first, TimeSpan grace)

@@ -15,6 +15,20 @@
     <PackageReference Include="Asp.Versioning.Http" />
   </ItemGroup>
 
+  <!-- Traces, metrics, and logs (WP1.11, ADR-0043). The SDK, the OTLP exporter, and the instrumentation of ASP.NET Core, HttpClient, SqlClient, and the runtime are stable. The instrumentation of EF Core and of
+       StackExchange.Redis has only had beta releases, so both versions are pinned exactly in Directory.Packages.props. The redaction package classifies and erases the values of attributes (REQ-OBS-003). -->
+  <ItemGroup>
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" />
+    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Http" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.SqlClient" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.EntityFrameworkCore" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.StackExchangeRedis" />
+    <PackageReference Include="Microsoft.Extensions.Compliance.Redaction" />
+  </ItemGroup>
+
   <!-- The served OpenAPI document and its viewer (REQ-CON-002, ADR-0042). Microsoft.OpenApi reads the embedded copy of the authored contract, and Scalar.AspNetCore serves the viewer in the Development environment only.
        All three packages are MIT licensed. The authored file is embedded, so the host needs no file next to it, and a change to the contract rebuilds the project. -->
   <ItemGroup>

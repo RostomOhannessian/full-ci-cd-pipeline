@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Catalog.Application.Events;
 using Catalog.Infrastructure.Persistence;
 using Microsoft.Data.SqlClient;
@@ -58,7 +59,7 @@ public sealed partial class OutboxProcessor
     private readonly ILogger<OutboxProcessor> _logger;
     private readonly Random _random;
     private readonly Func<Guid> _newLeaseId;
-
+    private DateTimeOffset? _lastObservation;
     /// <summary>Initializes a new instance of the <see cref="OutboxProcessor"/> class.</summary>
     /// <param name="contexts">Makes a context for each pass, so the processor holds no tracker between passes.</param>
     /// <param name="handlers">The handlers that every message goes to.</param>
@@ -133,6 +134,10 @@ public sealed partial class OutboxProcessor
     {
         ArgumentNullException.ThrowIfNull(lease);
 
+        // An empty pass starts no span, so the poll of an idle outbox leaves no trace. A pass with messages is the root of the spans of its deliveries and handlers (REQ-OBS-001).
+        using var batch = lease.Messages.Count == 0 ? null : _metrics.Source.StartActivity("outbox.process_batch", ActivityKind.Internal);
+        batch?.SetTag("catalog.outbox.batch_size", lease.Messages.Count);
+
         int delivered = 0, failed = 0, deadLettered = 0;
 
         foreach (var message in lease.Messages)
@@ -140,6 +145,9 @@ public sealed partial class OutboxProcessor
             cancellationToken.ThrowIfCancellationRequested();
 
             await using var context = await _contexts.CreateDbContextAsync(cancellationToken);
+            using var delivery = _metrics.Source.StartActivity("outbox.deliver", ActivityKind.Internal);
+            delivery?.SetTag("catalog.outbox.event_type", message.EventType);
+            delivery?.SetTag("catalog.outbox.attempt", message.Attempts);
             Exception? failure = null;
 
             try
@@ -162,11 +170,17 @@ public sealed partial class OutboxProcessor
                 if (await CompleteAsync(context, lease.LeaseId, message, cancellationToken))
                 {
                     delivered++;
+                    delivery?.SetTag("catalog.outcome", "delivered");
                 }
             }
             else if (await FailAsync(context, lease.LeaseId, message, failure, cancellationToken))
             {
-                if (message.Attempts >= _options.MaxAttempts)
+                var dead = message.Attempts >= _options.MaxAttempts;
+                delivery?.SetTag("catalog.outcome", dead ? "dead_lettered" : "failed");
+                delivery?.SetStatus(ActivityStatusCode.Error);
+                delivery?.SetTag("error.type", failure.GetType().FullName);
+
+                if (dead)
                 {
                     deadLettered++;
                 }
@@ -180,6 +194,36 @@ public sealed partial class OutboxProcessor
         return new OutboxBatchResult(lease.Messages.Count, delivered, failed, deadLettered);
     }
 
+    /// <summary>
+    /// Reads what the outbox holds and gives it to the gauges of <see cref="OutboxMetrics"/>. The reading costs one count over the index of the pending messages, one seek for the oldest due time, and one count of the
+    /// dead-letter messages, so it runs at most once for each <see cref="OutboxOptions.ObservationInterval"/> and returns false when it is too early. A fault of the database is thrown, and the gauges then keep the
+    /// last reading while <c>catalog.outbox.observation_age</c> grows.
+    /// </summary>
+    /// <param name="cancellationToken">A token that cancels the reading.</param>
+    /// <returns>True when it read the outbox, and false when the last reading is still fresh.</returns>
+    public async Task<bool> ObserveBacklogAsync(CancellationToken cancellationToken)
+    {
+        var now = _clock.GetUtcNow();
+
+        if (_lastObservation is { } last && now - last < _options.ObservationInterval)
+        {
+            return false;
+        }
+
+        await using var context = await _contexts.CreateDbContextAsync(cancellationToken);
+        var messages = context.OutboxMessages.AsNoTracking();
+        var pending = await messages.LongCountAsync(message => message.Status == OutboxStatus.Pending, cancellationToken);
+        DateTimeOffset? oldestDue = pending == 0
+            ? null
+            : await messages.Where(message => message.Status == OutboxStatus.Pending).MinAsync(message => (DateTimeOffset?)message.NextAttemptAt, cancellationToken);
+        var deadLetters = await messages.LongCountAsync(message => message.Status == OutboxStatus.DeadLetter, cancellationToken);
+
+        _metrics.Observe(new OutboxBacklog(pending, deadLetters, oldestDue, now));
+        _lastObservation = now;
+
+        return true;
+    }
+
     private async Task HandleAsync(CatalogDbContext context, ClaimedMessage message, CancellationToken cancellationToken)
     {
         var taken = await context.OutboxReceipts.AsNoTracking().Where(receipt => receipt.MessageId == message.Id).Select(receipt => receipt.Handler).ToListAsync(cancellationToken);
@@ -187,7 +231,7 @@ public sealed partial class OutboxProcessor
 
         foreach (var handler in _handlers.Where(handler => !taken.Contains(handler.Name, StringComparer.Ordinal)))
         {
-            await handler.HandleAsync(envelope, cancellationToken);
+            await _metrics.ObserveHandlerAsync(handler, envelope, cancellationToken);
             await RecordReceiptAsync(context, message.Id, handler.Name, cancellationToken);
         }
     }
@@ -222,6 +266,7 @@ public sealed partial class OutboxProcessor
         }
 
         _metrics.Delivered(message.EventType);
+        _metrics.DeliveryAge(message.EventType, now - message.OccurredAt);
         LogDelivered(message.Id, message.EventType, message.Attempts);
 
         return true;

@@ -1,0 +1,23 @@
+{
+  "write": [
+    "Catalog.Outbox | outbox.handle -> ZiggyCreatures.Caching.Fusion | remove from cache by tag",
+    "Catalog.UseCases | CreateProduct -> Catalog.Outbox | outbox.handle",
+    "Catalog.UseCases | CreateProduct -> OpenTelemetry.Instrumentation.EntityFrameworkCore",
+    "Catalog.UseCases | CreateProduct -> OpenTelemetry.Instrumentation.SqlClient",
+    "Microsoft.AspNetCore | POST /api/v{version:apiVersion}/products/ -> Catalog.UseCases | CreateProduct",
+    "OpenTelemetry.Instrumentation.EntityFrameworkCore -> OpenTelemetry.Instrumentation.SqlClient",
+    "ZiggyCreatures.Caching.Fusion | remove from cache by tag -> ZiggyCreatures.Caching.Fusion | set to cache",
+    "ZiggyCreatures.Caching.Fusion | set to cache -> ZiggyCreatures.Caching.Fusion.Backplane | publish to backplane",
+    "ZiggyCreatures.Caching.Fusion | set to cache -> ZiggyCreatures.Caching.Fusion.Distributed | set to cache level"
+  ],
+  "read": [
+    "Catalog.UseCases | GetProduct -> ZiggyCreatures.Caching.Fusion | get or set from cache",
+    "Microsoft.AspNetCore | GET /api/v{version:apiVersion}/products/{productId} -> Catalog.UseCases | GetProduct",
+    "OpenTelemetry.Instrumentation.EntityFrameworkCore -> OpenTelemetry.Instrumentation.SqlClient",
+    "ZiggyCreatures.Caching.Fusion | execute factory -> OpenTelemetry.Instrumentation.EntityFrameworkCore",
+    "ZiggyCreatures.Caching.Fusion | get or set from cache -> ZiggyCreatures.Caching.Fusion | execute factory",
+    "ZiggyCreatures.Caching.Fusion | get or set from cache -> ZiggyCreatures.Caching.Fusion.Backplane | publish to backplane",
+    "ZiggyCreatures.Caching.Fusion | get or set from cache -> ZiggyCreatures.Caching.Fusion.Distributed | get from cache level",
+    "ZiggyCreatures.Caching.Fusion | get or set from cache -> ZiggyCreatures.Caching.Fusion.Distributed | set to cache level"
+  ]
+}
