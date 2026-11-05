@@ -3,7 +3,7 @@ title: "Requirements traceability"
 description: "A generated map from every requirement to the tests and evidence that prove it, and to the work packages that deliver it."
 type: reference
 audience: [maintainers, contributors, learners]
-last-verified: 2026-11-03
+last-verified: 2026-11-04
 owner: "@RostomOhannessian"
 ---
 
@@ -18,9 +18,9 @@ A requirement is in scope once every work package that delivers it is completed,
 | Measure | Requirements |
 | --- | --- |
 | Requirements | 123 |
-| In scope and covered | 39 |
+| In scope and covered | 41 |
 | In scope and missing proof | 0 |
-| Covered before they are due | 31 |
+| Covered before they are due | 29 |
 | Not yet due | 53 |
 | Deferred or withdrawn | 0 |
 
@@ -62,8 +62,8 @@ A requirement is in scope once every work package that delivers it is completed,
 
 | Requirement | Title | Delivered by | State | Tests | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| `REQ-ARC-001` | Layer references stay within Clean Architecture | WP1.1, WP1.6, WP1.7, WP1.8, WP1.10 | Covered | [ArchitectureRulesTests.cs](../../tests/Catalog.Architecture.Tests/ArchitectureRulesTests.cs), [AssemblyReferenceTests.cs](../../tests/Catalog.Architecture.Tests/AssemblyReferenceTests.cs), [ReferenceRulesTests.cs](../../tests/Catalog.Architecture.Tests/ReferenceRulesTests.cs) | None |
-| `REQ-ARC-002` | Api is the only composition root | WP1.1, WP1.10 | Covered | [AppSettingsFilesTests.cs](../../tests/Catalog.Api.Tests/AppSettingsFilesTests.cs), [CompositionTests.cs](../../tests/Catalog.Api.Tests/CompositionTests.cs), [ConfigurationValidationTests.cs](../../tests/Catalog.Api.Tests/ConfigurationValidationTests.cs), and 4 more | docs: [0040-http-api-composition-and-token-validation.md](../adr/0040-http-api-composition-and-token-validation.md), docs: [http-api.md](../reference/http-api.md), manual: [2026-11-03-http-api-host-run.md](evidence/2026-11-03-http-api-host-run.md) |
+| `REQ-ARC-001` | Layer references stay within Clean Architecture | WP1.1, WP1.6, WP1.7, WP1.8, WP1.10 | Covered | [ArchitectureRulesTests.cs](../../tests/Catalog.Architecture.Tests/ArchitectureRulesTests.cs), [AssemblyReferenceTests.cs](../../tests/Catalog.Architecture.Tests/AssemblyReferenceTests.cs), [ReferenceRulesTests.cs](../../tests/Catalog.Architecture.Tests/ReferenceRulesTests.cs) | docs: [http-api.md](../reference/http-api.md), manual: [2026-11-04-composition-root-review.md](evidence/2026-11-04-composition-root-review.md) |
+| `REQ-ARC-002` | Api is the only composition root | WP1.1, WP1.10 | Covered | [AppSettingsFilesTests.cs](../../tests/Catalog.Api.Tests/AppSettingsFilesTests.cs), [CompositionTests.cs](../../tests/Catalog.Api.Tests/CompositionTests.cs), [ConfigurationValidationTests.cs](../../tests/Catalog.Api.Tests/ConfigurationValidationTests.cs), and 4 more | docs: [0040-http-api-composition-and-token-validation.md](../adr/0040-http-api-composition-and-token-validation.md), docs: [http-api.md](../reference/http-api.md), manual: [2026-11-03-http-api-host-run.md](evidence/2026-11-03-http-api-host-run.md), manual: [2026-11-04-composition-root-review.md](evidence/2026-11-04-composition-root-review.md) |
 | `REQ-ARC-003` | Application ports are interface-segregated | WP1.7, WP1.8, WP1.9 | Covered | [IdGeneratorTests.cs](../../tests/Catalog.Application.Tests/IdGeneratorTests.cs), [ArchitectureRulesTests.cs](../../tests/Catalog.Architecture.Tests/ArchitectureRulesTests.cs), [RepositoryTests.cs](../../tests/Catalog.Infrastructure.Tests/RepositoryTests.cs) | None |
 | `REQ-ARC-004` | Endpoints depend on contracts and handler interfaces only | WP1.7, WP1.10 | Covered | [CompositionTests.cs](../../tests/Catalog.Api.Tests/CompositionTests.cs), [ArchitectureRulesTests.cs](../../tests/Catalog.Architecture.Tests/ArchitectureRulesTests.cs) | docs: [0041-http-endpoints-versioning-and-conditional-requests.md](../adr/0041-http-endpoints-versioning-and-conditional-requests.md), manual: [2026-11-04-http-api-endpoints-run.md](evidence/2026-11-04-http-api-endpoints-run.md) |
 | `REQ-ARC-005` | Handlers are sealed and state is not global | WP1.1, WP1.7 | Covered | [ArchitectureRulesTests.cs](../../tests/Catalog.Architecture.Tests/ArchitectureRulesTests.cs) | None |

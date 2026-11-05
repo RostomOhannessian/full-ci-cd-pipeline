@@ -39,8 +39,8 @@ requirements:
   - architecture
   - docs
   evidence: ArchUnitNET layer report and project graph
-  status: in_progress
-  notes: WP1.1 enforces the reference table and the type rules against fixtures. WP1.6 fills the Domain with the first production types, reads its assembly references from metadata to prove that it references the base class library only, and teaches the static-state rule that a constant is not mutable state. The Application, Infrastructure, CrossCutting, and Api layers fill in WP1.7, WP1.8, and WP1.10. The first pull request of WP1.7 gives the Application its first types, and the same rules judge them.
+  status: verified
+  notes: WP1.1 enforces the reference table and the type rules against fixtures. WP1.6 fills the Domain with the first production types, reads its assembly references from metadata to prove that it references the base class library only, and teaches the static-state rule that a constant is not mutable state. WP1.7, WP1.8, and WP1.10 fill the Application, Infrastructure, CrossCutting, and Api layers, and the same rules judge them, and they pass on the real assemblies, including the Api as the only composition root (ArchitectureRulesTests, AssemblyReferenceTests, ReferenceRulesTests, and the review of the composition root in docs/testing/evidence/2026-11-04-composition-root-review.md). The rule that keeps Catalog.Client from referencing a server project ran only against fixtures, because the project arrives with WP4.1, and it judges the project when it exists (checked 2026-11-04).
 - id: REQ-ARC-002
   title: Api is the only composition root
   statement: Only Catalog.Api may inject IServiceProvider or register dependency wiring, and no business logic may live in the composition root.
@@ -52,8 +52,8 @@ requirements:
   - architecture
   - manual
   evidence: composition-root review
-  status: in_progress
-  notes: The first pull request of WP1.10 makes Catalog.Api the composition root. CatalogComposition registers the persistence, the cache, the handlers, and the security, ServiceCollectionFeatureRegistry composes the chains, and the rule api-names-infrastructure-and-cross-cutting-only-in-its-composition-namespace fails on a violating fixture when an endpoint or a handler of the Api names an adapter (ADR-0040, ArchitectureRules). The review of the endpoints, which must hold no business logic, is recorded when the endpoints exist, in the second pull request (checked 2026-11-03).
+  status: verified
+  notes: The first pull request of WP1.10 makes Catalog.Api the composition root. CatalogComposition registers the persistence, the cache, the handlers, and the security, ServiceCollectionFeatureRegistry composes the chains, and the rule api-names-infrastructure-and-cross-cutting-only-in-its-composition-namespace fails on a violating fixture when an endpoint or a handler of the Api names an adapter (ADR-0040, ArchitectureRules). The rule no-service-locator-outside-the-composition-root keeps IServiceProvider out of every other project. The manual review of all 31 files of the Api at the merge of the third pull request found no business rule in the endpoints, the mapping, the HTTP helpers, the security, or the documentation parts, and it records two observations that the rules allow (docs/testing/evidence/2026-11-04-composition-root-review.md, checked 2026-11-04).
 - id: REQ-ARC-003
   title: Application ports are interface-segregated
   statement: Application ports are segregated by capability and include repositories, IUnitOfWork, ICatalogCache, IIdGenerator, ICurrentPrincipal, the outbox dispatcher, and telemetry abstractions so handlers depend only on the interfaces they use.
@@ -509,7 +509,7 @@ requirements:
   - performance
   evidence: Valkey-down chaos test and cache metrics
   status: in_progress
-  notes: The first pull request of WP1.9 delivers the circuit breakers, the metrics (the gauges of the two breakers, the counters of reads with a degraded flag, of removals, and of faults), and the proof that a read never fails because of the cache, with a shared cache that fails on every call. The second pull request delivers the Valkey-down test against a real server that stops and starts (CacheOutageTests show that reads and writes degrade to memory and the loader without an exception, that the gauges and the incomplete-removal counter report it, and that the node recovers by itself), a backplane that refuses the message while the shared cache works, and the retry of the outbox across an outage. The alerts are owed by WP1.11, the readiness check by WP1.10, and the performance proof by WP4.4.
+  notes: The first pull request of WP1.9 delivers the circuit breakers, the metrics (the gauges of the two breakers, the counters of reads with a degraded flag, of removals, and of faults), and the proof that a read never fails because of the cache, with a shared cache that fails on every call. The second pull request delivers the Valkey-down test against a real server that stops and starts (CacheOutageTests show that reads and writes degrade to memory and the loader without an exception, that the gauges and the incomplete-removal counter report it, and that the node recovers by itself), a backplane that refuses the message while the shared cache works, and the retry of the outbox across an outage. The alerts are owed by WP1.11 and the performance proof by WP4.4. The readiness check that stays green while the cache degrades is delivered by WP1.10, and HealthTests prove that a degraded cache is reported in a 200 answer and that a dead-letter outbox message makes readiness degraded while the probe stays green (ADR-0040, checked 2026-11-04).
 - id: REQ-SEC-001
   title: GitHub and repository content contain no stored secrets
   statement: The repository and its workflows store no secrets, gitleaks scans the full history and working tree, push protection and secret scanning stay enabled, and the blocking auditor allows only GITHUB_TOKEN and OIDC-based authentication in Actions.

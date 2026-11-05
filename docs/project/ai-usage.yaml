@@ -10,7 +10,7 @@
 # - An older record is never edited. A new session adds its own records.
 # - The ledger holds opaque session IDs and numbers only: no prompt text, no file paths, and no account names.
 schema-version: 1
-updated: 2026-11-03
+updated: 2026-11-04
 waivers:
   - phase: 0
     reason: "Phase 0 was built in one session before work packages were tracked one by one, so its usage is recorded at phase level. WP0.1 to WP0.7 have no records of their own."
@@ -80,6 +80,11 @@ changes:
     files: 85
     additions: 5657
     deletions: 111
+  - work-package: "WP1.10"
+    pull-requests: [46, 47, 48, 49]
+    files: 139
+    additions: 11768
+    deletions: 202
 records:
   - session: "e3240907-63f4-4ea8-90b3-b216afd27084"
     phase: 0
@@ -874,3 +879,63 @@ records:
         output-tokens: 342272
         peak-context-tokens: 708030
         model-seconds: 2346
+  - session: "78384335-e1dd-4e11-81ce-e58acbe25926"
+    phase: 1
+    work-package: "WP1.10"
+    activity: delivery
+    confidence: exact
+    window:
+      from: "2026-11-04T01:14:11.296Z"
+      to: "2026-11-04T05:52:12.156Z"
+    user-turns: 1
+    compactions: 2
+    note: "One session holds WP1.10 alone. Derived from the cloud store at the prices of 2026-10-12. A floor: the cloud events stop at 05:52Z, at a question to the maintainer, so the calls of the answer, the rest of the third pull request, and the close-out are missing, except the five calls of the next slice. Usage events and call successes agree at 565 for the whole session."
+    usage:
+      - model: claude-sonnet-5.5
+        source: derived
+        reasoning-effort: unknown
+        agent: main
+        request-multiplier: 1.0
+        calls: 560
+        aiu: 3557.496
+        prices:
+          fresh-input: 200
+          cache-read: 10
+          cache-write: 250
+          output: 1000
+        fresh-input-tokens: 1126
+        cache-read-tokens: 204292880
+        cache-write-tokens: 2948000
+        output-tokens: 777342
+        peak-context-tokens: 709100
+        model-seconds: 5129
+  - session: "78384335-e1dd-4e11-81ce-e58acbe25926"
+    phase: 1
+    work-package: "WP1.10"
+    activity: delivery
+    confidence: exact
+    window:
+      from: "2026-11-04T15:22:16.288Z"
+      to: "2026-11-04T15:29:27.888Z"
+    user-turns: 1
+    compactions: 0
+    note: "The same session, derived the same way, at the prices of 2026-10-12. Five calls that the cloud store holds while the third pull request was open. No user message falls in this window, and the schema needs one turn at least. The calls from 05:52Z to 15:22Z and every call after 15:29Z are not in the store yet and are owed as later slices."
+    usage:
+      - model: claude-sonnet-5.5
+        source: derived
+        reasoning-effort: unknown
+        agent: main
+        request-multiplier: 1.0
+        calls: 5
+        aiu: 94.627
+        prices:
+          fresh-input: 200
+          cache-read: 10
+          cache-write: 250
+          output: 1000
+        fresh-input-tokens: 10
+        cache-read-tokens: 1280744
+        cache-write-tokens: 322207
+        output-tokens: 1266
+        peak-context-tokens: 322209
+        model-seconds: 13

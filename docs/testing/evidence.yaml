@@ -214,7 +214,7 @@ entries:
     path: docs/adr/0040-http-api-composition-and-token-validation.md
     summary: ADR-0040 records the composition root and its one namespace for adapters, the validation of every section of settings, the token checks with the exact issuer and the algorithm allow-list, the keys that rotate and the key that is withdrawn, the policies, the one writer of errors, the limiter, the proxies, the two ports, and the health checks.
     recorded: '2026-11-03'
-  - requirements: [REQ-ARC-002, REQ-IDN-001, REQ-IDN-002]
+  - requirements: [REQ-ARC-002, REQ-ARC-001, REQ-IDN-001, REQ-IDN-002]
     kind: docs
     path: docs/reference/http-api.md
     summary: The reference page of the host and its endpoints lists the settings and their validators, the order of the middleware, the checks of the token, the policies, the error table, the headers, the limits, the proxies, the probes of the management port, the ten operations, the versions, the conditional requests, the idempotent creates, the pages, and the rules for bodies.
@@ -243,4 +243,9 @@ entries:
     kind: manual
     path: docs/testing/evidence/2026-11-04-http-api-conformance-run.md
     summary: The conformance check, the authorization matrix, the snapshots, and the realm tests ran on Windows with Docker Desktop and in the pinned Linux SDK image, with a real Keycloak 26.8.0 container started from the digest of compose.yaml. It records the structural equality that oasdiff found, the 640 combinations of scope and role, the snapshots, the claims of real tokens, the finding about Verify, and what ran where.
+    recorded: '2026-11-04'
+  - requirements: [REQ-ARC-002, REQ-ARC-001]
+    kind: manual
+    path: docs/testing/evidence/2026-11-04-composition-root-review.md
+    summary: The manual review of every file of src/Catalog.Api at the merge of the third pull request of WP1.10 found that only the Api registers services or resolves them, and no business rule in its endpoints, mapping, HTTP helpers, security, or documentation parts. It lists the method, the rules that hold each claim with their violating fixtures, and two observations that the rules allow.
     recorded: '2026-11-04'
