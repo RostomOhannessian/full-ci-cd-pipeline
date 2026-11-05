@@ -38,6 +38,8 @@ bin/
 obj/
 TestResults/
 testResults.xml
+# The snapshot helper of the API tests writes the received file of a snapshot that does not match, next to the verified one (ADR-0042).
+*.received.*
 coverage/
 *.trx
 *.user

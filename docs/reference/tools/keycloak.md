@@ -7,7 +7,7 @@ tools: [keycloak]
 introduced: "phase-1"
 prerequisites: ["Docker with at least 4 GB of memory for the stack", "The .NET SDK that global.json pins, because the dev command needs it", "Basic familiarity with OAuth 2.0 access tokens and JSON Web Tokens"]
 estimated-time: "45 minutes"
-last-verified: 2026-10-10
+last-verified: 2026-11-04
 verified-against: { keycloak: "26.8.0" }
 owner: "@RostomOhannessian"
 ---
@@ -34,11 +34,11 @@ Five concepts cover most of what you need:
 ```mermaid
 flowchart LR
   accTitle: Where Keycloak sits in the API-only stack
-  accDescr: The realm file in Git is imported into the catalog realm when Keycloak starts. A client asks the realm for an access token and receives one. The client sends the token to the catalog API, which is planned for WP1.7 and WP1.10. The API fetches Keycloak's public signing keys to check the token signature.
+  accDescr: The realm file in Git is imported into the catalog realm when Keycloak starts. A client asks the realm for an access token and receives one. The client sends the token to the catalog API, which validates it with WP1.7 and WP1.10 code. The API fetches Keycloak's public signing keys to check the token signature.
   FILE["catalog-realm.json in Git"] -->|imported at start| KC["Keycloak: catalog realm"]
   CLIENT["Client: smoke-tests, synthetic-shopper, or catalog-cli"] -->|1 token request| KC
   KC -->|2 signed access token| CLIENT
-  CLIENT -->|3 request with the token| API["Catalog API (planned)"]
+  CLIENT -->|3 request with the token| API["Catalog API"]
   API -->|4 fetch public keys| KC
 ```
 
@@ -46,7 +46,7 @@ flowchart LR
 prove that the user holds the matching role. On the running stack, a user with only the `catalog-reader` role asked for all three catalog scopes
 and received all three in the `scope` claim, while the `realm_access.roles` claim held only `catalog-reader` (verified 2026-10-10,
 [ADR-0026](../../adr/0026-api-only-compose-stack-and-catalog-realm.md)). The API must therefore check the role claim as well as the scope. That
-check is planned for WP1.7 and WP1.10. The plan is unchanged, and the maintainer decides whether plan section 8.7 needs a correction.
+check is delivered by WP1.7 and WP1.10. The plan is unchanged, and the maintainer decides whether plan section 8.7 needs a correction.
 
 ## Decision rationale
 
@@ -237,7 +237,7 @@ Two limits do hold. A client that has no optional scopes cannot ask for more tha
 `catalog.read catalog.write`. And the role claim is trustworthy, because it holds only roles that the user really has, cut down to the scopes that were requested.
 The Keycloak guide describes role scope mappings in the same terms: they limit the roles declared inside an access token (checked 2026-10-10, [guide](https://www.keycloak.org/docs/26.8.0/server_admin/index.html#_role_scope_mappings)).
 
-The API (planned for WP1.7 and WP1.10) therefore has to require both claims for each operation:
+The API (WP1.7 and WP1.10) therefore requires both claims for each operation (proven in WP1.10 by `AuthorizationMatrixTests` and `KeycloakRealmContractTests`, [ADR-0042](../../adr/0042-served-contract-conformance-and-snapshots.md)):
 
 | Operation | `scope` must contain | `realm_access.roles` must contain |
 | --- | --- | --- |
@@ -250,7 +250,7 @@ with the same scopes, mappers, and role scope mappings as a real login. The real
 
 ### What comes later
 
-- **WP1.10** adds `Catalog.Identity.ContractTests`, which import this realm file into a Keycloak Testcontainer, and the API's policies that require the role and the scope.
+- **WP1.10** (2026-11-04) added `KeycloakRealmContractTests` to `Catalog.Api.Tests`, and not the project `Catalog.Identity.ContractTests` that plan sections 7 and 8.7 name. They import this realm file into a Keycloak Testcontainer with random secrets, read the discovery document, the keys, the audience, the scopes, and the roles of real tokens of the two service-account clients, and send those tokens to the real API. The policies of the API that require the role and the scope are in [the HTTP API page](../http-api.md#endpoint-policies).
 - **WP3.5** adds the `platform` realm for human operators and reconciles both realm files in the cluster with `keycloak-config-cli`.
 - **Phase 3** moves Keycloak's data to the shared SQL Server and changes the issuer to `https://id.catalog.localtest.me:8443/realms/<realm>`. Compose keeps its one fixed `localhost` issuer.
 

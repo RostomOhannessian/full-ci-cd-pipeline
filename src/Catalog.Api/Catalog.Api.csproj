@@ -15,6 +15,15 @@
     <PackageReference Include="Asp.Versioning.Http" />
   </ItemGroup>
 
+  <!-- The served OpenAPI document and its viewer (REQ-CON-002, ADR-0042). Microsoft.OpenApi reads the embedded copy of the authored contract, and Scalar.AspNetCore serves the viewer in the Development environment only.
+       All three packages are MIT licensed. The authored file is embedded, so the host needs no file next to it, and a change to the contract rebuilds the project. -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.OpenApi" />
+    <PackageReference Include="Microsoft.OpenApi.YamlReader" />
+    <PackageReference Include="Scalar.AspNetCore" />
+    <EmbeddedResource Include="..\..\contracts\openapi\catalog\v1\catalog.openapi.yaml" LogicalName="catalog.openapi.yaml" />
+  </ItemGroup>
+
   <!-- The integration tests read the internal types of the host, such as the options validators and the claims reader, and the contract tests compare the error table of the API with the catalog. -->
   <ItemGroup>
     <InternalsVisibleTo Include="Catalog.Api.Tests" />

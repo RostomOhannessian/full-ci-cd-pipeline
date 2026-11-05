@@ -1,4 +1,5 @@
 using Catalog.Api.Composition;
+using Catalog.Api.Documentation;
 using Catalog.Api.Endpoints;
 using Catalog.Api.Http;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -32,6 +33,7 @@ internal static class CatalogPipeline
 
         app.MapHealthEndpoints();
         app.MapCatalogEndpoints();
+        app.MapDevelopmentDocumentation();
 
         return app;
     }

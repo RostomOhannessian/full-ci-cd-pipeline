@@ -1,4 +1,5 @@
 using Catalog.Api.Configuration;
+using Catalog.Api.Documentation;
 using Catalog.Api.Http;
 using Catalog.Api.Mapping;
 using Catalog.Api.Security;
@@ -15,17 +16,24 @@ namespace Catalog.Api.Endpoints;
 /// </summary>
 internal static class ProductEndpoints
 {
+    private const string Tag = "Products";
+
     /// <summary>Maps the operations under <c>/products</c> of the version group.</summary>
     /// <param name="api">The group of the version.</param>
     public static void MapProductEndpoints(this RouteGroupBuilder api)
     {
-        var products = api.MapGroup("/products").WithTags("Products");
+        var products = api.MapGroup("/products").WithTags(Tag);
 
-        products.MapGet(string.Empty, ListAsync).WithName("listProducts").RequireAccessOf<ListProducts>();
-        products.MapPost(string.Empty, CreateAsync).WithName("createProduct").RequireAccessOf<CreateProduct>();
-        products.MapGet("/{productId}", GetAsync).WithName("getProduct").RequireAccessOf<GetProduct>();
-        products.MapPut("/{productId}", UpdateAsync).WithName("updateProduct").RequireAccessOf<UpdateProduct>();
-        products.MapPost("/{productId}/discontinue", DiscontinueAsync).WithName("discontinueProduct").RequireAccessOf<DiscontinueProduct>();
+        products.MapGet(string.Empty, ListAsync).WithName("listProducts").RequireAccessOf<ListProducts>()
+            .WithContract(new ContractOperation(Tag, "ProductPage", Parameters: ["CategoryFilter", "ProductStatusFilter", "SearchText", "Sort", "PageSize", "Cursor"]));
+        products.MapPost(string.Empty, CreateAsync).WithName("createProduct").RequireAccessOf<CreateProduct>()
+            .WithContract(new ContractOperation(Tag, "Product", StatusCodes.Status201Created, Parameters: ["IdempotencyKey"], RequestSchema: "ProductCreate", ConflictResponse: "ProductCreateConflict"));
+        products.MapGet("/{productId}", GetAsync).WithName("getProduct").RequireAccessOf<GetProduct>()
+            .WithContract(new ContractOperation(Tag, "Product", PathParameter: "ProductId", Parameters: ["IfNoneMatch"]));
+        products.MapPut("/{productId}", UpdateAsync).WithName("updateProduct").RequireAccessOf<UpdateProduct>()
+            .WithContract(new ContractOperation(Tag, "Product", PathParameter: "ProductId", Parameters: ["IfMatch"], RequestSchema: "ProductUpdate", ConflictResponse: "ProductDiscontinuedConflict"));
+        products.MapPost("/{productId}/discontinue", DiscontinueAsync).WithName("discontinueProduct").RequireAccessOf<DiscontinueProduct>()
+            .WithContract(new ContractOperation(Tag, "Product", PathParameter: "ProductId", Parameters: ["IfMatch"]));
     }
 
     private static async Task<IResult> ListAsync(HttpContext http, IQueryHandler<ListProducts, Page<ProductView>> handler, CancellationToken cancellationToken)

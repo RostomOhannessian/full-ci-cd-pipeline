@@ -1,0 +1,115 @@
+{
+  "not-found": {
+    "status": 404,
+    "contentType": "application/problem+json",
+    "headers": {
+      "api-supported-versions": "1.0"
+    },
+    "body": {
+      "type": "https://rostomohannessian.github.io/full-ci-cd-pipeline/reference/error-catalog.html#not-found",
+      "title": "The resource was not found.",
+      "status": 404,
+      "detail": "The product was not found.",
+      "instance": "/api/v1/products/{uuid}",
+      "traceId": "Scrubbed"
+    }
+  },
+  "validation-failed": {
+    "status": 400,
+    "contentType": "application/problem+json",
+    "headers": {
+      "api-supported-versions": "1.0"
+    },
+    "body": {
+      "errors": {
+        "name": [
+          "The name must have between 1 and 200 characters."
+        ],
+        "price.amount": [
+          "The amount must have at most 2 decimal places for USD."
+        ]
+      },
+      "type": "https://rostomohannessian.github.io/full-ci-cd-pipeline/reference/error-catalog.html#validation-failed",
+      "title": "One or more validation errors occurred.",
+      "status": 400,
+      "detail": "One or more fields are not valid. The errors member lists each one.",
+      "instance": "/api/v1/products",
+      "traceId": "Scrubbed"
+    }
+  },
+  "sku-already-exists": {
+    "status": 409,
+    "contentType": "application/problem+json",
+    "headers": {
+      "api-supported-versions": "1.0"
+    },
+    "body": {
+      "type": "https://rostomohannessian.github.io/full-ci-cd-pipeline/reference/error-catalog.html#sku-already-exists",
+      "title": "The SKU is already in use.",
+      "status": 409,
+      "detail": "Another product already uses this SKU.",
+      "instance": "/api/v1/products",
+      "traceId": "Scrubbed"
+    }
+  },
+  "product-discontinued": {
+    "status": 409,
+    "contentType": "application/problem+json",
+    "headers": {
+      "api-supported-versions": "1.0"
+    },
+    "body": {
+      "type": "https://rostomohannessian.github.io/full-ci-cd-pipeline/reference/error-catalog.html#product-discontinued",
+      "title": "A discontinued product cannot change its price or category.",
+      "status": 409,
+      "detail": "A discontinued product cannot change its price or its category.",
+      "instance": "/api/v1/products/{uuid}",
+      "traceId": "Scrubbed"
+    }
+  },
+  "precondition-failed": {
+    "status": 412,
+    "contentType": "application/problem+json",
+    "headers": {
+      "api-supported-versions": "1.0"
+    },
+    "body": {
+      "type": "https://rostomohannessian.github.io/full-ci-cd-pipeline/reference/error-catalog.html#precondition-failed",
+      "title": "The resource has changed.",
+      "status": 412,
+      "detail": "The If-Match value is not the current ETag of the resource. Read the resource again, then retry.",
+      "instance": "/api/v1/products/{uuid}/discontinue",
+      "traceId": "Scrubbed"
+    }
+  },
+  "precondition-required": {
+    "status": 428,
+    "contentType": "application/problem+json",
+    "headers": {
+      "api-supported-versions": "1.0"
+    },
+    "body": {
+      "type": "https://rostomohannessian.github.io/full-ci-cd-pipeline/reference/error-catalog.html#precondition-required",
+      "title": "An If-Match header is required.",
+      "status": 428,
+      "detail": "Send an If-Match header with the ETag of the resource.",
+      "instance": "/api/v1/products/{uuid}/discontinue",
+      "traceId": "Scrubbed"
+    }
+  },
+  "idempotency-key-reused": {
+    "status": 422,
+    "contentType": "application/problem+json",
+    "headers": {
+      "api-supported-versions": "1.0"
+    },
+    "body": {
+      "type": "https://rostomohannessian.github.io/full-ci-cd-pipeline/reference/error-catalog.html#idempotency-key-reused",
+      "title": "The Idempotency-Key was used with a different request.",
+      "status": 422,
+      "detail": "This Idempotency-Key was already used with a request that is not the same as this one.",
+      "instance": "/api/v1/products",
+      "traceId": "Scrubbed"
+    }
+  }
+}

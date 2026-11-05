@@ -1,0 +1,16 @@
+{
+  "status": 429,
+  "contentType": "application/problem+json",
+  "headers": {
+    "Retry-After": "60",
+    "api-supported-versions": "1.0"
+  },
+  "body": {
+    "type": "https://rostomohannessian.github.io/full-ci-cd-pipeline/reference/error-catalog.html#rate-limited",
+    "title": "Too many requests.",
+    "status": 429,
+    "detail": "The caller sent more requests than the limit allows. Wait for the time in Retry-After, then continue at a lower rate.",
+    "instance": "/api/v1/categories/not-a-uuid",
+    "traceId": "Scrubbed"
+  }
+}

@@ -66,6 +66,7 @@ The rules for writing them are in [ADR-0001](0001-record-architecture-decisions.
 | [0039](0039-cache-invalidation-by-immediate-dispatch-and-the-outbox.md) | Invalidate the cache by an immediate in-process delivery and an outbox handler that share one policy | accepted | Accepted 2026-11-03 in WP1.9 |
 | [0040](0040-http-api-composition-and-token-validation.md) | Compose the API in one root with a fixed middleware order, two ports, and token validation that fixes the algorithms | accepted | Accepted 2026-11-03 in WP1.10 |
 | [0041](0041-http-endpoints-versioning-and-conditional-requests.md) | Serve the version 1 operations with thin endpoints, a strict body reader, conditional requests, and idempotent creates | accepted | Accepted 2026-11-04 in WP1.10 |
+| [0042](0042-served-contract-conformance-and-snapshots.md) | Generate the served contract from the endpoints, check it with oasdiff, and keep the snapshots in the repository | accepted | Accepted 2026-11-04 in WP1.10 |
 
 The evidence behind these decisions is in the [research records](../research/README.md). The plan that ties them together is
 [the implementation plan](../plans/implementation-plan.md).

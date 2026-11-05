@@ -87,7 +87,14 @@
     <PackageVersion Include="Asp.Versioning.Http" Version="10.2.3" />
   </ItemGroup>
 
-  <!-- Catalog.Api.Tests (WP1.10, ADR-0040). The test host of ASP.NET Core is MIT licensed (checked 2026-11-03), and it starts the real composition root in process. -->
+  <!-- Catalog.Api (WP1.10, ADR-0042). Scalar.AspNetCore serves the dev-only viewer of the contract. It is MIT licensed (the license expression of its nuspec, checked 2026-11-04), 2.18.7 is its newest release (checked 2026-11-04),
+       and it has no dependency on net10.0 besides the shared framework of ASP.NET Core. -->
+  <ItemGroup>
+    <PackageVersion Include="Scalar.AspNetCore" Version="2.18.7" />
+  </ItemGroup>
+
+  <!-- Catalog.Api.Tests (WP1.10, ADR-0040). The test host of ASP.NET Core is MIT licensed (checked 2026-11-03), and it starts the real composition root in process. The snapshots of the API tests are
+       compared by a helper in the test project and not by Verify, because Verify.XunitV3 from 33.0.0 fails the build unless the owner declares a sponsorship or an exemption (ADR-0042, checked 2026-11-04). -->
   <ItemGroup>
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.14" />
   </ItemGroup>

@@ -1,9 +1,9 @@
 ---
 title: "HTTP API"
-description: "How the catalog API starts, protects itself, and serves the operations of the version 1 contract: the composition root, the order of the middleware, the two ports, the settings, the token validation, the endpoint policies, the limits, the security headers, the errors, the endpoints with their versioning, conditional requests, idempotent creates, and pages, the probes, and how it is tested."
+description: "How the catalog API starts, protects itself, and serves the operations of the version 1 contract: the composition root, the order of the middleware, the two ports, the settings, the token validation, the endpoint policies, the limits, the security headers, the errors, the endpoints with their versioning, conditional requests, idempotent creates, and pages, the served document and the dev-only viewer, the probes, and how it is tested."
 audience: [learners, contributors, maintainers]
 type: reference
-tools: [aspnet-core, asp-versioning, microsoft-aspnetcore-authentication-jwtbearer, microsoft-extensions-diagnostics-healthchecks-abstractions, microsoft-aspnetcore-mvc-testing, keycloak]
+tools: [aspnet-core, asp-versioning, microsoft-aspnetcore-authentication-jwtbearer, microsoft-extensions-diagnostics-healthchecks-abstractions, microsoft-aspnetcore-mvc-testing, keycloak, scalar, oasdiff, microsoft-openapi]
 last-verified: 2026-11-04
 owner: "@RostomOhannessian"
 ---
@@ -11,8 +11,7 @@ owner: "@RostomOhannessian"
 # HTTP API
 
 The HTTP API is the project [`src/Catalog.Api`](../../src/Catalog.Api/Catalog.Api.csproj). It is the composition root of the catalog: it registers every adapter of the persistence layer, the cache, and the application layer, it holds the middleware that every request passes, and it serves the ten operations of the contract
-([ADR-0040](../adr/0040-http-api-composition-and-token-validation.md), [ADR-0041](../adr/0041-http-endpoints-versioning-and-conditional-requests.md), plan sections 8.1, 8.6, 8.7, 8.9, and 9). This page describes what exists today. The conformance check against [the API contract](api-contract.md), the snapshots, the authorization matrix over the endpoints, the realm tests, and the
-viewer arrive in the third pull request of WP1.10 (planned).
+([ADR-0040](../adr/0040-http-api-composition-and-token-validation.md), [ADR-0041](../adr/0041-http-endpoints-versioning-and-conditional-requests.md), [ADR-0042](../adr/0042-served-contract-conformance-and-snapshots.md), plan sections 8.1, 8.6, 8.7, 8.9, and 9). This page describes what exists today.
 
 ## The composition
 
@@ -205,22 +204,34 @@ The endpoints are on the management port and are not routed by the gateway. The 
 
 No text of an exception, no connection string, no user name, and no credential is in a report or in a log line, and the writer replaces the description of a check that threw.
 
+## The served document and the viewer
+
+The host generates its own OpenAPI document, and CI compares it with [the authored contract](api-contract.md) ([ADR-0042](../adr/0042-served-contract-conformance-and-snapshots.md)). Each of the ten endpoints carries a `ContractOperation` (`WithContract`): its tag, the schema of its success response, the shared parameters, the schema of its body, and its 409 response.
+[`ServedContract`](../../src/Catalog.Api/Documentation/ServedContract.cs) then takes the path, the method, the operation identifier, and the scope from the endpoint table, derives the refusals from what the operation accepts (a path identifier gives a 404, a precondition header a 412 and a 428, a body a 413 and a 415, an idempotency key a 422 and a 409), and keeps
+the information, the servers, the tags, the security, and every shared schema, parameter, header, and response from the copy of the authored file that the assembly embeds. `TransportAgreementTests` compare the records of `Catalog.Contracts.V1` with those schemas.
+
+| Where | What |
+| --- | --- |
+| `TestResults/served/catalog.openapi.json` | The document that `ServedContractTests` write. The `ci` workflow runs `tools/ci/Test-ContractConformance.ps1 -Served` on it, blocking, and the documents must be structurally equal after descriptions, examples, and summaries are ignored |
+| `GET /openapi/v1.json` and `/scalar/v1` | The document and the [Scalar](tools/scalar.md) viewer. Only the Development environment registers them, with a content policy of its own for `/scalar`, and a Production host answers 404 for `/openapi/v1.json`, `/scalar`, and `/scalar/v1` |
+
 ## Telemetry until WP1.11
 
 `LoggingUseCaseTelemetry` implements `IUseCaseTelemetry` with one structured log line for each outcome of a use case, with the name of the use case and the kind of refusal. WP1.11 replaces it with an adapter over an activity source and a meter, and the registration is the one line that changes.
 
 ## Run it against the Compose stack
 
-Start the stack, apply the migrations with the bundle of [the runbook](../runbooks/database-migration.md), and set the two passwords from `.env`:
+Start the stack, apply the migrations with the bundle of [the runbook](../runbooks/database-migration.md), and set the two passwords from `.env` and the Development environment, which `appsettings.Development.json` needs for the addresses of the stack and which registers the viewer:
 
 ```bash illustrative
 ./dev compose up
+export ASPNETCORE_ENVIRONMENT=Development
 export Catalog__Database__Password="<MSSQL_SA_PASSWORD from .env>"
 export Catalog__Valkey__Password="<VALKEY_APP_PASSWORD from .env>"
 dotnet run --project src/Catalog.Api
 ```
 
-The API listens on `127.0.0.1:8080`, and the probes answer on `127.0.0.1:8081`. A token comes from the `catalog` realm of the stack ([Keycloak](tools/keycloak.md)).
+The API listens on `127.0.0.1:8080`, and the probes answer on `127.0.0.1:8081`. A token comes from the `catalog` realm of the stack ([Keycloak](tools/keycloak.md)). The viewer is at `http://127.0.0.1:8080/scalar/v1`.
 
 ## How it is tested
 
@@ -232,5 +243,9 @@ Each test names the requirement that it proves, and `governance trace` reads the
 - `HealthTests` starts real sockets and a real SQL Server 2022 container from the digest of `compose.yaml`, and proves the probes, the two ports, and that no secret reaches an answer or a log (REQ-QUA-001, REQ-CACHE-003).
 - `CategoryEndpointTests` and `ProductEndpointTests` run every operation against a real SQL Server 2022 container and a real Valkey 8.1 container, with a database and a cache environment of their own for each class: the headers, the conditional requests, the idempotent creates, the filters, and the pages (REQ-API-001, REQ-API-003, REQ-API-004, REQ-API-005).
 - `RequestBodyTests` and `VersioningTests` prove the strict and bounded reading of a body and the version headers, and they need no database (REQ-API-006, REQ-API-002).
+- `ServedContractTests` write the served document for the oasdiff check, show the operations and their scopes, and prove that the viewer and the document exist in Development only (REQ-CON-002). `TransportAgreementTests` compare each transport record with its schema in the contract (REQ-CON-002, REQ-API-001).
+- `AuthorizationMatrixTests` read the scope of each operation from the authored contract and send all 64 combinations of scope and role to each of the ten operations, against a ladder of roles that the test writes apart from the permission table, and they check the 401 cases (REQ-IDN-002).
+- `KeycloakRealmContractTests` start the pinned Keycloak 26.8.0 image from `compose.yaml` with the realm file, and prove the issuer, the keys, the audience, the scopes, and the roles of real tokens, and that the real API accepts them and refuses a tampered token and a token of another issuer (REQ-IDN-001, REQ-IDN-005).
+- `SnapshotTests` compare the error bodies, the 429 answer, the use-case refusals, and the generated paths with the files in `tests/Catalog.Api.Tests/Snapshots`. The helper `Snapshot` replaces the trace identifier and writes a `.received.json` next to the file on a difference. `SNAPSHOT_ACCEPT=1` accepts a change outside CI, and a person reads the diff of the `.verified.json` files in the review. Verify is not used (ADR-0042, [the tool inventory](tools/inventory.yaml)).
 - The token handler reads the system clock and has no `TimeProvider`, so the tests build tokens from the clock of the machine, and every boundary keeps a margin of one second on each side.
 - `tests/Catalog.Architecture.Tests` holds the rule that keeps the adapters in the composition namespace, and `tests/Catalog.Contract.Tests/ApiAgreementTests.cs` compares the error table of the API with the error catalog.
